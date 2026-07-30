@@ -5,7 +5,6 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LawyerCard } from "@/components/common/lawyer-card";
 import { EmptyState, LoadingRows } from "@/components/common/bits";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { lawyersQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";

@@ -302,10 +302,23 @@ function ReviewForm({ lawyerId }: { lawyerId: string }) {
   return (
     <form onSubmit={submit} className="mt-6 rounded-lg border border-border bg-card p-5">
       <p className="font-display font-semibold">Leave a review</p>
-      <div className="mt-3 flex gap-1">
+      <button type="button" className="mt-3 flex gap-1" aria-hidden="true" tabIndex={-1}>
+        <Stars value={rating} />
+      </button>
+      <div className="mt-2 flex gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" onClick={() => setRating(n)} aria-label={`${n} stars`}>
-            <Stars value={n <= rating ? 5 : 0} className="w-auto" />
+          <button
+            key={n}
+            type="button"
+            onClick={() => setRating(n)}
+            aria-label={`Rate ${n} out of 5`}
+            className={
+              n === rating
+                ? "h-7 w-7 rounded-md bg-brass/20 text-xs font-semibold"
+                : "h-7 w-7 rounded-md text-xs text-muted-foreground hover:bg-secondary"
+            }
+          >
+            {n}
           </button>
         ))}
       </div>
