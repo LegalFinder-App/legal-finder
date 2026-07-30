@@ -14,6 +14,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as JudgementsRouteImport } from './routes/judgements'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as StationsRouteImport } from './routes/stations'
+import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as AdviceIndexRouteImport } from './routes/advice.index'
 import { Route as AdviceSlugRouteImport } from './routes/advice.$slug'
 import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
@@ -44,6 +46,16 @@ const LibraryRoute = LibraryRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StationsRoute = StationsRouteImport.update({
+  id: '/stations',
+  path: '/stations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WantedRoute = WantedRouteImport.update({
+  id: '/wanted',
+  path: '/wanted',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdviceIndexRoute = AdviceIndexRouteImport.update({
@@ -83,6 +95,8 @@ export interface FileRoutesByFullPath {
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/stations': typeof StationsRoute
+  '/wanted': typeof WantedRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -96,6 +110,8 @@ export interface FileRoutesByTo {
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/stations': typeof StationsRoute
+  '/wanted': typeof WantedRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -110,6 +126,8 @@ export interface FileRoutesById {
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/stations': typeof StationsRoute
+  '/wanted': typeof WantedRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -125,6 +143,8 @@ export interface FileRouteTypes {
     | '/judgements'
     | '/library'
     | '/reset-password'
+    | '/stations'
+    | '/wanted'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -138,6 +158,8 @@ export interface FileRouteTypes {
     | '/judgements'
     | '/library'
     | '/reset-password'
+    | '/stations'
+    | '/wanted'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -151,6 +173,8 @@ export interface FileRouteTypes {
     | '/judgements'
     | '/library'
     | '/reset-password'
+    | '/stations'
+    | '/wanted'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -165,6 +189,8 @@ export interface RootRouteChildren {
   JudgementsRoute: typeof JudgementsRoute
   LibraryRoute: typeof LibraryRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  StationsRoute: typeof StationsRoute
+  WantedRoute: typeof WantedRoute
   AdviceSlugRoute: typeof AdviceSlugRoute
   LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
   NewsSlugRoute: typeof NewsSlugRoute
@@ -208,6 +234,20 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stations': {
+      id: '/stations'
+      path: '/stations'
+      fullPath: '/stations'
+      preLoaderRoute: typeof StationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wanted': {
+      id: '/wanted'
+      path: '/wanted'
+      fullPath: '/wanted'
+      preLoaderRoute: typeof WantedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/advice/': {
@@ -261,6 +301,8 @@ const rootRouteChildren: RootRouteChildren = {
   JudgementsRoute: JudgementsRoute,
   LibraryRoute: LibraryRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  StationsRoute: StationsRoute,
+  WantedRoute: WantedRoute,
   AdviceSlugRoute: AdviceSlugRoute,
   LawyersLawyerIdRoute: LawyersLawyerIdRoute,
   NewsSlugRoute: NewsSlugRoute,
