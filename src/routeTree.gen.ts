@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AdviceIndexRouteImport } from './routes/advice.index'
+import { Route as AdviceSlugRouteImport } from './routes/advice.$slug'
 import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
 import { Route as LawyersLawyerIdRouteImport } from './routes/lawyers.$lawyerId'
 
@@ -30,6 +32,16 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdviceIndexRoute = AdviceIndexRouteImport.update({
+  id: '/advice/',
+  path: '/advice/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdviceSlugRoute = AdviceSlugRouteImport.update({
+  id: '/advice/$slug',
+  path: '/advice/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LawyersIndexRoute = LawyersIndexRouteImport.update({
   id: '/lawyers/',
   path: '/lawyers/',
@@ -45,14 +57,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
+  '/advice/': typeof AdviceIndexRoute
   '/lawyers/': typeof LawyersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
+  '/advice': typeof AdviceIndexRoute
   '/lawyers': typeof LawyersIndexRoute
 }
 export interface FileRoutesById {
@@ -60,21 +76,38 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
+  '/advice/': typeof AdviceIndexRoute
   '/lawyers/': typeof LawyersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/reset-password' | '/lawyers/$lawyerId' | '/lawyers/'
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/advice/$slug'
+    | '/lawyers/$lawyerId'
+    | '/advice/'
+    | '/lawyers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/reset-password' | '/lawyers/$lawyerId' | '/lawyers'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/advice/$slug'
+    | '/lawyers/$lawyerId'
+    | '/advice'
+    | '/lawyers'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/advice/$slug'
     | '/lawyers/$lawyerId'
+    | '/advice/'
     | '/lawyers/'
   fileRoutesById: FileRoutesById
 }
@@ -82,7 +115,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  AdviceSlugRoute: typeof AdviceSlugRoute
   LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
+  AdviceIndexRoute: typeof AdviceIndexRoute
   LawyersIndexRoute: typeof LawyersIndexRoute
 }
 
@@ -109,6 +144,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/advice/': {
+      id: '/advice/'
+      path: '/advice'
+      fullPath: '/advice/'
+      preLoaderRoute: typeof AdviceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advice/$slug': {
+      id: '/advice/$slug'
+      path: '/advice/$slug'
+      fullPath: '/advice/$slug'
+      preLoaderRoute: typeof AdviceSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lawyers/': {
       id: '/lawyers/'
       path: '/lawyers'
@@ -130,7 +179,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  AdviceSlugRoute: AdviceSlugRoute,
   LawyersLawyerIdRoute: LawyersLawyerIdRoute,
+  AdviceIndexRoute: AdviceIndexRoute,
   LawyersIndexRoute: LawyersIndexRoute,
 }
 export const routeTree = rootRouteImport
