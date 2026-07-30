@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -20,6 +21,13 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StationsRouteImport } from './routes/stations'
 import { Route as WantedRouteImport } from './routes/wanted'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedBenchRouteImport } from './routes/_authenticated/bench'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
+import { Route as AuthenticatedPracticeRouteImport } from './routes/_authenticated/practice'
+import { Route as AuthenticatedPrecinctRouteImport } from './routes/_authenticated/precinct'
 import { Route as AdviceIndexRouteImport } from './routes/advice.index'
 import { Route as AdviceSlugRouteImport } from './routes/advice.$slug'
 import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
@@ -30,6 +38,10 @@ import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -82,6 +94,41 @@ const WantedRoute = WantedRouteImport.update({
   path: '/wanted',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBenchRoute = AuthenticatedBenchRouteImport.update({
+  id: '/bench',
+  path: '/bench',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPracticeRoute = AuthenticatedPracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPrecinctRoute = AuthenticatedPrecinctRouteImport.update({
+  id: '/precinct',
+  path: '/precinct',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AdviceIndexRoute = AdviceIndexRouteImport.update({
   id: '/advice/',
   path: '/advice/',
@@ -125,6 +172,13 @@ export interface FileRoutesByFullPath {
   '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/bench': typeof AuthenticatedBenchRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/messages': typeof AuthenticatedMessagesRoute
+  '/practice': typeof AuthenticatedPracticeRoute
+  '/precinct': typeof AuthenticatedPrecinctRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -144,6 +198,13 @@ export interface FileRoutesByTo {
   '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/bench': typeof AuthenticatedBenchRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/messages': typeof AuthenticatedMessagesRoute
+  '/practice': typeof AuthenticatedPracticeRoute
+  '/precinct': typeof AuthenticatedPrecinctRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -154,6 +215,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -164,6 +226,13 @@ export interface FileRoutesById {
   '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
+  '/_authenticated/bench': typeof AuthenticatedBenchRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/messages': typeof AuthenticatedMessagesRoute
+  '/_authenticated/practice': typeof AuthenticatedPracticeRoute
+  '/_authenticated/precinct': typeof AuthenticatedPrecinctRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -185,6 +254,13 @@ export interface FileRouteTypes {
     | '/safety'
     | '/stations'
     | '/wanted'
+    | '/admin'
+    | '/assistant'
+    | '/bench'
+    | '/dashboard'
+    | '/messages'
+    | '/practice'
+    | '/precinct'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -204,6 +280,13 @@ export interface FileRouteTypes {
     | '/safety'
     | '/stations'
     | '/wanted'
+    | '/admin'
+    | '/assistant'
+    | '/bench'
+    | '/dashboard'
+    | '/messages'
+    | '/practice'
+    | '/precinct'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -213,6 +296,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/about'
     | '/auth'
     | '/contact'
@@ -223,6 +307,13 @@ export interface FileRouteTypes {
     | '/safety'
     | '/stations'
     | '/wanted'
+    | '/_authenticated/admin'
+    | '/_authenticated/assistant'
+    | '/_authenticated/bench'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/messages'
+    | '/_authenticated/practice'
+    | '/_authenticated/precinct'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -233,6 +324,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
@@ -258,6 +350,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -330,6 +429,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WantedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bench': {
+      id: '/_authenticated/bench'
+      path: '/bench'
+      fullPath: '/bench'
+      preLoaderRoute: typeof AuthenticatedBenchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/practice': {
+      id: '/_authenticated/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof AuthenticatedPracticeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/precinct': {
+      id: '/_authenticated/precinct'
+      path: '/precinct'
+      fullPath: '/precinct'
+      preLoaderRoute: typeof AuthenticatedPrecinctRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/advice/': {
       id: '/advice/'
       path: '/advice'
@@ -375,8 +523,32 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
+  AuthenticatedBenchRoute: typeof AuthenticatedBenchRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
+  AuthenticatedPracticeRoute: typeof AuthenticatedPracticeRoute
+  AuthenticatedPrecinctRoute: typeof AuthenticatedPrecinctRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
+  AuthenticatedBenchRoute: AuthenticatedBenchRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
+  AuthenticatedPracticeRoute: AuthenticatedPracticeRoute,
+  AuthenticatedPrecinctRoute: AuthenticatedPrecinctRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
