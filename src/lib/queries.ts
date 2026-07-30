@@ -1,7 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { AppDatabase } from "@/integrations/supabase/app-database";
 
-function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
+export function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
 }
@@ -264,6 +265,19 @@ export const notificationsQuery = (userId: string | undefined) =>
       ),
   });
 
+export const pushSubscriptionsQuery = (userId: string | undefined) =>
+  queryOptions({
+    queryKey: ["push-subscriptions", userId],
+    enabled: Boolean(userId),
+    queryFn: async () =>
+      unwrap(
+        await supabase
+          .from("push_subscriptions")
+          .select("*")
+          .order("created_at", { ascending: false }),
+      ),
+  });
+
 export const incidentReportsQuery = queryOptions({
   queryKey: ["incident-reports"],
   queryFn: async () =>
@@ -271,3 +285,19 @@ export const incidentReportsQuery = queryOptions({
       await supabase.from("incident_reports").select("*").order("created_at", { ascending: false }),
     ),
 });
+
+export type AuditLog = AppDatabase["public"]["Tables"]["audit_logs"]["Row"];
+
+export const auditLogsQuery = (userId: string | undefined) =>
+  queryOptions({
+    queryKey: ["audit-logs", userId],
+    enabled: Boolean(userId),
+    queryFn: async () =>
+      unwrap(
+        await supabase
+          .from("audit_logs")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ),
+  });

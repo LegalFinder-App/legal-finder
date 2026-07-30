@@ -16,6 +16,7 @@ import { PublicLayout } from "@/components/site/public-layout";
 import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
+import { PlatformMatrix } from "@/components/app/platform-matrix";
 import { lawyersQuery, adviceListQuery, newsListQuery, quotesQuery } from "@/lib/queries";
 import heroImage from "@/assets/hero-justice.jpg";
 import courthouse from "@/assets/courthouse.jpg";
@@ -280,6 +281,10 @@ function Index() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+        <PlatformMatrix />
       </section>
 
       {/* CTA */}

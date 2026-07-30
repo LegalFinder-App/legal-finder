@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Briefcase, CalendarDays, FileText, Gavel, ShieldAlert, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { StatCard, StatusPill, EmptyState, LoadingRows } from "@/components/common/bits";
 import { useSession, ROLE_LABELS } from "@/lib/session";
 import {
@@ -9,8 +10,18 @@ import {
   conversationsQuery,
   incidentReportsQuery,
   judgementsQuery,
-  lawyersQuery,
+  notificationsQuery,
+  pushSubscriptionsQuery,
 } from "@/lib/queries";
+import { requestBrowserNotificationPermission } from "@/lib/platform-notifications";
+import {
+  subscribeBrowserPush,
+  unsubscribeBrowserPush,
+} from "@/lib/platform-notifications";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { LiveCourtroomPanel } from "@/components/app/live-courtroom-panel";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 export function WorkspacePage({ surface, title }: { surface: string; title: string }) {
   const { user, primaryRole } = useSession();
@@ -18,9 +29,46 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
   const appts = useQuery(appointmentsQuery(user?.id));
   const docs = useQuery(documentsQuery(user?.id));
   const convos = useQuery(conversationsQuery(user?.id));
+  const notifications = useQuery(notificationsQuery(user?.id));
+  const pushSubscriptions = useQuery(pushSubscriptionsQuery(user?.id));
   const reports = useQuery({ ...incidentReportsQuery, enabled: surface === "precinct" });
   const judgements = useQuery({ ...judgementsQuery, enabled: surface === "bench" });
-  const lawyers = useQuery({ ...lawyersQuery(), enabled: surface === "admin" });
+  const [pushSupported, setPushSupported] = useState(false);
+  const { canInstall, promptInstall } = usePwaInstall();
+
+  useEffect(() => {
+    setPushSupported(typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window);
+  }, []);
+
+  const enableNotifications = async () => {
+    const permission = await requestBrowserNotificationPermission();
+    if (permission === "granted") {
+      toast.success("Browser notifications enabled");
+    }
+  };
+
+  const enablePush = async () => {
+    if (!user?.id) return;
+    try {
+      await subscribeBrowserPush(user.id);
+      toast.success("Device registered for push notifications");
+      notifications.refetch();
+      pushSubscriptions.refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to register device");
+    }
+  };
+
+  const disablePush = async () => {
+    if (!user?.id) return;
+    try {
+      await unsubscribeBrowserPush(user.id);
+      toast.success("Push notifications disabled for this device");
+      pushSubscriptions.refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to disable push");
+    }
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -34,8 +82,86 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
         <StatCard label="Conversations" value={convos.data?.length ?? 0} icon={<Users className="h-4 w-4" />} />
       </div>
 
+      {surface === "dashboard" && (
+        <section className="mt-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-semibold">Notifications</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Real-time alerts for cases, messages, appointments and admin activity.
+              </p>
+            </div>
+            {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && (
+              <Button variant="outline" size="sm" onClick={enableNotifications}>
+                Enable notifications
+              </Button>
+            )}
+          </div>
+          <div className="mt-4 rounded-lg border border-border bg-card p-5 shadow-plate">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-display text-base font-semibold">Device push registration</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {pushSubscriptions.data?.length
+                    ? `${pushSubscriptions.data.length} registered device(s) for this account.`
+                    : pushSupported
+                      ? "This device can be registered for push delivery."
+                      : "Push registration is unavailable in this browser."}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={enablePush} disabled={!pushSupported}>
+                  Register this device
+                </Button>
+                <Button variant="ghost" size="sm" onClick={disablePush}>
+                  Remove device
+                </Button>
+              </div>
+            </div>
+          </div>
+          {(canInstall || surface === "dashboard") && (
+            <div className="mt-4 rounded-lg border border-border bg-card p-5 shadow-plate">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-display text-base font-semibold">Installable app shell</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Works as an installable app on Android, iPhone/iPad, and desktop browsers that support PWA installation.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => void promptInstall()} disabled={!canInstall}>
+                  Install app
+                </Button>
+              </div>
+            </div>
+          )}
+          <div className="mt-4 space-y-3">
+            {(notifications.data ?? []).length === 0 ? (
+              <EmptyState title="No notifications yet" description="You’ll see live updates here as soon as activity arrives." />
+            ) : (
+              (notifications.data ?? []).slice(0, 5).map((n) => (
+                <div key={n.id} className="rounded-lg border border-border bg-card p-5 shadow-plate">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-display font-semibold">{n.title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{n.body ?? "Open the workspace for details."}</p>
+                    </div>
+                    <StatusPill value={n.read ? "resolved" : "pending"} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>
+
+        {(surface === "bench" || surface === "practice") && (
+          <section className="lg:col-span-2">
+            <LiveCourtroomPanel title={surface === "bench" ? "Live court trials" : "Live case conferences"} />
+          </section>
+        )}
           <h2 className="font-display text-xl font-semibold">Matters</h2>
           <div className="mt-4 space-y-3">
             {cases.isLoading ? (

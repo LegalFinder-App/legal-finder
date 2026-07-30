@@ -1,8 +1,16 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useSession, ROLE_LABELS } from "@/lib/session";
+import {
+  requestBrowserNotificationPermission,
+  registerAppServiceWorker,
+  showBrowserNotification,
+} from "@/lib/platform-notifications";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -27,10 +35,67 @@ const LINKS = [
 function WorkspaceLayout() {
   const { primaryRole, user } = useSession();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    void registerAppServiceWorker();
+
+    const channel = supabase
+      .channel(`workspace-live-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        async (payload) => {
+          const notification = payload.new as { user_id?: string; title?: string; body?: string; link?: string };
+          if (notification.user_id !== user.id) return;
+          await showBrowserNotification(notification.title ?? "LegalFinder update", {
+            body: notification.body ?? "You have a new notification.",
+            url: notification.link ?? "/dashboard",
+            kind: "notification",
+          });
+          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+          toast.message(notification.title ?? "New notification", {
+            description: notification.body ?? undefined,
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        async (payload) => {
+          const message = payload.new as { sender_id?: string; sender_name?: string; body?: string; conversation_id?: string };
+          queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["messages"] });
+          if (message.sender_id === user.id) return;
+          toast.message(message.sender_name ?? "New message", {
+            description: message.body ?? "You received a new message.",
+          });
+          await showBrowserNotification(message.sender_name ?? "New message", {
+            body: message.body ?? "You received a new message.",
+            url: "/messages",
+            kind: "message",
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient, user?.id]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
+  };
+
+  const enableNotifications = async () => {
+    const permission = await requestBrowserNotificationPermission();
+    if (permission === "granted") {
+      toast.success("Browser notifications enabled");
+    }
   };
 
   return (
@@ -56,6 +121,11 @@ function WorkspaceLayout() {
             <span className="hidden text-xs text-ink-foreground/60 sm:block">
               {ROLE_LABELS[primaryRole]} · {user?.email}
             </span>
+            {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && (
+              <Button variant="outlineInk" size="sm" onClick={enableNotifications}>
+                Enable notifications
+              </Button>
+            )}
             <Button variant="outlineInk" size="sm" onClick={signOut}>
               Sign out
             </Button>

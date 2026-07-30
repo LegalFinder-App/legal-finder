@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspacePage } from "@/components/app/workspace-page";
+import { MessagingWorkspace } from "@/components/app/messaging-workspace";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   component: Page,
 });
 
 function Page() {
-  return <WorkspacePage surface="messages" title="Messages" />;
+  return <MessagingWorkspace />;
 }

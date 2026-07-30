@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspacePage } from "@/components/app/workspace-page";
+import { AdminAuditWorkspace } from "@/components/app/admin-audit-workspace";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: Page,
 });
 
 function Page() {
-  return <WorkspacePage surface="admin" title="Administration" />;
+  return <AdminAuditWorkspace />;
 }

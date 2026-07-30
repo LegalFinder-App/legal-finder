@@ -1,0 +1,17 @@
+{
+  "name": "LegalFinder",
+  "short_name": "LegalFinder",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1a2338",
+  "description": "LegalFinder connects clients, advocates, police, and the judiciary across web, mobile, and desktop.",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { Download, Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useSession, ROLE_HOME } from "@/lib/session";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 const NAV = [
   { to: "/lawyers", label: "Advocates" },
@@ -17,6 +18,7 @@ const NAV = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { user, primaryRole, loading } = useSession();
+  const { canInstall, promptInstall } = usePwaInstall();
 
   return (
     <header className="sticky top-0 z-50 surface-ink border-b border-ink-foreground/10 backdrop-blur">
@@ -39,6 +41,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
+          {canInstall && (
+            <Button variant="outlineInk" size="sm" onClick={() => void promptInstall()}>
+              Install app <Download className="h-4 w-4" />
+            </Button>
+          )}
           {!loading && user ? (
             <Button asChild variant="brass" size="sm">
               <Link to={ROLE_HOME[primaryRole]}>Open workspace</Link>
