@@ -15,7 +15,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as JudgementsRouteImport } from './routes/judgements'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as ReportRouteImport } from './routes/report'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StationsRouteImport } from './routes/stations'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as AdviceIndexRouteImport } from './routes/advice.index'
@@ -55,9 +57,19 @@ const LibraryRoute = LibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StationsRoute = StationsRouteImport.update({
@@ -108,7 +120,9 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRoute
   '/advice/$slug': typeof AdviceSlugRoute
@@ -125,7 +139,9 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRoute
   '/advice/$slug': typeof AdviceSlugRoute
@@ -143,7 +159,9 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRoute
   '/advice/$slug': typeof AdviceSlugRoute
@@ -162,7 +180,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/judgements'
     | '/library'
+    | '/report'
     | '/reset-password'
+    | '/safety'
     | '/stations'
     | '/wanted'
     | '/advice/$slug'
@@ -179,7 +199,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/judgements'
     | '/library'
+    | '/report'
     | '/reset-password'
+    | '/safety'
     | '/stations'
     | '/wanted'
     | '/advice/$slug'
@@ -196,7 +218,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/judgements'
     | '/library'
+    | '/report'
     | '/reset-password'
+    | '/safety'
     | '/stations'
     | '/wanted'
     | '/advice/$slug'
@@ -214,7 +238,9 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   JudgementsRoute: typeof JudgementsRoute
   LibraryRoute: typeof LibraryRoute
+  ReportRoute: typeof ReportRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SafetyRoute: typeof SafetyRoute
   StationsRoute: typeof StationsRoute
   WantedRoute: typeof WantedRoute
   AdviceSlugRoute: typeof AdviceSlugRoute
@@ -269,11 +295,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stations': {
@@ -342,7 +382,9 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   JudgementsRoute: JudgementsRoute,
   LibraryRoute: LibraryRoute,
+  ReportRoute: ReportRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SafetyRoute: SafetyRoute,
   StationsRoute: StationsRoute,
   WantedRoute: WantedRoute,
   AdviceSlugRoute: AdviceSlugRoute,
