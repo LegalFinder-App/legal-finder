@@ -10,33 +10,337 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as JudgementsRouteImport } from './routes/judgements'
+import { Route as LibraryRouteImport } from './routes/library'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as StationsRouteImport } from './routes/stations'
+import { Route as WantedRouteImport } from './routes/wanted'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedBenchRouteImport } from './routes/_authenticated/bench'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
+import { Route as AuthenticatedPracticeRouteImport } from './routes/_authenticated/practice'
+import { Route as AuthenticatedPrecinctRouteImport } from './routes/_authenticated/precinct'
+import { Route as AdviceIndexRouteImport } from './routes/advice.index'
+import { Route as AdviceSlugRouteImport } from './routes/advice.$slug'
+import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
+import { Route as LawyersLawyerIdRouteImport } from './routes/lawyers.$lawyerId'
+import { Route as NewsIndexRouteImport } from './routes/news.index'
+import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgementsRoute = JudgementsRouteImport.update({
+  id: '/judgements',
+  path: '/judgements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StationsRoute = StationsRouteImport.update({
+  id: '/stations',
+  path: '/stations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WantedRoute = WantedRouteImport.update({
+  id: '/wanted',
+  path: '/wanted',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBenchRoute = AuthenticatedBenchRouteImport.update({
+  id: '/bench',
+  path: '/bench',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPracticeRoute = AuthenticatedPracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPrecinctRoute = AuthenticatedPrecinctRouteImport.update({
+  id: '/precinct',
+  path: '/precinct',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AdviceIndexRoute = AdviceIndexRouteImport.update({
+  id: '/advice/',
+  path: '/advice/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdviceSlugRoute = AdviceSlugRouteImport.update({
+  id: '/advice/$slug',
+  path: '/advice/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LawyersIndexRoute = LawyersIndexRouteImport.update({
+  id: '/lawyers/',
+  path: '/lawyers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LawyersLawyerIdRoute = LawyersLawyerIdRouteImport.update({
+  id: '/lawyers/$lawyerId',
+  path: '/lawyers/$lawyerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsIndexRoute = NewsIndexRouteImport.update({
+  id: '/news/',
+  path: '/news/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsSlugRoute = NewsSlugRouteImport.update({
+  id: '/news/$slug',
+  path: '/news/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/judgements': typeof JudgementsRoute
+  '/library': typeof LibraryRoute
+  '/report': typeof ReportRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/safety': typeof SafetyRoute
+  '/stations': typeof StationsRoute
+  '/wanted': typeof WantedRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/bench': typeof AuthenticatedBenchRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/messages': typeof AuthenticatedMessagesRoute
+  '/practice': typeof AuthenticatedPracticeRoute
+  '/precinct': typeof AuthenticatedPrecinctRoute
+  '/advice/$slug': typeof AdviceSlugRoute
+  '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
+  '/news/$slug': typeof NewsSlugRoute
+  '/advice/': typeof AdviceIndexRoute
+  '/lawyers/': typeof LawyersIndexRoute
+  '/news/': typeof NewsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/judgements': typeof JudgementsRoute
+  '/library': typeof LibraryRoute
+  '/report': typeof ReportRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/safety': typeof SafetyRoute
+  '/stations': typeof StationsRoute
+  '/wanted': typeof WantedRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/bench': typeof AuthenticatedBenchRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/messages': typeof AuthenticatedMessagesRoute
+  '/practice': typeof AuthenticatedPracticeRoute
+  '/precinct': typeof AuthenticatedPrecinctRoute
+  '/advice/$slug': typeof AdviceSlugRoute
+  '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
+  '/news/$slug': typeof NewsSlugRoute
+  '/advice': typeof AdviceIndexRoute
+  '/lawyers': typeof LawyersIndexRoute
+  '/news': typeof NewsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/judgements': typeof JudgementsRoute
+  '/library': typeof LibraryRoute
+  '/report': typeof ReportRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/safety': typeof SafetyRoute
+  '/stations': typeof StationsRoute
+  '/wanted': typeof WantedRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
+  '/_authenticated/bench': typeof AuthenticatedBenchRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/messages': typeof AuthenticatedMessagesRoute
+  '/_authenticated/practice': typeof AuthenticatedPracticeRoute
+  '/_authenticated/precinct': typeof AuthenticatedPrecinctRoute
+  '/advice/$slug': typeof AdviceSlugRoute
+  '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
+  '/news/$slug': typeof NewsSlugRoute
+  '/advice/': typeof AdviceIndexRoute
+  '/lawyers/': typeof LawyersIndexRoute
+  '/news/': typeof NewsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/contact'
+    | '/judgements'
+    | '/library'
+    | '/report'
+    | '/reset-password'
+    | '/safety'
+    | '/stations'
+    | '/wanted'
+    | '/admin'
+    | '/assistant'
+    | '/bench'
+    | '/dashboard'
+    | '/messages'
+    | '/practice'
+    | '/precinct'
+    | '/advice/$slug'
+    | '/lawyers/$lawyerId'
+    | '/news/$slug'
+    | '/advice/'
+    | '/lawyers/'
+    | '/news/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/contact'
+    | '/judgements'
+    | '/library'
+    | '/report'
+    | '/reset-password'
+    | '/safety'
+    | '/stations'
+    | '/wanted'
+    | '/admin'
+    | '/assistant'
+    | '/bench'
+    | '/dashboard'
+    | '/messages'
+    | '/practice'
+    | '/precinct'
+    | '/advice/$slug'
+    | '/lawyers/$lawyerId'
+    | '/news/$slug'
+    | '/advice'
+    | '/lawyers'
+    | '/news'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/about'
+    | '/auth'
+    | '/contact'
+    | '/judgements'
+    | '/library'
+    | '/report'
+    | '/reset-password'
+    | '/safety'
+    | '/stations'
+    | '/wanted'
+    | '/_authenticated/admin'
+    | '/_authenticated/assistant'
+    | '/_authenticated/bench'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/messages'
+    | '/_authenticated/practice'
+    | '/_authenticated/precinct'
+    | '/advice/$slug'
+    | '/lawyers/$lawyerId'
+    | '/news/$slug'
+    | '/advice/'
+    | '/lawyers/'
+    | '/news/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
+  AuthRoute: typeof AuthRoute
+  ContactRoute: typeof ContactRoute
+  JudgementsRoute: typeof JudgementsRoute
+  LibraryRoute: typeof LibraryRoute
+  ReportRoute: typeof ReportRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SafetyRoute: typeof SafetyRoute
+  StationsRoute: typeof StationsRoute
+  WantedRoute: typeof WantedRoute
+  AdviceSlugRoute: typeof AdviceSlugRoute
+  LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
+  NewsSlugRoute: typeof NewsSlugRoute
+  AdviceIndexRoute: typeof AdviceIndexRoute
+  LawyersIndexRoute: typeof LawyersIndexRoute
+  NewsIndexRoute: typeof NewsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +352,220 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judgements': {
+      id: '/judgements'
+      path: '/judgements'
+      fullPath: '/judgements'
+      preLoaderRoute: typeof JudgementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stations': {
+      id: '/stations'
+      path: '/stations'
+      fullPath: '/stations'
+      preLoaderRoute: typeof StationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wanted': {
+      id: '/wanted'
+      path: '/wanted'
+      fullPath: '/wanted'
+      preLoaderRoute: typeof WantedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bench': {
+      id: '/_authenticated/bench'
+      path: '/bench'
+      fullPath: '/bench'
+      preLoaderRoute: typeof AuthenticatedBenchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/practice': {
+      id: '/_authenticated/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof AuthenticatedPracticeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/precinct': {
+      id: '/_authenticated/precinct'
+      path: '/precinct'
+      fullPath: '/precinct'
+      preLoaderRoute: typeof AuthenticatedPrecinctRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/advice/': {
+      id: '/advice/'
+      path: '/advice'
+      fullPath: '/advice/'
+      preLoaderRoute: typeof AdviceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advice/$slug': {
+      id: '/advice/$slug'
+      path: '/advice/$slug'
+      fullPath: '/advice/$slug'
+      preLoaderRoute: typeof AdviceSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lawyers/': {
+      id: '/lawyers/'
+      path: '/lawyers'
+      fullPath: '/lawyers/'
+      preLoaderRoute: typeof LawyersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lawyers/$lawyerId': {
+      id: '/lawyers/$lawyerId'
+      path: '/lawyers/$lawyerId'
+      fullPath: '/lawyers/$lawyerId'
+      preLoaderRoute: typeof LawyersLawyerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news/': {
+      id: '/news/'
+      path: '/news'
+      fullPath: '/news/'
+      preLoaderRoute: typeof NewsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news/$slug': {
+      id: '/news/$slug'
+      path: '/news/$slug'
+      fullPath: '/news/$slug'
+      preLoaderRoute: typeof NewsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
+  AuthenticatedBenchRoute: typeof AuthenticatedBenchRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
+  AuthenticatedPracticeRoute: typeof AuthenticatedPracticeRoute
+  AuthenticatedPrecinctRoute: typeof AuthenticatedPrecinctRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
+  AuthenticatedBenchRoute: AuthenticatedBenchRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
+  AuthenticatedPracticeRoute: AuthenticatedPracticeRoute,
+  AuthenticatedPrecinctRoute: AuthenticatedPrecinctRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
+  AuthRoute: AuthRoute,
+  ContactRoute: ContactRoute,
+  JudgementsRoute: JudgementsRoute,
+  LibraryRoute: LibraryRoute,
+  ReportRoute: ReportRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SafetyRoute: SafetyRoute,
+  StationsRoute: StationsRoute,
+  WantedRoute: WantedRoute,
+  AdviceSlugRoute: AdviceSlugRoute,
+  LawyersLawyerIdRoute: LawyersLawyerIdRoute,
+  NewsSlugRoute: NewsSlugRoute,
+  AdviceIndexRoute: AdviceIndexRoute,
+  LawyersIndexRoute: LawyersIndexRoute,
+  NewsIndexRoute: NewsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
