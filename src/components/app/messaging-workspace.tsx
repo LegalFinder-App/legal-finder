@@ -23,7 +23,9 @@ export function MessagingWorkspace() {
   }, [conversations.data, selectedConversationId]);
 
   const selectedConversation = useMemo(
-    () => conversations.data?.find((conversation) => conversation.id === selectedConversationId) ?? null,
+    () =>
+      conversations.data?.find((conversation) => conversation.id === selectedConversationId) ??
+      null,
     [conversations.data, selectedConversationId],
   );
 
@@ -108,7 +110,8 @@ export function MessagingWorkspace() {
       <p className="eyebrow text-brass">Secure messaging</p>
       <h1 className="mt-2 font-display text-4xl font-semibold">Messages</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Conversations stay in sync across devices and update in real time when the other side replies.
+        Conversations stay in sync across devices and update in real time when the other side
+        replies.
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
@@ -132,7 +135,8 @@ export function MessagingWorkspace() {
             ) : (
               (conversations.data ?? []).map((conversation) => {
                 const active = conversation.id === selectedConversationId;
-                const participantName = conversation.subject ?? `Thread ${conversation.id.slice(0, 6)}`;
+                const participantName =
+                  conversation.subject ?? `Thread ${conversation.id.slice(0, 6)}`;
 
                 return (
                   <button
@@ -191,13 +195,19 @@ export function MessagingWorkspace() {
             ) : messages.isLoading ? (
               <LoadingRows rows={4} />
             ) : (messages.data ?? []).length === 0 ? (
-              <EmptyState title="No messages yet" description="Send the first secure message in this thread." />
+              <EmptyState
+                title="No messages yet"
+                description="Send the first secure message in this thread."
+              />
             ) : (
               (messages.data ?? []).map((message) => {
                 const mine = message.sender_id === user?.id;
 
                 return (
-                  <div key={message.id} className={mine ? "ml-auto max-w-2xl" : "mr-auto max-w-2xl"}>
+                  <div
+                    key={message.id}
+                    className={mine ? "ml-auto max-w-2xl" : "mr-auto max-w-2xl"}
+                  >
                     <div
                       className={[
                         "rounded-2xl border p-4",
@@ -225,7 +235,9 @@ export function MessagingWorkspace() {
               <Textarea
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
-                placeholder={selectedConversationId ? "Write a message..." : "Select a conversation first"}
+                placeholder={
+                  selectedConversationId ? "Write a message..." : "Select a conversation first"
+                }
                 rows={4}
                 disabled={!selectedConversationId}
               />

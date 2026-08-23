@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LawyerCard } from "@/components/common/lawyer-card";
-import { EmptyState, LoadingRows } from "@/components/common/bits";
+import { EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
-import { lawyersQuery } from "@/lib/queries";
+import { publicLawyersQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/lawyers/")({
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/lawyers/")({
 });
 
 function LawyersPage() {
-  const { data, isLoading } = useQuery(lawyersQuery());
+  const { data, isLoading, isError, error, refetch } = useQuery(publicLawyersQuery());
   const [q, setQ] = useState("");
   const [area, setArea] = useState<string | null>(null);
   const [county, setCounty] = useState<string | null>(null);
@@ -78,12 +78,7 @@ function LawyersPage() {
               <SlidersHorizontal className="h-4 w-4 text-brass" /> Filters
             </div>
 
-            <FilterGroup
-              label="Practice area"
-              options={areas}
-              value={area}
-              onChange={setArea}
-            />
+            <FilterGroup label="Practice area" options={areas} value={area} onChange={setArea} />
             <FilterGroup label="County" options={counties} value={county} onChange={setCounty} />
 
             <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -103,6 +98,11 @@ function LawyersPage() {
             </p>
             {isLoading ? (
               <LoadingRows rows={6} />
+            ) : isError ? (
+              <QueryError
+                message={error instanceof Error ? error.message : undefined}
+                onRetry={() => refetch()}
+              />
             ) : results.length === 0 ? (
               <EmptyState
                 title="No advocates match those filters"

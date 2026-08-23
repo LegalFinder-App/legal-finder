@@ -1,17 +1,19 @@
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("legalfinder-shell-v1").then((cache) =>
-      cache.addAll([
-        "/",
-        "/auth",
-        "/dashboard",
-        "/messages",
-        "/assistant",
-        "/practice",
-        "/bench",
-        "/precinct",
-      ]),
-    ),
+    caches
+      .open("legalfinder-shell-v1")
+      .then((cache) =>
+        cache.addAll([
+          "/",
+          "/auth",
+          "/dashboard",
+          "/messages",
+          "/assistant",
+          "/practice",
+          "/bench",
+          "/precinct",
+        ]),
+      ),
   );
   self.skipWaiting();
 });
@@ -38,11 +40,20 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => cached ?? fetch(request).then((response) => {
-      const copy = response.clone();
-      caches.open("legalfinder-shell-v1").then((cache) => cache.put(request, copy)).catch(() => undefined);
-      return response;
-    }).catch(() => cached ?? Response.error())),
+    caches.match(request).then(
+      (cached) =>
+        cached ??
+        fetch(request)
+          .then((response) => {
+            const copy = response.clone();
+            caches
+              .open("legalfinder-shell-v1")
+              .then((cache) => cache.put(request, copy))
+              .catch(() => undefined);
+            return response;
+          })
+          .catch(() => cached ?? Response.error()),
+    ),
   );
 });
 

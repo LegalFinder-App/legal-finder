@@ -25,9 +25,12 @@ export function PlatformMatrix() {
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
         <div>
           <p className="eyebrow text-brass">Deployment matrix</p>
-          <h2 className="mt-1 font-display text-xl font-semibold">One product, multiple release targets</h2>
+          <h2 className="mt-1 font-display text-xl font-semibold">
+            One product, multiple release targets
+          </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            The repository is structured so the shared app core can be released through web, mobile and desktop packaging without rewriting product logic.
+            The repository is structured so the shared app core can be released through web, mobile
+            and desktop packaging without rewriting product logic.
           </p>
         </div>
         <Button variant="brass" size="sm" asChild>

@@ -10,7 +10,10 @@ export const Route = createFileRoute("/advice/$slug")({
   head: () => ({
     meta: [
       { title: "Legal guide — LegalFinder" },
-      { name: "description", content: "A plain-language legal guide from the LegalFinder advice library." },
+      {
+        name: "description",
+        content: "A plain-language legal guide from the LegalFinder advice library.",
+      },
       { property: "og:title", content: "Legal guide — LegalFinder" },
       { property: "og:description", content: "A plain-language legal guide from LegalFinder." },
       { property: "og:type", content: "article" },
@@ -71,9 +74,12 @@ function AdviceDetail() {
           <img src={data.image_url} alt="" className="mt-8 w-full rounded-xl object-cover" />
         )}
         <div className="mt-8 space-y-5 text-[1.02rem] leading-[1.75] text-foreground/90">
-          {data.body.split("\n").filter(Boolean).map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
+          {data.body
+            .split("\n")
+            .filter(Boolean)
+            .map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
         </div>
         <div className="mt-14 rounded-xl border border-border bg-secondary/50 p-7 text-center">
           <h2 className="font-display text-xl font-semibold">Need advice on your own situation?</h2>

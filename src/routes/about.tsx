@@ -6,9 +6,16 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About LegalFinder" },
-      { name: "description", content: "LegalFinder is a public-interest platform connecting people with verified advocates, courts and police services." },
+      {
+        name: "description",
+        content:
+          "LegalFinder is a public-interest platform connecting people with verified advocates, courts and police services.",
+      },
       { property: "og:title", content: "About LegalFinder" },
-      { property: "og:description", content: "A public-interest platform for the whole justice system." },
+      {
+        property: "og:description",
+        content: "A public-interest platform for the whole justice system.",
+      },
     ],
   }),
   component: About,
@@ -28,7 +35,8 @@ function About() {
           <p>
             Most people meet the justice system at their worst moment — an eviction, an arrest, a
             death in the family, a contract that collapsed. They rarely know which office to walk
-            into, what a matter should cost, or whether the person advising them is even on the roll.
+            into, what a matter should cost, or whether the person advising them is even on the
+            roll.
           </p>
           <p>
             LegalFinder puts verification, pricing and case history in the open. Advocates are

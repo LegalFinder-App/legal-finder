@@ -28,10 +28,14 @@ export const Route = createFileRoute("/lawyers/$lawyerId")({
       { title: "Advocate profile — LegalFinder" },
       {
         name: "description",
-        content: "Review an advocate's experience, practice areas, fees and client reviews, then book a consultation.",
+        content:
+          "Review an advocate's experience, practice areas, fees and client reviews, then book a consultation.",
       },
       { property: "og:title", content: "Advocate profile — LegalFinder" },
-      { property: "og:description", content: "Experience, practice areas, fees and client reviews." },
+      {
+        property: "og:description",
+        content: "Experience, practice areas, fees and client reviews.",
+      },
     ],
   }),
   component: LawyerProfile,
@@ -76,7 +80,11 @@ function LawyerProfile() {
         <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14 sm:px-6 lg:flex-row lg:items-end lg:px-8 lg:py-20">
           <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-ink-foreground/10 ring-1 ring-brass/30">
             {lawyer.photo_url ? (
-              <img src={lawyer.photo_url} alt={lawyer.full_name} className="h-full w-full object-cover" />
+              <img
+                src={lawyer.photo_url}
+                alt={lawyer.full_name}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <span className="grid h-full w-full place-items-center font-display text-4xl text-brass">
                 {lawyer.full_name.slice(0, 1)}
@@ -107,7 +115,11 @@ function LawyerProfile() {
               <span>{lawyer.years_experience} years in practice</span>
             </div>
           </div>
-          <BookingDialog lawyerId={lawyer.id} lawyerName={lawyer.full_name} />
+          <BookingDialog
+            lawyerUserId={lawyer.user_id}
+            lawyerName={lawyer.full_name}
+            acceptingClients={lawyer.accepting_clients}
+          />
         </div>
       </section>
 
@@ -143,7 +155,9 @@ function LawyerProfile() {
                       <p className="font-semibold">{r.author_name}</p>
                       <Stars value={r.rating} />
                     </div>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{r.comment}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {r.comment}
+                    </p>
                   </div>
                 ))
               )}
@@ -156,8 +170,20 @@ function LawyerProfile() {
           <div className="rounded-lg border border-border bg-card p-6 shadow-plate">
             <p className="eyebrow text-muted-foreground">Engagement</p>
             <dl className="mt-4 space-y-3 text-sm">
-              <Row label="Consultation" value={lawyer.consultation_fee ? `KES ${lawyer.consultation_fee.toLocaleString()}` : "On request"} />
-              <Row label="Hourly rate" value={lawyer.hourly_rate ? `KES ${lawyer.hourly_rate.toLocaleString()}` : "On request"} />
+              <Row
+                label="Consultation"
+                value={
+                  lawyer.consultation_fee
+                    ? `KES ${lawyer.consultation_fee.toLocaleString()}`
+                    : "On request"
+                }
+              />
+              <Row
+                label="Hourly rate"
+                value={
+                  lawyer.hourly_rate ? `KES ${lawyer.hourly_rate.toLocaleString()}` : "On request"
+                }
+              />
               <Row label="Languages" value={lawyer.languages.join(", ") || "English"} />
               <Row label="Bar number" value={lawyer.bar_number ?? "—"} />
             </dl>
@@ -180,11 +206,10 @@ function LawyerProfile() {
                 </p>
               )}
             </div>
-            <Button asChild variant="outline" className="mt-5 w-full">
-              <Link to="/messages">
-                <MessageSquare className="h-4 w-4" /> Send a message
-              </Link>
-            </Button>
+            <StartConversationButton
+              lawyerUserId={lawyer.user_id}
+              lawyerName={lawyer.full_name}
+            />
           </div>
         </aside>
       </div>
@@ -201,7 +226,15 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function BookingDialog({ lawyerId, lawyerName }: { lawyerId: string; lawyerName: string }) {
+function BookingDialog({
+  lawyerUserId,
+  lawyerName,
+  acceptingClients,
+}: {
+  lawyerUserId: string | null;
+  lawyerName: string;
+  acceptingClients: boolean;
+}) {
   const { user } = useSession();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -214,10 +247,13 @@ function BookingDialog({ lawyerId, lawyerName }: { lawyerId: string; lawyerName:
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return navigate({ to: "/auth" });
+    if (!lawyerUserId) {
+      return toast.error("This advocate is not yet linked to a workspace account.");
+    }
     setBusy(true);
     const { error } = await supabase.from("appointments").insert({
       client_id: user.id,
-      lawyer_id: lawyerId,
+      lawyer_id: lawyerUserId,
       lawyer_name: lawyerName,
       client_name: (user.user_metadata?.full_name as string) ?? user.email,
       subject,
@@ -234,7 +270,7 @@ function BookingDialog({ lawyerId, lawyerName }: { lawyerId: string; lawyerName:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="brass" size="xl">
+        <Button variant="brass" size="xl" disabled={!acceptingClients}>
           <CalendarDays className="h-4 w-4" /> Book consultation
         </Button>
       </DialogTrigger>
@@ -245,25 +281,119 @@ function BookingDialog({ lawyerId, lawyerName }: { lawyerId: string; lawyerName:
             Send a consultation request. You'll be notified once it's confirmed.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Input id="subject" required maxLength={140} value={subject} onChange={(e) => setSubject(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="when">Preferred date & time</Label>
-            <Input id="when" type="datetime-local" required value={when} onChange={(e) => setWhen(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
-          <Button type="submit" variant="brass" className="w-full" disabled={busy}>
-            Request consultation
-          </Button>
-        </form>
+        {!lawyerUserId ? (
+          <p className="text-sm text-muted-foreground">
+            Online booking opens once this advocate completes workspace onboarding. You can still
+            contact them using the details below.
+          </p>
+        ) : (
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                required
+                maxLength={140}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="when">Preferred date & time</Label>
+              <Input
+                id="when"
+                type="datetime-local"
+                required
+                value={when}
+                onChange={(e) => setWhen(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                maxLength={1000}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+            <Button type="submit" variant="brass" className="w-full" disabled={busy}>
+              Request consultation
+            </Button>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function StartConversationButton({
+  lawyerUserId,
+  lawyerName,
+}: {
+  lawyerUserId: string | null;
+  lawyerName: string;
+}) {
+  const { user } = useSession();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+
+  const startConversation = async () => {
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    if (!lawyerUserId) {
+      toast.error("This advocate is not yet available for secure messaging.");
+      return;
+    }
+    if (lawyerUserId === user.id) {
+      toast.error("You cannot message your own profile.");
+      return;
+    }
+
+    setBusy(true);
+    const participantA = user.id < lawyerUserId ? user.id : lawyerUserId;
+    const participantB = user.id < lawyerUserId ? lawyerUserId : user.id;
+
+    const { data: existing } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("participant_a", participantA)
+      .eq("participant_b", participantB)
+      .maybeSingle();
+
+    if (existing?.id) {
+      setBusy(false);
+      navigate({ to: "/messages" });
+      return;
+    }
+
+    const { error } = await supabase.from("conversations").insert({
+      participant_a: participantA,
+      participant_b: participantB,
+      subject: `Consultation with ${lawyerName}`,
+    });
+    setBusy(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Conversation opened");
+    navigate({ to: "/messages" });
+  };
+
+  return (
+    <Button
+      variant="outline"
+      className="mt-5 w-full"
+      disabled={busy || !lawyerUserId}
+      onClick={() => void startConversation()}
+    >
+      <MessageSquare className="h-4 w-4" /> Send a message
+    </Button>
   );
 }
 

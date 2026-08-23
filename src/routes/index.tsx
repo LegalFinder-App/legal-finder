@@ -17,7 +17,7 @@ import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
 import { PlatformMatrix } from "@/components/app/platform-matrix";
-import { lawyersQuery, adviceListQuery, newsListQuery, quotesQuery } from "@/lib/queries";
+import { publicLawyersQuery } from "@/lib/queries";
 import heroImage from "@/assets/hero-justice.jpg";
 import courthouse from "@/assets/courthouse.jpg";
 import consultation from "@/assets/consultation.jpg";
@@ -90,7 +90,7 @@ const PORTALS = [
 ] as const;
 
 function Index() {
-  const lawyers = useQuery(lawyersQuery());
+  const lawyers = useQuery(publicLawyersQuery());
   const advice = useQuery(adviceListQuery);
   const news = useQuery(newsListQuery);
   const quotes = useQuery(quotesQuery);
@@ -301,8 +301,8 @@ function Index() {
             Talk to someone who can actually help
           </h2>
           <p className="mt-4 text-ink-foreground/70">
-            Create an account in under a minute. Message advocates, book consultations and keep every
-            document in one secure vault.
+            Create an account in under a minute. Message advocates, book consultations and keep
+            every document in one secure vault.
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Button asChild variant="brass" size="xl">

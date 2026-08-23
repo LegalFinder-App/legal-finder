@@ -3,12 +3,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROLE_HOME, ROLE_LABELS, type AppRole } from "@/lib/session";
+import { ROLE_HOME, ROLE_LABELS, primaryRoleFrom, type AppRole } from "@/lib/session";
+import { navigateAfterAuth } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-justice.jpg";
 
@@ -21,7 +21,11 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — LegalFinder" },
-      { name: "description", content: "Access your LegalFinder workspace as a client, advocate, police officer, judicial officer or administrator." },
+      {
+        name: "description",
+        content:
+          "Access your LegalFinder workspace as a client, advocate, police officer, judicial officer or administrator.",
+      },
       { property: "og:title", content: "Sign in — LegalFinder" },
       { property: "og:description", content: "Access your LegalFinder workspace." },
       { name: "robots", content: "noindex" },
@@ -50,11 +54,7 @@ function AuthPage() {
         .select("role")
         .eq("user_id", data.session.user.id);
       const list = (roles ?? []).map((r) => r.role as AppRole);
-      const primary =
-        (["admin", "judiciary", "police", "lawyer", "user"] as AppRole[]).find((r) =>
-          list.includes(r),
-        ) ?? "user";
-      navigate({ to: ROLE_HOME[primary], replace: true });
+      navigate({ to: ROLE_HOME[primaryRoleFrom(list)], replace: true });
     });
   }, [navigate]);
 
@@ -73,16 +73,26 @@ function AuthPage() {
         });
         if (error) throw error;
         if (data.user) {
-          await supabase.from("user_roles").insert({ user_id: data.user.id, role });
-          await supabase
-            .from("profiles")
-            .upsert({ id: data.user.id, full_name: fullName, email });
+          await supabase.from("profiles").upsert({
+            id: data.user.id,
+            full_name: fullName,
+            email,
+            requested_role: role,
+          });
         }
-        toast.success("Account created", { description: "Welcome to LegalFinder." });
-        navigate({ to: ROLE_HOME[role], replace: true });
+        toast.success("Account created", {
+          description:
+            role === "user"
+              ? "Welcome to LegalFinder."
+              : "Your account is active. Privileged roles require administrator approval.",
+        });
+        navigate({ to: ROLE_HOME.user, replace: true });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (data.user) {
+          navigate({ to: await navigateAfterAuth(data.user.id), replace: true });
+        }
         toast.success("Signed in");
       }
     } catch (err) {
@@ -93,12 +103,19 @@ function AuthPage() {
   };
 
   const google = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed");
-      return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -265,7 +282,10 @@ function AuthPage() {
                 fill="#34A853"
                 d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1 .7-2.3 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24Z"
               />
-              <path fill="#FBBC05" d="M5.4 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l4-3.1Z" />
+              <path
+                fill="#FBBC05"
+                d="M5.4 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l4-3.1Z"
+              />
               <path
                 fill="#EA4335"
                 d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8Z"

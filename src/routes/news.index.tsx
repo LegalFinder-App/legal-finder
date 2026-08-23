@@ -10,7 +10,8 @@ export const Route = createFileRoute("/news/")({
       { title: "Legal news — LegalFinder" },
       {
         name: "description",
-        content: "Court rulings, legislative changes and justice-sector news that affect your rights.",
+        content:
+          "Court rulings, legislative changes and justice-sector news that affect your rights.",
       },
       { property: "og:title", content: "Legal news — LegalFinder" },
       { property: "og:description", content: "Rulings, legislation and justice-sector news." },
@@ -52,7 +53,8 @@ function NewsPage() {
                 </h2>
                 <p className="mt-3 text-muted-foreground">{lead.summary}</p>
                 <p className="mt-5 font-mono text-xs text-muted-foreground">
-                  {new Date(lead.published_at).toLocaleDateString()} · {lead.source ?? "LegalFinder"}
+                  {new Date(lead.published_at).toLocaleDateString()} ·{" "}
+                  {lead.source ?? "LegalFinder"}
                 </p>
               </div>
             </Link>

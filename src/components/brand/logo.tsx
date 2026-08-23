@@ -1,12 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export function Logo({
-  className,
-  compact = false,
-}: {
-  className?: string;
-  compact?: boolean;
-}) {
+export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <span className="relative grid h-9 w-9 place-items-center rounded-md bg-brass/15 ring-1 ring-brass/40">

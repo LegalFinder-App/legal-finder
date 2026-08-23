@@ -16,7 +16,10 @@ export const Route = createFileRoute("/advice/")({
           "Plain-language guides on tenancy, employment, family law, land, criminal procedure and your rights.",
       },
       { property: "og:title", content: "Legal advice & guides — LegalFinder" },
-      { property: "og:description", content: "Plain-language guides on your everyday legal rights." },
+      {
+        property: "og:description",
+        content: "Plain-language guides on your everyday legal rights.",
+      },
     ],
   }),
   component: AdvicePage,

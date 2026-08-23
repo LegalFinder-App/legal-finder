@@ -38,7 +38,9 @@ export async function showBrowserNotification(
   if (Notification.permission !== "granted") return;
 
   const registration =
-    "serviceWorker" in navigator ? await navigator.serviceWorker.ready.catch(() => undefined) : undefined;
+    "serviceWorker" in navigator
+      ? await navigator.serviceWorker.ready.catch(() => undefined)
+      : undefined;
   const notificationOptions = {
     body: options.body,
     data: { url: options.url ?? "/dashboard", kind: options.kind ?? "info" },
@@ -53,13 +55,19 @@ export async function showBrowserNotification(
 }
 
 export async function subscribeBrowserPush(userId: string) {
-  if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+  if (
+    typeof window === "undefined" ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
     throw new Error("Push notifications are not supported in this browser.");
   }
 
   const publicKey = getVapidPublicKey();
   if (!publicKey) {
-    throw new Error("Missing VITE_WEB_PUSH_PUBLIC_KEY. Configure the push public key to enable device registration.");
+    throw new Error(
+      "Missing VITE_WEB_PUSH_PUBLIC_KEY. Configure the push public key to enable device registration.",
+    );
   }
 
   await registerAppServiceWorker();
@@ -97,7 +105,11 @@ export async function subscribeBrowserPush(userId: string) {
 }
 
 export async function unsubscribeBrowserPush(userId: string) {
-  if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+  if (
+    typeof window === "undefined" ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
     return;
   }
 
@@ -110,13 +122,21 @@ export async function unsubscribeBrowserPush(userId: string) {
   }
 
   if (endpoint) {
-    const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", userId).eq("endpoint", endpoint);
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("user_id", userId)
+      .eq("endpoint", endpoint);
     if (error) throw new Error(error.message);
   }
 }
 
 export async function getBrowserPushSubscription() {
-  if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+  if (
+    typeof window === "undefined" ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
     return null;
   }
 

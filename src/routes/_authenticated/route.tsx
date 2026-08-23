@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { useSession, ROLE_LABELS } from "@/lib/session";
+import { useSession, ROLE_LABELS, type AppRole } from "@/lib/session";
 import {
   requestBrowserNotificationPermission,
   registerAppServiceWorker,
@@ -22,18 +22,23 @@ export const Route = createFileRoute("/_authenticated")({
   component: WorkspaceLayout,
 });
 
-const LINKS = [
-  { to: "/dashboard", label: "Overview" },
-  { to: "/messages", label: "Messages" },
-  { to: "/assistant", label: "Assistant" },
-  { to: "/practice", label: "Practice" },
-  { to: "/precinct", label: "Precinct" },
-  { to: "/bench", label: "Bench" },
-  { to: "/admin", label: "Admin" },
+const ALL_LINKS = [
+  { to: "/dashboard", label: "Overview", roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[] },
+  { to: "/messages", label: "Messages", roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[] },
+  { to: "/assistant", label: "Assistant", roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[] },
+  { to: "/practice", label: "Practice", roles: ["lawyer", "admin"] as AppRole[] },
+  { to: "/precinct", label: "Precinct", roles: ["police", "admin"] as AppRole[] },
+  { to: "/bench", label: "Bench", roles: ["judiciary", "admin"] as AppRole[] },
+  { to: "/admin", label: "Admin", roles: ["admin"] as AppRole[] },
 ] as const;
 
+function linksForRole(role: AppRole) {
+  return ALL_LINKS.filter((link) => link.roles.includes(role));
+}
+
 function WorkspaceLayout() {
-  const { primaryRole, user } = useSession();
+  const { primaryRole, user, roles } = useSession();
+  const navLinks = linksForRole(primaryRole);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -48,7 +53,12 @@ function WorkspaceLayout() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications" },
         async (payload) => {
-          const notification = payload.new as { user_id?: string; title?: string; body?: string; link?: string };
+          const notification = payload.new as {
+            user_id?: string;
+            title?: string;
+            body?: string;
+            link?: string;
+          };
           if (notification.user_id !== user.id) return;
           await showBrowserNotification(notification.title ?? "LegalFinder update", {
             body: notification.body ?? "You have a new notification.",
@@ -65,7 +75,12 @@ function WorkspaceLayout() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         async (payload) => {
-          const message = payload.new as { sender_id?: string; sender_name?: string; body?: string; conversation_id?: string };
+          const message = payload.new as {
+            sender_id?: string;
+            sender_name?: string;
+            body?: string;
+            conversation_id?: string;
+          };
           queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
           queryClient.invalidateQueries({ queryKey: ["messages"] });
           if (message.sender_id === user.id) return;
@@ -106,7 +121,7 @@ function WorkspaceLayout() {
             <Logo />
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
-            {LINKS.map((l) => (
+            {navLinks.map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
@@ -119,13 +134,16 @@ function WorkspaceLayout() {
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-xs text-ink-foreground/60 sm:block">
-              {ROLE_LABELS[primaryRole]} · {user?.email}
+              {ROLE_LABELS[primaryRole]}
+              {roles.length > 1 ? ` · ${roles.length} roles` : ""} · {user?.email}
             </span>
-            {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && (
-              <Button variant="outlineInk" size="sm" onClick={enableNotifications}>
-                Enable notifications
-              </Button>
-            )}
+            {typeof window !== "undefined" &&
+              "Notification" in window &&
+              Notification.permission !== "granted" && (
+                <Button variant="outlineInk" size="sm" onClick={enableNotifications}>
+                  Enable notifications
+                </Button>
+              )}
             <Button variant="outlineInk" size="sm" onClick={signOut}>
               Sign out
             </Button>

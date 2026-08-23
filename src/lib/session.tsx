@@ -30,6 +30,10 @@ export interface SessionState {
 
 const ROLE_PRIORITY: AppRole[] = ["admin", "judiciary", "police", "lawyer", "user"];
 
+export function primaryRoleFrom(roles: AppRole[]): AppRole {
+  return ROLE_PRIORITY.find((role) => roles.includes(role)) ?? "user";
+}
+
 export function useSession(): SessionState {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
@@ -65,7 +69,7 @@ export function useSession(): SessionState {
     };
   }, []);
 
-  const primaryRole = ROLE_PRIORITY.find((r) => roles.includes(r)) ?? "user";
+  const primaryRole = primaryRoleFrom(roles);
 
   return { session, user: session?.user ?? null, roles, primaryRole, loading };
 }

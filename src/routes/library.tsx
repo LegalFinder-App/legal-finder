@@ -17,7 +17,10 @@ export const Route = createFileRoute("/library")({
         content: "Statutes, constitutions, practice manuals and reference texts, free to read.",
       },
       { property: "og:title", content: "Legal e-library — LegalFinder" },
-      { property: "og:description", content: "Statutes, manuals and reference texts, free to read." },
+      {
+        property: "og:description",
+        content: "Statutes, manuals and reference texts, free to read.",
+      },
     ],
   }),
   component: LibraryPage,
@@ -32,7 +35,11 @@ function LibraryPage() {
   return (
     <PublicLayout>
       <section className="relative isolate overflow-hidden surface-ink">
-        <img src={library} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+        <img
+          src={library}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-20"
+        />
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <p className="eyebrow text-brass">E-library</p>
           <h1 className="mt-3 max-w-2xl font-display text-4xl font-semibold text-ink-foreground lg:text-5xl">
@@ -51,7 +58,9 @@ function LibraryPage() {
             onClick={() => setCat(null)}
             className={cn(
               "rounded-full border px-4 py-1.5 text-sm",
-              !cat ? "border-brass bg-brass/15 font-semibold" : "border-border text-muted-foreground",
+              !cat
+                ? "border-brass bg-brass/15 font-semibold"
+                : "border-border text-muted-foreground",
             )}
           >
             All
@@ -85,7 +94,9 @@ function LibraryPage() {
                   className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-plate"
                 >
                   <p className="eyebrow text-brass">{i.category}</p>
-                  <h2 className="mt-2 font-display text-lg font-semibold leading-snug">{i.title}</h2>
+                  <h2 className="mt-2 font-display text-lg font-semibold leading-snug">
+                    {i.title}
+                  </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {[i.author, i.year].filter(Boolean).join(" · ")}
                   </p>

@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "db:push": "supabase db push",
+    "db:migrate": "node scripts/apply-migrations.mjs",
+    "db:reset": "supabase db reset"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

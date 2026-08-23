@@ -41,7 +41,9 @@ export function SiteFooter() {
             A public-interest platform connecting people with verified advocates, courts, police
             services and plain-language legal knowledge.
           </p>
-          <p className="mt-6 eyebrow text-ink-foreground/40">Available on web, desktop and mobile</p>
+          <p className="mt-6 eyebrow text-ink-foreground/40">
+            Available on web, desktop and mobile
+          </p>
         </div>
 
         {COLUMNS.map((col) => (

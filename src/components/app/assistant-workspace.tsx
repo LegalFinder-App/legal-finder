@@ -8,7 +8,7 @@ import { EmptyState, SectionHeading } from "@/components/common/bits";
 import {
   adviceListQuery,
   judgementsQuery,
-  lawyersQuery,
+  publicLawyersQuery,
   newsListQuery,
   securityTipsQuery,
 } from "@/lib/queries";
@@ -28,7 +28,7 @@ export function AssistantWorkspace() {
     return query.length > 2 ? { q: query } : undefined;
   }, [prompt]);
 
-  const lawyers = useQuery(lawyersQuery(lawyerSearch));
+  const lawyers = useQuery(publicLawyersQuery(lawyerSearch));
   const advice = useQuery(adviceListQuery);
   const news = useQuery(newsListQuery);
   const judgements = useQuery(judgementsQuery);
@@ -53,7 +53,8 @@ export function AssistantWorkspace() {
       <p className="eyebrow text-brass">Legal assistant</p>
       <h1 className="mt-2 font-display text-4xl font-semibold">Assistant</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Search across advocates, guidance, judgements and safety tips. The assistant keeps the existing legal workspace language but makes it actionable.
+        Search across advocates, guidance, judgements and safety tips. The assistant keeps the
+        existing legal workspace language but makes it actionable.
       </p>
 
       <section className="mt-8 rounded-xl border border-border bg-card p-5 shadow-plate">
@@ -106,7 +107,10 @@ export function AssistantWorkspace() {
               />
             ) : (
               (lawyers.data ?? []).slice(0, 5).map((lawyer) => (
-                <div key={lawyer.id} className="rounded-lg border border-border bg-card p-4 shadow-plate">
+                <div
+                  key={lawyer.id}
+                  className="rounded-lg border border-border bg-card p-4 shadow-plate"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-display font-semibold">{lawyer.full_name}</p>

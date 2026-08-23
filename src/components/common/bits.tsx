@@ -36,7 +36,10 @@ export function SectionHeading({
 
 export function Stars({ value, className }: { value: number; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-0.5", className)} aria-label={`${value} of 5`}>
+    <span
+      className={cn("inline-flex items-center gap-0.5", className)}
+      aria-label={`${value} of 5`}
+    >
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
@@ -102,6 +105,32 @@ export function LoadingRows({ rows = 4 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="h-20 animate-pulse rounded-lg bg-muted/70" />
       ))}
+    </div>
+  );
+}
+
+export function QueryError({
+  title = "Unable to load data",
+  message,
+  onRetry,
+}: {
+  title?: string;
+  message?: string;
+  onRetry?: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-6 py-8 text-center">
+      <p className="font-display text-lg font-semibold text-foreground">{title}</p>
+      {message && <p className="mt-2 text-sm text-muted-foreground">{message}</p>}
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-4 text-sm font-medium text-brass hover:underline"
+        >
+          Try again
+        </button>
+      )}
     </div>
   );
 }

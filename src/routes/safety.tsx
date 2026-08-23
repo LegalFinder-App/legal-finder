@@ -9,9 +9,16 @@ export const Route = createFileRoute("/safety")({
   head: () => ({
     meta: [
       { title: "Safety & security tips — LegalFinder" },
-      { name: "description", content: "Practical safety guidance: what to do during an arrest, how to protect evidence, and how to stay safe." },
+      {
+        name: "description",
+        content:
+          "Practical safety guidance: what to do during an arrest, how to protect evidence, and how to stay safe.",
+      },
       { property: "og:title", content: "Safety & security tips — LegalFinder" },
-      { property: "og:description", content: "Practical guidance for staying safe and protecting your rights." },
+      {
+        property: "og:description",
+        content: "Practical guidance for staying safe and protecting your rights.",
+      },
     ],
   }),
   component: SafetyPage,

@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { Briefcase, CalendarDays, FileText, Gavel, ShieldAlert, Users } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Briefcase, CalendarDays, FileText, Gavel, ShieldAlert, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard, StatusPill, EmptyState, LoadingRows } from "@/components/common/bits";
 import { useSession, ROLE_LABELS } from "@/lib/session";
@@ -13,11 +13,9 @@ import {
   notificationsQuery,
   pushSubscriptionsQuery,
 } from "@/lib/queries";
+import { supabase } from "@/integrations/supabase/client";
 import { requestBrowserNotificationPermission } from "@/lib/platform-notifications";
-import {
-  subscribeBrowserPush,
-  unsubscribeBrowserPush,
-} from "@/lib/platform-notifications";
+import { subscribeBrowserPush, unsubscribeBrowserPush } from "@/lib/platform-notifications";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { LiveCourtroomPanel } from "@/components/app/live-courtroom-panel";
@@ -25,6 +23,7 @@ import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 export function WorkspacePage({ surface, title }: { surface: string; title: string }) {
   const { user, primaryRole } = useSession();
+  const queryClient = useQueryClient();
   const cases = useQuery(myCasesQuery(user?.id));
   const appts = useQuery(appointmentsQuery(user?.id));
   const docs = useQuery(documentsQuery(user?.id));
@@ -37,7 +36,9 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
   const { canInstall, promptInstall } = usePwaInstall();
 
   useEffect(() => {
-    setPushSupported(typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window);
+    setPushSupported(
+      typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window,
+    );
   }, []);
 
   const enableNotifications = async () => {
@@ -70,16 +71,71 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
     }
   };
 
+  const [uploading, setUploading] = useState(false);
+
+  const uploadDocument = async (fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file || !user?.id) return;
+
+    setUploading(true);
+    const storagePath = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
+    const { error: uploadError } = await supabase.storage.from("documents").upload(storagePath, file, {
+      upsert: false,
+      contentType: file.type || undefined,
+    });
+
+    if (uploadError) {
+      setUploading(false);
+      toast.error(uploadError.message);
+      return;
+    }
+
+    const { error: recordError } = await supabase.from("documents").insert({
+      owner_id: user.id,
+      name: file.name,
+      storage_path: storagePath,
+      mime_type: file.type || null,
+      size_bytes: file.size,
+      category: "general",
+    });
+    setUploading(false);
+
+    if (recordError) {
+      await supabase.storage.from("documents").remove([storagePath]);
+      toast.error(recordError.message);
+      return;
+    }
+
+    toast.success("Document uploaded");
+    queryClient.invalidateQueries({ queryKey: ["documents", user.id] });
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <p className="eyebrow text-brass">{ROLE_LABELS[primaryRole]} workspace</p>
       <h1 className="mt-2 font-display text-4xl font-semibold">{title}</h1>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Open matters" value={cases.data?.length ?? 0} icon={<Briefcase className="h-4 w-4" />} />
-        <StatCard label="Appointments" value={appts.data?.length ?? 0} icon={<CalendarDays className="h-4 w-4" />} />
-        <StatCard label="Documents" value={docs.data?.length ?? 0} icon={<FileText className="h-4 w-4" />} />
-        <StatCard label="Conversations" value={convos.data?.length ?? 0} icon={<Users className="h-4 w-4" />} />
+        <StatCard
+          label="Open matters"
+          value={cases.data?.length ?? 0}
+          icon={<Briefcase className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Appointments"
+          value={appts.data?.length ?? 0}
+          icon={<CalendarDays className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Documents"
+          value={docs.data?.length ?? 0}
+          icon={<FileText className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Conversations"
+          value={convos.data?.length ?? 0}
+          icon={<Users className="h-4 w-4" />}
+        />
       </div>
 
       {surface === "dashboard" && (
@@ -91,11 +147,13 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
                 Real-time alerts for cases, messages, appointments and admin activity.
               </p>
             </div>
-            {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && (
-              <Button variant="outline" size="sm" onClick={enableNotifications}>
-                Enable notifications
-              </Button>
-            )}
+            {typeof window !== "undefined" &&
+              "Notification" in window &&
+              Notification.permission !== "granted" && (
+                <Button variant="outline" size="sm" onClick={enableNotifications}>
+                  Enable notifications
+                </Button>
+              )}
           </div>
           <div className="mt-4 rounded-lg border border-border bg-card p-5 shadow-plate">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -125,10 +183,16 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
                 <div>
                   <p className="font-display text-base font-semibold">Installable app shell</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Works as an installable app on Android, iPhone/iPad, and desktop browsers that support PWA installation.
+                    Works as an installable app on Android, iPhone/iPad, and desktop browsers that
+                    support PWA installation.
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => void promptInstall()} disabled={!canInstall}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void promptInstall()}
+                  disabled={!canInstall}
+                >
                   Install app
                 </Button>
               </div>
@@ -136,14 +200,22 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
           )}
           <div className="mt-4 space-y-3">
             {(notifications.data ?? []).length === 0 ? (
-              <EmptyState title="No notifications yet" description="You’ll see live updates here as soon as activity arrives." />
+              <EmptyState
+                title="No notifications yet"
+                description="You’ll see live updates here as soon as activity arrives."
+              />
             ) : (
               (notifications.data ?? []).slice(0, 5).map((n) => (
-                <div key={n.id} className="rounded-lg border border-border bg-card p-5 shadow-plate">
+                <div
+                  key={n.id}
+                  className="rounded-lg border border-border bg-card p-5 shadow-plate"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-display font-semibold">{n.title}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{n.body ?? "Open the workspace for details."}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {n.body ?? "Open the workspace for details."}
+                      </p>
                     </div>
                     <StatusPill value={n.read ? "resolved" : "pending"} />
                   </div>
@@ -156,18 +228,22 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>
-
-        {(surface === "bench" || surface === "practice") && (
-          <section className="lg:col-span-2">
-            <LiveCourtroomPanel title={surface === "bench" ? "Live court trials" : "Live case conferences"} />
-          </section>
-        )}
+          {(surface === "bench" || surface === "practice") && (
+            <section className="lg:col-span-2">
+              <LiveCourtroomPanel
+                title={surface === "bench" ? "Live court trials" : "Live case conferences"}
+              />
+            </section>
+          )}
           <h2 className="font-display text-xl font-semibold">Matters</h2>
           <div className="mt-4 space-y-3">
             {cases.isLoading ? (
               <LoadingRows rows={3} />
             ) : (cases.data ?? []).length === 0 ? (
-              <EmptyState title="No matters yet" description="Cases you're party to will appear here." />
+              <EmptyState
+                title="No matters yet"
+                description="Cases you're party to will appear here."
+              />
             ) : (
               (cases.data ?? []).map((c) => (
                 <div key={c.id} className="rounded-lg border border-border bg-card p-5">
@@ -189,7 +265,10 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
           <h2 className="font-display text-xl font-semibold">Upcoming appointments</h2>
           <div className="mt-4 space-y-3">
             {(appts.data ?? []).length === 0 ? (
-              <EmptyState title="Nothing scheduled" description="Book a consultation from any advocate profile." />
+              <EmptyState
+                title="Nothing scheduled"
+                description="Book a consultation from any advocate profile."
+              />
             ) : (
               (appts.data ?? []).map((a) => (
                 <div key={a.id} className="rounded-lg border border-border bg-card p-5">
@@ -206,12 +285,68 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
           </div>
         </section>
 
+        <section>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl font-semibold">Document vault</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Store pleadings, evidence and correspondence in your secure vault.
+              </p>
+            </div>
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <input
+                type="file"
+                className="hidden"
+                disabled={uploading || !user?.id}
+                onChange={(event) => void uploadDocument(event.target.files)}
+              />
+              <Button variant="outline" size="sm" disabled={uploading} asChild>
+                <span>
+                  <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload file"}
+                </span>
+              </Button>
+            </label>
+          </div>
+          <div className="mt-4 space-y-3">
+            {(docs.data ?? []).length === 0 ? (
+              <EmptyState
+                icon={<FileText className="h-8 w-8" />}
+                title="No documents yet"
+                description="Upload filings, contracts or evidence to keep them with your matters."
+              />
+            ) : (
+              (docs.data ?? []).map((document) => (
+                <div key={document.id} className="rounded-lg border border-border bg-card p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-display font-semibold">{document.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground capitalize">
+                        {document.category} ·{" "}
+                        {document.size_bytes
+                          ? `${Math.max(1, Math.round(document.size_bytes / 1024))} KB`
+                          : "Size unknown"}
+                      </p>
+                    </div>
+                    <StatusPill value="active" />
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Added {new Date(document.created_at).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
         {surface === "precinct" && (
           <section className="lg:col-span-2">
             <h2 className="font-display text-xl font-semibold">Incident reports</h2>
             <div className="mt-4 space-y-3">
               {(reports.data ?? []).length === 0 ? (
-                <EmptyState icon={<ShieldAlert className="h-8 w-8" />} title="No reports in the queue" />
+                <EmptyState
+                  icon={<ShieldAlert className="h-8 w-8" />}
+                  title="No reports in the queue"
+                />
               ) : (
                 (reports.data ?? []).map((r) => (
                   <div key={r.id} className="rounded-lg border border-border bg-card p-5">
@@ -220,7 +355,9 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
                       <StatusPill value={r.status} />
                     </div>
                     <p className="mt-2 text-sm capitalize">{r.category}</p>
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.description}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                      {r.description}
+                    </p>
                   </div>
                 ))
               )}
@@ -247,25 +384,6 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
           </section>
         )}
 
-        {surface === "admin" && (
-          <section className="lg:col-span-2">
-            <h2 className="font-display text-xl font-semibold">Advocate verification</h2>
-            <div className="mt-4 space-y-3">
-              {(lawyers.data ?? []).map((l) => (
-                <div
-                  key={l.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card p-5"
-                >
-                  <div>
-                    <p className="font-display font-semibold">{l.full_name}</p>
-                    <p className="text-sm text-muted-foreground">{l.firm ?? "Independent"}</p>
-                  </div>
-                  <StatusPill value={l.verified ? "active" : "pending"} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

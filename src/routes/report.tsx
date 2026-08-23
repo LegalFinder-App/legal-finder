@@ -13,7 +13,11 @@ export const Route = createFileRoute("/report")({
   head: () => ({
     meta: [
       { title: "Report an incident — LegalFinder" },
-      { name: "description", content: "File an incident report to police services, anonymously if you need to, and track its status." },
+      {
+        name: "description",
+        content:
+          "File an incident report to police services, anonymously if you need to, and track its status.",
+      },
       { property: "og:title", content: "Report an incident — LegalFinder" },
       { property: "og:description", content: "File a report and track its status." },
     ],
@@ -36,6 +40,10 @@ function ReportPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.anonymous && !user) {
+      toast.error("Sign in to file a named report, or choose anonymous filing.");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("incident_reports").insert({
       category: form.category,
@@ -49,7 +57,13 @@ function ReportPage() {
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Report filed", { description: "Police services have been notified." });
-    setForm({ category: "theft", description: "", location: "", occurred_at: "", anonymous: false });
+    setForm({
+      category: "theft",
+      description: "",
+      location: "",
+      occurred_at: "",
+      anonymous: false,
+    });
   };
 
   return (
@@ -60,7 +74,10 @@ function ReportPage() {
         description="Your report goes to the police workspace with a reference you can follow. Emergencies should always be phoned in first."
       />
       <div className="mx-auto max-w-2xl px-4 py-14 sm:px-6">
-        <form onSubmit={submit} className="space-y-5 rounded-xl border border-border bg-card p-7 shadow-plate">
+        <form
+          onSubmit={submit}
+          className="space-y-5 rounded-xl border border-border bg-card p-7 shadow-plate"
+        >
           <div className="space-y-2">
             <Label>Category</Label>
             <div className="flex flex-wrap gap-2">

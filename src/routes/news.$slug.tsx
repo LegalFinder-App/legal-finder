@@ -10,7 +10,10 @@ export const Route = createFileRoute("/news/$slug")({
   head: () => ({
     meta: [
       { title: "Legal news — LegalFinder" },
-      { name: "description", content: "A news report from the LegalFinder justice-sector newsroom." },
+      {
+        name: "description",
+        content: "A news report from the LegalFinder justice-sector newsroom.",
+      },
       { property: "og:title", content: "Legal news — LegalFinder" },
       { property: "og:description", content: "A report from the LegalFinder newsroom." },
       { property: "og:type", content: "article" },
@@ -67,9 +70,12 @@ function NewsDetail() {
           <img src={data.image_url} alt="" className="mt-8 w-full rounded-xl object-cover" />
         )}
         <div className="mt-8 space-y-5 text-[1.02rem] leading-[1.75] text-foreground/90">
-          {data.body.split("\n").filter(Boolean).map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
+          {data.body
+            .split("\n")
+            .filter(Boolean)
+            .map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
         </div>
       </article>
     </PublicLayout>

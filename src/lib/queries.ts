@@ -2,13 +2,20 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppDatabase } from "@/integrations/supabase/app-database";
 
-export function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
+export function unwrap<T>({
+  data,
+  error,
+}: {
+  data: T | null;
+  error: { message: string } | null;
+}): T {
   if (error) throw new Error(error.message);
   return (data ?? []) as T;
 }
 
 export type Lawyer = {
   id: string;
+  user_id: string | null;
   full_name: string;
   headline: string | null;
   firm: string | null;
@@ -30,17 +37,23 @@ export type Lawyer = {
   bar_number: string | null;
 };
 
-export const lawyersQuery = (search?: { q?: string; area?: string; county?: string }) =>
+export const lawyersQuery = (search?: LawyerSearch, options?: { verifiedOnly?: boolean }) =>
   queryOptions({
-    queryKey: ["lawyers", search ?? {}],
+    queryKey: ["lawyers", search ?? {}, options?.verifiedOnly ?? false],
     queryFn: async () => {
       let query = supabase.from("lawyers").select("*").order("rating", { ascending: false });
+      if (options?.verifiedOnly) query = query.eq("verified", true);
       if (search?.q) query = query.ilike("full_name", `%${search.q}%`);
       if (search?.area) query = query.contains("practice_areas", [search.area]);
       if (search?.county) query = query.eq("county", search.county);
       return unwrap(await query) as Lawyer[];
     },
   });
+
+type LawyerSearch = { q?: string; area?: string; county?: string };
+
+export const publicLawyersQuery = (search?: LawyerSearch) =>
+  lawyersQuery(search, { verifiedOnly: true });
 
 export const lawyerQuery = (id: string) =>
   queryOptions({
@@ -131,8 +144,7 @@ export const judgementsQuery = queryOptions({
 
 export const libraryQuery = queryOptions({
   queryKey: ["library"],
-  queryFn: async () =>
-    unwrap(await supabase.from("library_items").select("*").order("title")),
+  queryFn: async () => unwrap(await supabase.from("library_items").select("*").order("title")),
 });
 
 export const stationsQuery = queryOptions({
@@ -248,7 +260,9 @@ export const documentsQuery = (userId: string | undefined) =>
     queryKey: ["documents", userId],
     enabled: Boolean(userId),
     queryFn: async () =>
-      unwrap(await supabase.from("documents").select("*").order("created_at", { ascending: false })),
+      unwrap(
+        await supabase.from("documents").select("*").order("created_at", { ascending: false }),
+      ),
   });
 
 export const notificationsQuery = (userId: string | undefined) =>

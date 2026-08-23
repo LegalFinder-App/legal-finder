@@ -12,7 +12,8 @@ export const Route = createFileRoute("/judgements")({
       { title: "Court judgements — LegalFinder" },
       {
         name: "description",
-        content: "Search reported court decisions by court, judge or case number, with structured summaries.",
+        content:
+          "Search reported court decisions by court, judge or case number, with structured summaries.",
       },
       { property: "og:title", content: "Court judgements — LegalFinder" },
       { property: "og:description", content: "Reported decisions with structured summaries." },
@@ -25,7 +26,9 @@ function JudgementsPage() {
   const { data, isLoading } = useQuery(judgementsQuery);
   const [q, setQ] = useState("");
   const items = (data ?? []).filter((j) =>
-    `${j.title} ${j.case_number} ${j.court} ${j.judge ?? ""}`.toLowerCase().includes(q.toLowerCase()),
+    `${j.title} ${j.case_number} ${j.court} ${j.judge ?? ""}`
+      .toLowerCase()
+      .includes(q.toLowerCase()),
   );
 
   return (

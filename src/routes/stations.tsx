@@ -12,7 +12,8 @@ export const Route = createFileRoute("/stations")({
       { title: "Police stations directory — LegalFinder" },
       {
         name: "description",
-        content: "Find the nearest police station with contact details, address and county coverage.",
+        content:
+          "Find the nearest police station with contact details, address and county coverage.",
       },
       { property: "og:title", content: "Police stations directory — LegalFinder" },
       { property: "og:description", content: "Nearest stations with contacts and addresses." },
@@ -69,7 +70,10 @@ function StationsPage() {
                     </a>
                   )}
                   {s.email && (
-                    <a href={`mailto:${s.email}`} className="flex items-center gap-2 hover:text-brass">
+                    <a
+                      href={`mailto:${s.email}`}
+                      className="flex items-center gap-2 hover:text-brass"
+                    >
                       <Mail className="h-4 w-4 text-brass" /> {s.email}
                     </a>
                   )}

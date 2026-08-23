@@ -22,14 +22,18 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
   const liveHearings = useMemo(
     () =>
       (appointments.data ?? []).filter((appointment) =>
-        /video|remote|live|hearing/i.test(`${appointment.mode} ${appointment.subject} ${appointment.notes ?? ""}`),
+        /video|remote|live|hearing/i.test(
+          `${appointment.mode} ${appointment.subject} ${appointment.notes ?? ""}`,
+        ),
       ),
     [appointments.data],
   );
 
   const trialRoomBase = import.meta.env.VITE_LIVE_TRIAL_ROOM_BASE_URL || "https://meet.jit.si";
   const activeHearing = liveHearings[0] ?? (appointments.data ?? [])[0] ?? null;
-  const roomSlug = activeHearing ? normalizeRoomSlug(activeHearing.subject || activeHearing.id) : "legalfinder-courtroom";
+  const roomSlug = activeHearing
+    ? normalizeRoomSlug(activeHearing.subject || activeHearing.id)
+    : "legalfinder-courtroom";
   const roomUrl = `${trialRoomBase.replace(/\/$/, "")}/${roomSlug}`;
 
   return (
@@ -39,7 +43,8 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
           <p className="eyebrow text-brass">Court operations</p>
           <h2 className="mt-1 font-display text-xl font-semibold">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Hearings can be launched as live video rooms, with the hearing record, evidence checklist and documents shown alongside the session.
+            Hearings can be launched as live video rooms, with the hearing record, evidence
+            checklist and documents shown alongside the session.
           </p>
         </div>
         <Button asChild variant="brass" size="sm" disabled={!activeHearing}>
@@ -61,7 +66,10 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
             liveHearings.slice(0, 3).map((hearing) => {
               const isUpcoming = new Date(hearing.scheduled_at).getTime() > Date.now();
               return (
-                <div key={hearing.id} className="rounded-lg border border-border bg-secondary/30 p-4">
+                <div
+                  key={hearing.id}
+                  className="rounded-lg border border-border bg-secondary/30 p-4"
+                >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-display text-base font-semibold">{hearing.subject}</p>
@@ -95,7 +103,9 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-display text-base font-semibold">Hearing workspace</p>
-              <p className="text-xs text-muted-foreground">Open the live room, review filings and track evidence.</p>
+              <p className="text-xs text-muted-foreground">
+                Open the live room, review filings and track evidence.
+              </p>
             </div>
             <ClipboardList className="h-5 w-5 text-brass" />
           </div>
@@ -108,14 +118,16 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
           <div className="rounded-md bg-secondary/40 p-3 text-sm text-foreground/85">
             <p className="font-semibold">Available evidence</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {documents.data?.length ?? 0} document(s) ready for presentation and sharing during the hearing.
+              {documents.data?.length ?? 0} document(s) ready for presentation and sharing during
+              the hearing.
             </p>
           </div>
 
           <div className="rounded-md bg-secondary/40 p-3 text-sm text-foreground/85">
             <p className="font-semibold">Live trial flow</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              The courtroom room can be opened on iOS, Android, macOS, Windows and Linux through the same web bundle, with installable PWA support for browsers that expose it.
+              The courtroom room can be opened on iOS, Android, macOS, Windows and Linux through the
+              same web bundle, with installable PWA support for browsers that expose it.
             </p>
           </div>
         </div>

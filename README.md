@@ -131,7 +131,3 @@ The source tree is in a working state, but the remaining enterprise work is now 
 4. Add production observability, error reporting, and operational dashboards.
 5. Expand localization, accessibility, and performance budgets before wider release.
 6. Add server-side push fanout and delivery workers so browser/device registration is backed by a full notification service.
-
-## Lovable
-
-This project is connected to [Lovable](https://lovable.dev). You can continue editing locally or from the Lovable editor, and changes remain synced with the repository.
