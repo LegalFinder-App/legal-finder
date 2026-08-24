@@ -93,9 +93,7 @@ async function mcpCall(token, sessionId, id, method, params = undefined) {
 function unwrapToolResult(result) {
   if (!result) return result;
   if (result.isError) {
-    const message = (result.content ?? [])
-      .map((part) => part?.text ?? "")
-      .join("\n");
+    const message = (result.content ?? []).map((part) => part?.text ?? "").join("\n");
     throw new Error(message || "MCP tool returned an error");
   }
   if (Array.isArray(result.content)) {
@@ -115,7 +113,10 @@ function unwrapToolResult(result) {
 }
 
 function migrationName(filename) {
-  return filename.replace(/\.sql$/i, "").replace(/^\d+_/, "").replace(/-/g, "_");
+  return filename
+    .replace(/\.sql$/i, "")
+    .replace(/^\d+_/, "")
+    .replace(/-/g, "_");
 }
 
 async function main() {
@@ -137,19 +138,20 @@ async function main() {
   ).sessionId;
 
   const existing = unwrapToolResult(
-    (await mcpCall(token, session, 3, "tools/call", {
-      name: "list_migrations",
-      arguments: {},
-    })).result,
+    (
+      await mcpCall(token, session, 3, "tools/call", {
+        name: "list_migrations",
+        arguments: {},
+      })
+    ).result,
   );
   const applied = new Set(
-    (existing?.migrations ?? existing?.content ?? [])
-      .flatMap((entry) => {
-        if (typeof entry === "string") return [entry];
-        if (entry?.name) return [entry.name];
-        if (entry?.version) return [entry.version];
-        return [];
-      }),
+    (existing?.migrations ?? existing?.content ?? []).flatMap((entry) => {
+      if (typeof entry === "string") return [entry];
+      if (entry?.name) return [entry.name];
+      if (entry?.version) return [entry.version];
+      return [];
+    }),
   );
 
   console.log(`Already applied: ${applied.size}`);
@@ -171,10 +173,12 @@ async function main() {
   }
 
   const final = unwrapToolResult(
-    (await mcpCall(token, session, 99, "tools/call", {
-      name: "list_tables",
-      arguments: { schemas: ["public"] },
-    })).result,
+    (
+      await mcpCall(token, session, 99, "tools/call", {
+        name: "list_tables",
+        arguments: { schemas: ["public"] },
+      })
+    ).result,
   );
 
   const tablesResult = final?.tables ?? final;

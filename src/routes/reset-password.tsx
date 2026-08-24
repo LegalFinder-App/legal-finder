@@ -85,22 +85,28 @@ function ResetPassword() {
         {!ready ? (
           <p className="mt-4 text-sm text-muted-foreground">Verifying your reset link…</p>
         ) : (
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="pw">New password</Label>
-            <Input
-              id="pw"
-              type="password"
-              minLength={6}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <Button type="submit" variant="brass" size="lg" className="w-full" disabled={busy || !ready}>
-            Update password
-          </Button>
-        </form>
+          <form onSubmit={submit} className="mt-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pw">New password</Label>
+              <Input
+                id="pw"
+                type="password"
+                minLength={6}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="brass"
+              size="lg"
+              className="w-full"
+              disabled={busy || !ready}
+            >
+              Update password
+            </Button>
+          </form>
         )}
       </div>
     </div>

@@ -1,7 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, ShieldCheck, Users } from "lucide-react";
 import { toast } from "sonner";
-import { StatCard, StatusPill, EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
+import {
+  StatCard,
+  StatusPill,
+  EmptyState,
+  LoadingRows,
+  QueryError,
+} from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
 import { lawyersQuery, auditLogsQuery } from "@/lib/queries";
 import { useSession } from "@/lib/session";
@@ -145,7 +151,9 @@ export function AdminAuditWorkspace() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-display font-semibold">{lawyer.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{lawyer.firm ?? "Independent"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {lawyer.firm ?? "Independent"}
+                      </p>
                     </div>
                     <StatusPill value={lawyer.verified ? "active" : "pending"} />
                   </div>
@@ -154,7 +162,11 @@ export function AdminAuditWorkspace() {
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {!lawyer.verified ? (
-                      <Button size="sm" variant="brass" onClick={() => setVerification(lawyer.id, true)}>
+                      <Button
+                        size="sm"
+                        variant="brass"
+                        onClick={() => setVerification(lawyer.id, true)}
+                      >
                         Verify advocate
                       </Button>
                     ) : (

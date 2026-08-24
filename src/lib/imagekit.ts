@@ -22,12 +22,17 @@ export async function uploadProfileImage(file: File): Promise<string> {
     expire: auth.expire,
     signature: auth.signature,
     publicKey: auth.publicKey,
+    urlEndpoint: auth.urlEndpoint,
     useUniqueFileName: true,
   });
 
   const { data: sessionData } = await supabase.auth.getUser();
   const userId = sessionData.user?.id;
   if (!userId) throw new Error("Sign in again before updating your profile image.");
+
+  if (!response.url) {
+    throw new Error("Upload succeeded, but no URL was returned from ImageKit.");
+  }
 
   const { error: profileError } = await supabase
     .from("profiles")

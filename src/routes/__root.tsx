@@ -119,6 +119,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      reportRuntimeError(event.error, { boundary: "global_error_event" });
+    };
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      reportRuntimeError(event.reason, { boundary: "global_promise_rejection" });
+    };
+    window.addEventListener("error", handleError);
+    window.addEventListener("unhandledrejection", handleRejection);
+    return () => {
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleRejection);
+    };
+  }, []);
+
   return (
     <html lang="en">
       <head>

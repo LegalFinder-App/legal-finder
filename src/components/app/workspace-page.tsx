@@ -79,10 +79,12 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
 
     setUploading(true);
     const storagePath = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
-    const { error: uploadError } = await supabase.storage.from("documents").upload(storagePath, file, {
-      upsert: false,
-      contentType: file.type || undefined,
-    });
+    const { error: uploadError } = await supabase.storage
+      .from("documents")
+      .upload(storagePath, file, {
+        upsert: false,
+        contentType: file.type || undefined,
+      });
 
     if (uploadError) {
       setUploading(false);
@@ -383,7 +385,6 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
             </div>
           </section>
         )}
-
       </div>
     </div>
   );

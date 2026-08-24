@@ -14,9 +14,18 @@ import heroImage from "@/assets/hero-justice.jpg";
 
 type Mode = "signin" | "signup";
 
+type AuthSearch = {
+  mode?: Mode;
+};
+
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "signup" ? ("signup" as const) : ("signin" as const),
+  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
+    mode:
+      search.mode === "signup"
+        ? ("signup" as const)
+        : search.mode === "signin"
+          ? ("signin" as const)
+          : undefined,
   }),
   head: () => ({
     meta: [
@@ -39,7 +48,7 @@ const SIGNUP_ROLES: AppRole[] = ["user", "lawyer", "police", "judiciary"];
 function AuthPage() {
   const { mode: initialMode } = Route.useSearch();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [mode, setMode] = useState<Mode>(initialMode || "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
