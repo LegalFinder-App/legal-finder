@@ -199,7 +199,7 @@ function AuthPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     maxLength={100}
-                    placeholder="Amina Wanjiru"
+                    placeholder="Amina Namusoke"
                   />
                 </div>
                 <div className="space-y-2">

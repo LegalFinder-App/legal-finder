@@ -2,7 +2,15 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BadgeCheck, CalendarDays, Mail, MapPin, MessageSquare, Phone } from "lucide-react";
+import {
+  BadgeCheck,
+  CalendarDays,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { PublicLayout } from "@/components/site/public-layout";
 import { Stars, EmptyState, StatusPill } from "@/components/common/bits";
 import { Badge } from "@/components/ui/badge";
@@ -86,8 +94,11 @@ function LawyerProfile() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="grid h-full w-full place-items-center font-display text-4xl text-brass">
-                {lawyer.full_name.slice(0, 1)}
+              <span
+                className="grid h-full w-full place-items-center text-brass"
+                aria-label="Profile photo unavailable"
+              >
+                <UserRound className="h-12 w-12" aria-hidden="true" />
               </span>
             )}
           </div>
@@ -174,14 +185,14 @@ function LawyerProfile() {
                 label="Consultation"
                 value={
                   lawyer.consultation_fee
-                    ? `KES ${lawyer.consultation_fee.toLocaleString()}`
+                    ? `UGX ${lawyer.consultation_fee.toLocaleString()}`
                     : "On request"
                 }
               />
               <Row
                 label="Hourly rate"
                 value={
-                  lawyer.hourly_rate ? `KES ${lawyer.hourly_rate.toLocaleString()}` : "On request"
+                  lawyer.hourly_rate ? `UGX ${lawyer.hourly_rate.toLocaleString()}` : "On request"
                 }
               />
               <Row label="Languages" value={lawyer.languages.join(", ") || "English"} />
@@ -206,10 +217,7 @@ function LawyerProfile() {
                 </p>
               )}
             </div>
-            <StartConversationButton
-              lawyerUserId={lawyer.user_id}
-              lawyerName={lawyer.full_name}
-            />
+            <StartConversationButton lawyerUserId={lawyer.user_id} lawyerName={lawyer.full_name} />
           </div>
         </aside>
       </div>

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/stations")({
       {
         name: "description",
         content:
-          "Find the nearest police station with contact details, address and county coverage.",
+          "Find the nearest police station with contact details, address and district coverage.",
       },
       { property: "og:title", content: "Police stations directory — LegalFinder" },
       { property: "og:description", content: "Nearest stations with contacts and addresses." },
@@ -41,7 +41,7 @@ function StationsPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search station or county"
+            placeholder="Search station or district"
             className="h-12 w-full rounded-md border border-ink-foreground/20 bg-ink-foreground/5 pl-10 pr-4 text-sm text-ink-foreground placeholder:text-ink-foreground/40 focus:border-brass focus:outline-none"
           />
         </div>

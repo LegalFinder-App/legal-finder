@@ -16,12 +16,12 @@ export const Route = createFileRoute("/lawyers/")({
       {
         name: "description",
         content:
-          "Search bar-verified advocates by practice area, county, language and consultation fee. Read reviews and book directly.",
+          "Search Uganda Law Council-verified advocates by practice area, district, language and consultation fee. Read reviews and book directly.",
       },
       { property: "og:title", content: "Advocate directory — LegalFinder" },
       {
         property: "og:description",
-        content: "Bar-verified advocates by practice area, county and fee.",
+        content: "Uganda Law Council-verified advocates by practice area, district and fee.",
       },
     ],
   }),
@@ -79,7 +79,7 @@ function LawyersPage() {
             </div>
 
             <FilterGroup label="Practice area" options={areas} value={area} onChange={setArea} />
-            <FilterGroup label="County" options={counties} value={county} onChange={setCounty} />
+            <FilterGroup label="District" options={counties} value={county} onChange={setCounty} />
 
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input

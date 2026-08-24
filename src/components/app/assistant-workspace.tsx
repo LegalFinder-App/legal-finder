@@ -14,7 +14,7 @@ import {
 } from "@/lib/queries";
 
 const SUGGESTIONS = [
-  "Find a verified family lawyer in Nairobi",
+  "Find a verified family lawyer in Kampala",
   "What to do after an arrest",
   "Search recent constitutional judgements",
   "Show security guidance for clients",

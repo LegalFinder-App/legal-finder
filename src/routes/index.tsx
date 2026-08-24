@@ -17,12 +17,7 @@ import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
 import { PlatformMatrix } from "@/components/app/platform-matrix";
-import {
-  adviceListQuery,
-  newsListQuery,
-  publicLawyersQuery,
-  quotesQuery,
-} from "@/lib/queries";
+import { adviceListQuery, newsListQuery, publicLawyersQuery, quotesQuery } from "@/lib/queries";
 import heroImage from "@/assets/hero-justice.jpg";
 import courthouse from "@/assets/courthouse.jpg";
 import consultation from "@/assets/consultation.jpg";
@@ -51,7 +46,7 @@ const PILLARS = [
   {
     icon: Users,
     title: "Verified advocate directory",
-    body: "Filter by practice area, county, language and fee. Every profile is bar-verified before it goes live.",
+    body: "Filter by practice area, district, language and fee. Every profile is checked against the Uganda Law Council roll before it goes live.",
     to: "/lawyers",
   },
   {

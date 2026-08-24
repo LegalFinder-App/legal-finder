@@ -9,7 +9,7 @@ CREATE TABLE public.profiles (
   avatar_url TEXT,
   bio TEXT,
   city TEXT,
-  country TEXT DEFAULT 'Kenya',
+  country TEXT DEFAULT 'Uganda',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

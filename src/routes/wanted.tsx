@@ -74,7 +74,7 @@ function WantedPage() {
                   <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
                     <span>{p.last_seen ? `Last seen: ${p.last_seen}` : "Location unknown"}</span>
                     {p.reward ? (
-                      <span className="font-mono text-brass">KES {p.reward.toLocaleString()}</span>
+                      <span className="font-mono text-brass">UGX {p.reward.toLocaleString()}</span>
                     ) : null}
                   </div>
                 </div>

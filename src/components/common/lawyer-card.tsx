@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, MapPin } from "lucide-react";
+import { BadgeCheck, MapPin, UserRound } from "lucide-react";
 import { Stars } from "./bits";
 import { Badge } from "@/components/ui/badge";
 import type { Lawyer } from "@/lib/queries";
@@ -21,8 +21,11 @@ export function LawyerCard({ lawyer }: { lawyer: Lawyer }) {
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="grid h-full w-full place-items-center font-display text-lg font-semibold text-muted-foreground">
-              {lawyer.full_name.slice(0, 1)}
+            <span
+              className="grid h-full w-full place-items-center text-muted-foreground"
+              aria-label="Profile photo unavailable"
+            >
+              <UserRound className="h-6 w-6" aria-hidden="true" />
             </span>
           )}
         </div>
@@ -59,7 +62,7 @@ export function LawyerCard({ lawyer }: { lawyer: Lawyer }) {
           {[lawyer.city, lawyer.county].filter(Boolean).join(", ") || "Remote"}
         </span>
         <span className="font-mono">
-          {lawyer.consultation_fee ? `KES ${lawyer.consultation_fee.toLocaleString()}` : "Enquire"}
+          {lawyer.consultation_fee ? `UGX ${lawyer.consultation_fee.toLocaleString()}` : "Enquire"}
         </span>
       </div>
     </Link>
