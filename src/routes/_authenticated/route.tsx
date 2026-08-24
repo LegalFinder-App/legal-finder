@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { ProfileImageUploader } from "@/components/app/profile-image-uploader";
 import { useSession, ROLE_LABELS, type AppRole } from "@/lib/session";
 import {
   requestBrowserNotificationPermission,
@@ -23,9 +24,21 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const ALL_LINKS = [
-  { to: "/dashboard", label: "Overview", roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[] },
-  { to: "/messages", label: "Messages", roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[] },
-  { to: "/assistant", label: "Assistant", roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[] },
+  {
+    to: "/dashboard",
+    label: "Overview",
+    roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[],
+  },
+  {
+    to: "/messages",
+    label: "Messages",
+    roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[],
+  },
+  {
+    to: "/assistant",
+    label: "Assistant",
+    roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[],
+  },
   { to: "/practice", label: "Practice", roles: ["lawyer", "admin"] as AppRole[] },
   { to: "/precinct", label: "Precinct", roles: ["police", "admin"] as AppRole[] },
   { to: "/bench", label: "Bench", roles: ["judiciary", "admin"] as AppRole[] },
@@ -144,6 +157,7 @@ function WorkspaceLayout() {
                   Enable notifications
                 </Button>
               )}
+            <ProfileImageUploader />
             <Button variant="outlineInk" size="sm" onClick={signOut}>
               Sign out
             </Button>

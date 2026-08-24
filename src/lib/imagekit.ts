@@ -1,0 +1,51 @@
+import { upload } from "@imagekit/javascript";
+import { supabase } from "@/integrations/supabase/client";
+import { getImageKitUploadAuth } from "@/lib/imagekit.functions";
+
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+export async function uploadProfileImage(file: File): Promise<string> {
+  if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
+    throw new Error("Choose a JPG, PNG, or WebP image.");
+  }
+  if (file.size > MAX_PROFILE_IMAGE_BYTES) {
+    throw new Error("Profile images must be 5 MB or smaller.");
+  }
+
+  const auth = await getImageKitUploadAuth({ data: { extension: extensionFor(file) } });
+  const response = await upload({
+    file,
+    fileName: auth.fileName,
+    folder: auth.folder,
+    token: auth.token,
+    expire: auth.expire,
+    signature: auth.signature,
+    publicKey: auth.publicKey,
+    useUniqueFileName: true,
+  });
+
+  const { data: sessionData } = await supabase.auth.getUser();
+  const userId = sessionData.user?.id;
+  if (!userId) throw new Error("Sign in again before updating your profile image.");
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ avatar_url: response.url })
+    .eq("id", userId);
+  if (profileError) throw profileError;
+
+  const { error: lawyerError } = await supabase
+    .from("lawyers")
+    .update({ photo_url: response.url })
+    .eq("user_id", userId);
+  if (lawyerError) throw lawyerError;
+
+  return response.url;
+}
+
+function extensionFor(file: File): string {
+  const fromName = file.name.match(/\.(jpe?g|png|webp)$/i)?.[0];
+  if (fromName) return fromName;
+  return file.type === "image/png" ? ".png" : file.type === "image/webp" ? ".webp" : ".jpg";
+}
