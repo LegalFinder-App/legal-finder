@@ -17,7 +17,12 @@ import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
 import { PlatformMatrix } from "@/components/app/platform-matrix";
-import { publicLawyersQuery } from "@/lib/queries";
+import {
+  adviceListQuery,
+  newsListQuery,
+  publicLawyersQuery,
+  quotesQuery,
+} from "@/lib/queries";
 import heroImage from "@/assets/hero-justice.jpg";
 import courthouse from "@/assets/courthouse.jpg";
 import consultation from "@/assets/consultation.jpg";

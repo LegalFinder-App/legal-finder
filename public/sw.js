@@ -1,25 +1,20 @@
+const CACHE_NAME = "legalfinder-static-v2";
+const OFFLINE_SHELL = ["/", "/auth"];
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open("legalfinder-shell-v1")
-      .then((cache) =>
-        cache.addAll([
-          "/",
-          "/auth",
-          "/dashboard",
-          "/messages",
-          "/assistant",
-          "/practice",
-          "/bench",
-          "/precinct",
-        ]),
-      ),
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_SHELL)),
   );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim()),
+  );
 });
 
 self.addEventListener("fetch", (event) => {
@@ -32,12 +27,19 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).catch(async () => {
-        const cache = await caches.open("legalfinder-shell-v1");
+        const cache = await caches.open(CACHE_NAME);
         return (await cache.match("/")) ?? Response.error();
       }),
     );
     return;
   }
+
+  // Cache only immutable static assets. Never persist application pages, API
+  // responses, or other potentially user-specific content on a device.
+  const isStaticAsset =
+    url.pathname.startsWith("/assets/") ||
+    ["script", "style", "image", "font"].includes(request.destination);
+  if (!isStaticAsset) return;
 
   event.respondWith(
     caches.match(request).then(
@@ -45,9 +47,10 @@ self.addEventListener("fetch", (event) => {
         cached ??
         fetch(request)
           .then((response) => {
+            if (!response.ok) return response;
             const copy = response.clone();
             caches
-              .open("legalfinder-shell-v1")
+              .open(CACHE_NAME)
               .then((cache) => cache.put(request, copy))
               .catch(() => undefined);
             return response;
