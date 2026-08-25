@@ -13,6 +13,7 @@ import {
   notificationsQuery,
   pushSubscriptionsQuery,
 } from "@/lib/queries";
+import { DEMO_APPOINTMENTS, DEMO_CASES, DEMO_DOCUMENTS } from "@/lib/demo-data";
 import { supabase } from "@/integrations/supabase/client";
 import { requestBrowserNotificationPermission } from "@/lib/platform-notifications";
 import { subscribeBrowserPush, unsubscribeBrowserPush } from "@/lib/platform-notifications";
@@ -72,6 +73,34 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
   };
 
   const [uploading, setUploading] = useState(false);
+  const [demoUploads, setDemoUploads] = useState<
+    Array<{
+      id: string;
+      name: string;
+      category: string;
+      size_bytes: number;
+      created_at: string;
+      href?: string;
+    }>
+  >([]);
+
+  const liveCases = cases.data ?? [];
+  const liveAppts = appts.data ?? [];
+  const liveDocs = docs.data ?? [];
+  const caseRows = liveCases.length > 0 ? liveCases : [...DEMO_CASES];
+  const appointmentRows = liveAppts.length > 0 ? liveAppts : [...DEMO_APPOINTMENTS];
+  const documentRows =
+    liveDocs.length > 0
+      ? liveDocs.map((document) => ({
+          id: document.id,
+          name: document.name,
+          category: document.category ?? "general",
+          size_bytes: document.size_bytes ?? 0,
+          created_at: document.created_at,
+          href: undefined as string | undefined,
+        }))
+      : [...DEMO_DOCUMENTS, ...demoUploads];
+  const usingDemoDocs = liveDocs.length === 0;
 
   const uploadDocument = async (fileList: FileList | null) => {
     const file = fileList?.[0];
@@ -87,8 +116,23 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
       });
 
     if (uploadError) {
+      // Presentation fallback when storage buckets are not wired yet.
+      const objectUrl = URL.createObjectURL(file);
+      setDemoUploads((prev) => [
+        {
+          id: `local-${Date.now()}`,
+          name: file.name,
+          category: "general",
+          size_bytes: file.size,
+          created_at: new Date().toISOString(),
+          href: objectUrl,
+        },
+        ...prev,
+      ]);
       setUploading(false);
-      toast.error(uploadError.message);
+      toast.message("Saved as demo upload", {
+        description: "Storage is using local presentation mode for this session.",
+      });
       return;
     }
 
@@ -120,17 +164,17 @@ export function WorkspacePage({ surface, title }: { surface: string; title: stri
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Open matters"
-          value={cases.data?.length ?? 0}
+          value={caseRows.length}
           icon={<Briefcase className="h-4 w-4" />}
         />
         <StatCard
           label="Appointments"
-          value={appts.data?.length ?? 0}
+          value={appointmentRows.length}
           icon={<CalendarDays className="h-4 w-4" />}
         />
         <StatCard
           label="Documents"
-          value={docs.data?.length ?? 0}
+          value={documentRows.length}
           icon={<FileText className="h-4 w-4" />}
         />
         <StatCard

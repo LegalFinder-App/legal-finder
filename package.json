@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "engines": {
-    "node": ">=20.19.0 <23"
+    "node": ">=20.19.0"
   },
   "scripts": {
     "prebuild": "node scripts/verify-vercel-env.mjs",
