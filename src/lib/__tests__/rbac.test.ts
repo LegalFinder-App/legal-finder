@@ -26,9 +26,9 @@ describe("RBAC integration", () => {
     const handler = requireRoles(["admin"]);
     // Simulate context with a user
     const context = { user: { id: "user-123" } };
-    
-    // We expect a redirect to be thrown. 
-    // Since we mocked loadUserRoles to return ['user'], 
+
+    // We expect a redirect to be thrown.
+    // Since we mocked loadUserRoles to return ['user'],
     // it should redirect for 'admin' requirement.
     await expect(handler({ context })).rejects.toThrow();
   });
