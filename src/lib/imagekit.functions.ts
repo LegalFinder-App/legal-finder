@@ -13,12 +13,15 @@ export const getImageKitUploadAuth = createServerFn({ method: "POST" })
   .handler(({ context, data }) => {
     const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
     const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
-    const urlEndpoint = process.env.VITE_IMAGEKIT_URL_ENDPOINT;
+    const urlEndpoint = process.env.VITE_IMAGEKIT_URL_ENDPOINT || process.env.IMAGEKIT_URL_ENDPOINT;
 
     if (!privateKey || !publicKey || !urlEndpoint) {
-      throw new Error(
-        "Image uploads are not configured. Set the required ImageKit environment variables.",
-      );
+      const missing = [
+        ...(!privateKey ? ["IMAGEKIT_PRIVATE_KEY"] : []),
+        ...(!publicKey ? ["IMAGEKIT_PUBLIC_KEY"] : []),
+        ...(!urlEndpoint ? ["VITE_IMAGEKIT_URL_ENDPOINT"] : []),
+      ];
+      throw new Error(`Image uploads are not configured. Missing: ${missing.join(", ")}.`);
     }
 
     const token = randomUUID();

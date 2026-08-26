@@ -139,14 +139,17 @@ const STATUS_TONE: Record<string, string> = {
   open: "bg-success/15 text-success",
   active: "bg-success/15 text-success",
   confirmed: "bg-success/15 text-success",
+  insert: "bg-success/15 text-success",
   resolved: "bg-muted text-muted-foreground",
   closed: "bg-muted text-muted-foreground",
   completed: "bg-muted text-muted-foreground",
   pending: "bg-warning/20 text-warning-foreground",
   investigating: "bg-warning/20 text-warning-foreground",
+  update: "bg-warning/20 text-warning-foreground",
   urgent: "bg-destructive/15 text-destructive",
   high: "bg-destructive/15 text-destructive",
   cancelled: "bg-destructive/15 text-destructive",
+  delete: "bg-destructive/15 text-destructive",
 };
 
 export function StatusPill({ value }: { value: string }) {

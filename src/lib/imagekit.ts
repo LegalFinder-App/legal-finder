@@ -22,8 +22,8 @@ export async function uploadProfileImage(file: File): Promise<string> {
     expire: auth.expire,
     signature: auth.signature,
     publicKey: auth.publicKey,
-    urlEndpoint: auth.urlEndpoint,
     useUniqueFileName: true,
+    tags: ["profile", "legalfinder"],
   });
 
   const { data: sessionData } = await supabase.auth.getUser();
@@ -40,17 +40,27 @@ export async function uploadProfileImage(file: File): Promise<string> {
     .eq("id", userId);
   if (profileError) throw profileError;
 
-  const { error: lawyerError } = await supabase
+  // Advocates keep a mirrored photo on the public lawyer directory.
+  const { data: lawyerRow, error: lawyerLookupError } = await supabase
     .from("lawyers")
-    .update({ photo_url: response.url })
-    .eq("user_id", userId);
-  if (lawyerError) throw lawyerError;
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (lawyerLookupError) throw lawyerLookupError;
+
+  if (lawyerRow?.id) {
+    const { error: lawyerError } = await supabase
+      .from("lawyers")
+      .update({ photo_url: response.url })
+      .eq("id", lawyerRow.id);
+    if (lawyerError) throw lawyerError;
+  }
 
   return response.url;
 }
 
 function extensionFor(file: File): string {
   const fromName = file.name.match(/\.(jpe?g|png|webp)$/i)?.[0];
-  if (fromName) return fromName;
+  if (fromName) return fromName.toLowerCase();
   return file.type === "image/png" ? ".png" : file.type === "image/webp" ? ".webp" : ".jpg";
 }
