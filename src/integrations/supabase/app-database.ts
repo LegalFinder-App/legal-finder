@@ -14,6 +14,21 @@ type AuditLogRow = {
   created_at: string;
 };
 
+type PaymentRow = {
+  id: string;
+  appointment_id: string | null;
+  client_id: string;
+  lawyer_id: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  description: string | null;
+  pesapal_order_tracking_id: string | null;
+  pesapal_merchant_reference: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type PushSubscriptionRow = {
   id: string;
   user_id: string;
@@ -58,6 +73,38 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           after_data?: Json | null;
           metadata?: Json | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      payments: {
+        Row: PaymentRow;
+        Insert: {
+          id?: string;
+          appointment_id?: string | null;
+          client_id: string;
+          lawyer_id?: string | null;
+          amount: number;
+          currency?: string;
+          status?: string;
+          description?: string | null;
+          pesapal_order_tracking_id?: string | null;
+          pesapal_merchant_reference?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string | null;
+          client_id?: string;
+          lawyer_id?: string | null;
+          amount?: number;
+          currency?: string;
+          status?: string;
+          description?: string | null;
+          pesapal_order_tracking_id?: string | null;
+          pesapal_merchant_reference?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

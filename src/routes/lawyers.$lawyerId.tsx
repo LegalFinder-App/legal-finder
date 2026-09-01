@@ -29,6 +29,7 @@ import {
 import { lawyerQuery, reviewsQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
+import { initiatePesapalPayment } from "@/lib/payments.functions";
 
 export const Route = createFileRoute("/lawyers/$lawyerId")({
   head: () => ({
@@ -130,6 +131,7 @@ function LawyerProfile() {
             lawyerUserId={lawyer.user_id}
             lawyerName={lawyer.full_name}
             acceptingClients={lawyer.accepting_clients}
+            consultationFee={lawyer.consultation_fee}
           />
         </div>
       </section>
@@ -238,10 +240,12 @@ function BookingDialog({
   lawyerUserId,
   lawyerName,
   acceptingClients,
+  consultationFee,
 }: {
   lawyerUserId: string | null;
   lawyerName: string;
   acceptingClients: boolean;
+  consultationFee: number | null;
 }) {
   const { user } = useSession();
   const navigate = useNavigate();
@@ -259,20 +263,67 @@ function BookingDialog({
       return toast.error("This advocate is not yet linked to a workspace account.");
     }
     setBusy(true);
-    const { error } = await supabase.from("appointments").insert({
-      client_id: user.id,
-      lawyer_id: lawyerUserId,
-      lawyer_name: lawyerName,
-      client_name: (user.user_metadata?.full_name as string) ?? user.email,
-      subject,
-      notes,
-      scheduled_at: new Date(when).toISOString(),
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
+    const { data: appointment, error } = await supabase
+      .from("appointments")
+      .insert({
+        client_id: user.id,
+        lawyer_id: lawyerUserId,
+        lawyer_name: lawyerName,
+        client_name: (user.user_metadata?.full_name as string) ?? user.email,
+        subject,
+        notes,
+        scheduled_at: new Date(when).toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error || !appointment) {
+      setBusy(false);
+      return toast.error(error?.message ?? "Unable to create the appointment.");
+    }
+
     qc.invalidateQueries({ queryKey: ["appointments"] });
-    setOpen(false);
-    toast.success("Consultation requested");
+
+    if (!consultationFee || consultationFee <= 0) {
+      setBusy(false);
+      setOpen(false);
+      toast.success("Consultation requested");
+      return;
+    }
+
+    // Paid consultation: create the pending payment record, then hand off to Pesapal.
+    const { data: payment, error: paymentError } = await supabase
+      .from("payments")
+      .insert({
+        appointment_id: appointment.id,
+        client_id: user.id,
+        lawyer_id: lawyerUserId,
+        amount: consultationFee,
+        currency: "UGX",
+        description: `Consultation with ${lawyerName}`,
+      })
+      .select()
+      .single();
+
+    if (paymentError || !payment) {
+      setBusy(false);
+      toast.error(paymentError?.message ?? "Appointment booked, but the payment could not start.");
+      setOpen(false);
+      return;
+    }
+
+    try {
+      const { redirectUrl } = await initiatePesapalPayment({ data: { paymentId: payment.id } });
+      window.location.href = redirectUrl;
+    } catch (paymentInitError) {
+      setBusy(false);
+      toast.error(
+        paymentInitError instanceof Error
+          ? paymentInitError.message
+          : "Appointment booked, but the payment could not start.",
+      );
+      setOpen(false);
+    }
   };
 
   return (
@@ -286,7 +337,9 @@ function BookingDialog({
         <DialogHeader>
           <DialogTitle>Book with {lawyerName}</DialogTitle>
           <DialogDescription>
-            Send a consultation request. You'll be notified once it's confirmed.
+            {consultationFee && consultationFee > 0
+              ? `A UGX ${consultationFee.toLocaleString()} consultation fee applies — you'll be redirected to Pesapal to pay after booking.`
+              : "Send a consultation request. You'll be notified once it's confirmed."}
           </DialogDescription>
         </DialogHeader>
         {!lawyerUserId ? (
@@ -326,7 +379,11 @@ function BookingDialog({
               />
             </div>
             <Button type="submit" variant="brass" className="w-full" disabled={busy}>
-              Request consultation
+              {busy
+                ? "Please wait…"
+                : consultationFee && consultationFee > 0
+                  ? "Request & pay for consultation"
+                  : "Request consultation"}
             </Button>
           </form>
         )}

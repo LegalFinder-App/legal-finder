@@ -19,6 +19,7 @@
     "db:reset": "supabase db reset"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "@hookform/resolvers": "^5.2.2",
     "@imagekit/javascript": "^5.4.1",
     "@radix-ui/react-accordion": "^1.2.12",

@@ -40,6 +40,8 @@ import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminContentRouteRouteImport } from './routes/_authenticated/admin/content/route'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
+import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
+import { Route as ApiPesapalIpnRouteImport } from './routes/api.pesapal.ipn'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin/content/index'
 import { Route as AuthenticatedAdminContentAdviceRouteImport } from './routes/_authenticated/admin/content/advice'
 import { Route as AuthenticatedAdminContentJudgementsRouteImport } from './routes/_authenticated/admin/content/judgements'
@@ -206,6 +208,16 @@ const AuthenticatedAdminVerificationsRoute =
     path: '/verifications',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const ApiPesapalCallbackRoute = ApiPesapalCallbackRouteImport.update({
+  id: '/api/pesapal/callback',
+  path: '/api/pesapal/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPesapalIpnRoute = ApiPesapalIpnRouteImport.update({
+  id: '/api/pesapal/ipn',
+  path: '/api/pesapal/ipn',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminContentIndexRoute =
   AuthenticatedAdminContentIndexRouteImport.update({
     id: '/',
@@ -291,6 +303,8 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
+  '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
   '/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
@@ -330,6 +344,8 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
+  '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
   '/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
@@ -373,6 +389,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
+  '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
   '/_authenticated/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
@@ -416,6 +434,8 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/users'
     | '/admin/verifications'
+    | '/api/pesapal/callback'
+    | '/api/pesapal/ipn'
     | '/admin/'
     | '/admin/content/advice'
     | '/admin/content/judgements'
@@ -455,6 +475,8 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/users'
     | '/admin/verifications'
+    | '/api/pesapal/callback'
+    | '/api/pesapal/ipn'
     | '/admin'
     | '/admin/content/advice'
     | '/admin/content/judgements'
@@ -497,6 +519,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verifications'
+    | '/api/pesapal/callback'
+    | '/api/pesapal/ipn'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/content/advice'
     | '/_authenticated/admin/content/judgements'
@@ -528,6 +552,8 @@ export interface RootRouteChildren {
   AdviceIndexRoute: typeof AdviceIndexRoute
   LawyersIndexRoute: typeof LawyersIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
+  ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
+  ApiPesapalIpnRoute: typeof ApiPesapalIpnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -749,6 +775,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVerificationsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/api/pesapal/callback': {
+      id: '/api/pesapal/callback'
+      path: '/api/pesapal/callback'
+      fullPath: '/api/pesapal/callback'
+      preLoaderRoute: typeof ApiPesapalCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pesapal/ipn': {
+      id: '/api/pesapal/ipn'
+      path: '/api/pesapal/ipn'
+      fullPath: '/api/pesapal/ipn'
+      preLoaderRoute: typeof ApiPesapalIpnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/content/': {
       id: '/_authenticated/admin/content/'
       path: '/'
@@ -925,6 +965,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdviceIndexRoute: AdviceIndexRoute,
   LawyersIndexRoute: LawyersIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
+  ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
+  ApiPesapalIpnRoute: ApiPesapalIpnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

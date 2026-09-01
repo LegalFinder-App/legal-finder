@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Briefcase, CalendarDays, FileText, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,11 +24,37 @@ import { requestBrowserNotificationPermission } from "@/lib/platform-notificatio
 
 export function ClientWorkspace() {
   const { user } = useSession();
+  const navigate = useNavigate();
+  const search = useRouterState({ select: (state) => state.location.search });
   const cases = useQuery(myCasesQuery(user?.id));
   const appts = useQuery(appointmentsQuery(user?.id));
   const docs = useQuery(documentsQuery(user?.id));
   const convos = useQuery(conversationsQuery(user?.id));
   const notifications = useQuery(notificationsQuery(user?.id));
+
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const payment = params.get("payment");
+    if (!payment) return;
+
+    if (payment === "completed") {
+      toast.success("Payment received", { description: "Your consultation fee has been paid." });
+    } else if (payment === "failed") {
+      toast.error("Payment failed", {
+        description: "The consultation fee payment didn't go through.",
+      });
+    } else if (payment === "pending") {
+      toast.message("Payment pending", {
+        description: "We'll confirm once Pesapal finishes processing it.",
+      });
+    } else if (payment === "error") {
+      toast.error("We couldn't confirm that payment", {
+        description: "If money left your account, contact support and reference your appointment.",
+      });
+    }
+
+    navigate({ to: "/dashboard", replace: true });
+  }, [search, navigate]);
 
   const liveCases = cases.data ?? [];
   const liveAppts = appts.data ?? [];
