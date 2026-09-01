@@ -1,12 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspacePage } from "@/components/app/workspace-page";
+import { BenchWorkspace } from "@/components/app/workspace/bench-workspace";
 import { requireRoles } from "@/lib/rbac";
 
 export const Route = createFileRoute("/_authenticated/bench")({
   beforeLoad: requireRoles(["judiciary", "admin"]),
-  component: Page,
+  component: BenchWorkspace,
 });
-
-function Page() {
-  return <WorkspacePage surface="bench" title="Bench" />;
-}

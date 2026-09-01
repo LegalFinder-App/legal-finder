@@ -21,7 +21,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StationsRouteImport } from './routes/stations'
 import { Route as WantedRouteImport } from './routes/wanted'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedBenchRouteImport } from './routes/_authenticated/bench'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -34,6 +34,21 @@ import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
 import { Route as LawyersLawyerIdRouteImport } from './routes/lawyers.$lawyerId'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
+import { Route as WantedIdRouteImport } from './routes/wanted.$id'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as AuthenticatedAdminContentRouteRouteImport } from './routes/_authenticated/admin/content/route'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
+import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin/content/index'
+import { Route as AuthenticatedAdminContentAdviceRouteImport } from './routes/_authenticated/admin/content/advice'
+import { Route as AuthenticatedAdminContentJudgementsRouteImport } from './routes/_authenticated/admin/content/judgements'
+import { Route as AuthenticatedAdminContentLibraryRouteImport } from './routes/_authenticated/admin/content/library'
+import { Route as AuthenticatedAdminContentNewsRouteImport } from './routes/_authenticated/admin/content/news'
+import { Route as AuthenticatedAdminContentQuotesRouteImport } from './routes/_authenticated/admin/content/quotes'
+import { Route as AuthenticatedAdminContentSecurityTipsRouteImport } from './routes/_authenticated/admin/content/security-tips'
+import { Route as AuthenticatedAdminContentStationsRouteImport } from './routes/_authenticated/admin/content/stations'
+import { Route as AuthenticatedAdminContentWantedRouteImport } from './routes/_authenticated/admin/content/wanted'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,7 +109,7 @@ const WantedRoute = WantedRouteImport.update({
   path: '/wanted',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
@@ -159,6 +174,92 @@ const NewsSlugRoute = NewsSlugRouteImport.update({
   path: '/news/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WantedIdRoute = WantedIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => WantedRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminContentRouteRoute =
+  AuthenticatedAdminContentRouteRouteImport.update({
+    id: '/content',
+    path: '/content',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminVerificationsRoute =
+  AuthenticatedAdminVerificationsRouteImport.update({
+    id: '/verifications',
+    path: '/verifications',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminContentIndexRoute =
+  AuthenticatedAdminContentIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentAdviceRoute =
+  AuthenticatedAdminContentAdviceRouteImport.update({
+    id: '/advice',
+    path: '/advice',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentJudgementsRoute =
+  AuthenticatedAdminContentJudgementsRouteImport.update({
+    id: '/judgements',
+    path: '/judgements',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentLibraryRoute =
+  AuthenticatedAdminContentLibraryRouteImport.update({
+    id: '/library',
+    path: '/library',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentNewsRoute =
+  AuthenticatedAdminContentNewsRouteImport.update({
+    id: '/news',
+    path: '/news',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentQuotesRoute =
+  AuthenticatedAdminContentQuotesRouteImport.update({
+    id: '/quotes',
+    path: '/quotes',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentSecurityTipsRoute =
+  AuthenticatedAdminContentSecurityTipsRouteImport.update({
+    id: '/security-tips',
+    path: '/security-tips',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentStationsRoute =
+  AuthenticatedAdminContentStationsRouteImport.update({
+    id: '/stations',
+    path: '/stations',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
+const AuthenticatedAdminContentWantedRoute =
+  AuthenticatedAdminContentWantedRouteImport.update({
+    id: '/wanted',
+    path: '/wanted',
+    getParentRoute: () => AuthenticatedAdminContentRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -171,8 +272,8 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
-  '/wanted': typeof WantedRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/wanted': typeof WantedRouteWithChildren
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bench': typeof AuthenticatedBenchRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -182,9 +283,24 @@ export interface FileRoutesByFullPath {
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/wanted/$id': typeof WantedIdRoute
   '/advice/': typeof AdviceIndexRoute
   '/lawyers/': typeof LawyersIndexRoute
   '/news/': typeof NewsIndexRoute
+  '/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
+  '/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
+  '/admin/content/library': typeof AuthenticatedAdminContentLibraryRoute
+  '/admin/content/news': typeof AuthenticatedAdminContentNewsRoute
+  '/admin/content/quotes': typeof AuthenticatedAdminContentQuotesRoute
+  '/admin/content/security-tips': typeof AuthenticatedAdminContentSecurityTipsRoute
+  '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
+  '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
+  '/admin/content/': typeof AuthenticatedAdminContentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,8 +313,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
-  '/wanted': typeof WantedRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/wanted': typeof WantedRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bench': typeof AuthenticatedBenchRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -208,9 +323,23 @@ export interface FileRoutesByTo {
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/wanted/$id': typeof WantedIdRoute
   '/advice': typeof AdviceIndexRoute
   '/lawyers': typeof LawyersIndexRoute
   '/news': typeof NewsIndexRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
+  '/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
+  '/admin/content/library': typeof AuthenticatedAdminContentLibraryRoute
+  '/admin/content/news': typeof AuthenticatedAdminContentNewsRoute
+  '/admin/content/quotes': typeof AuthenticatedAdminContentQuotesRoute
+  '/admin/content/security-tips': typeof AuthenticatedAdminContentSecurityTipsRoute
+  '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
+  '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
+  '/admin/content': typeof AuthenticatedAdminContentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -225,8 +354,8 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
   '/stations': typeof StationsRoute
-  '/wanted': typeof WantedRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/wanted': typeof WantedRouteWithChildren
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/bench': typeof AuthenticatedBenchRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -236,9 +365,24 @@ export interface FileRoutesById {
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/wanted/$id': typeof WantedIdRoute
   '/advice/': typeof AdviceIndexRoute
   '/lawyers/': typeof LawyersIndexRoute
   '/news/': typeof NewsIndexRoute
+  '/_authenticated/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
+  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
+  '/_authenticated/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
+  '/_authenticated/admin/content/library': typeof AuthenticatedAdminContentLibraryRoute
+  '/_authenticated/admin/content/news': typeof AuthenticatedAdminContentNewsRoute
+  '/_authenticated/admin/content/quotes': typeof AuthenticatedAdminContentQuotesRoute
+  '/_authenticated/admin/content/security-tips': typeof AuthenticatedAdminContentSecurityTipsRoute
+  '/_authenticated/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
+  '/_authenticated/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
+  '/_authenticated/admin/content/': typeof AuthenticatedAdminContentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -264,9 +408,24 @@ export interface FileRouteTypes {
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
+    | '/wanted/$id'
     | '/advice/'
     | '/lawyers/'
     | '/news/'
+    | '/admin/content'
+    | '/admin/audit'
+    | '/admin/users'
+    | '/admin/verifications'
+    | '/admin/'
+    | '/admin/content/advice'
+    | '/admin/content/judgements'
+    | '/admin/content/library'
+    | '/admin/content/news'
+    | '/admin/content/quotes'
+    | '/admin/content/security-tips'
+    | '/admin/content/stations'
+    | '/admin/content/wanted'
+    | '/admin/content/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -280,7 +439,6 @@ export interface FileRouteTypes {
     | '/safety'
     | '/stations'
     | '/wanted'
-    | '/admin'
     | '/assistant'
     | '/bench'
     | '/dashboard'
@@ -290,9 +448,23 @@ export interface FileRouteTypes {
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
+    | '/wanted/$id'
     | '/advice'
     | '/lawyers'
     | '/news'
+    | '/admin/audit'
+    | '/admin/users'
+    | '/admin/verifications'
+    | '/admin'
+    | '/admin/content/advice'
+    | '/admin/content/judgements'
+    | '/admin/content/library'
+    | '/admin/content/news'
+    | '/admin/content/quotes'
+    | '/admin/content/security-tips'
+    | '/admin/content/stations'
+    | '/admin/content/wanted'
+    | '/admin/content'
   id:
     | '__root__'
     | '/'
@@ -317,9 +489,24 @@ export interface FileRouteTypes {
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
+    | '/wanted/$id'
     | '/advice/'
     | '/lawyers/'
     | '/news/'
+    | '/_authenticated/admin/content'
+    | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/users'
+    | '/_authenticated/admin/verifications'
+    | '/_authenticated/admin/'
+    | '/_authenticated/admin/content/advice'
+    | '/_authenticated/admin/content/judgements'
+    | '/_authenticated/admin/content/library'
+    | '/_authenticated/admin/content/news'
+    | '/_authenticated/admin/content/quotes'
+    | '/_authenticated/admin/content/security-tips'
+    | '/_authenticated/admin/content/stations'
+    | '/_authenticated/admin/content/wanted'
+    | '/_authenticated/admin/content/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -334,7 +521,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SafetyRoute: typeof SafetyRoute
   StationsRoute: typeof StationsRoute
-  WantedRoute: typeof WantedRoute
+  WantedRoute: typeof WantedRouteWithChildren
   AdviceSlugRoute: typeof AdviceSlugRoute
   LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
   NewsSlugRoute: typeof NewsSlugRoute
@@ -433,7 +620,7 @@ declare module '@tanstack/react-router' {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assistant': {
@@ -520,11 +707,173 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wanted/$id': {
+      id: '/wanted/$id'
+      path: '/$id'
+      fullPath: '/wanted/$id'
+      preLoaderRoute: typeof WantedIdRouteImport
+      parentRoute: typeof WantedRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/audit': {
+      id: '/_authenticated/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/content': {
+      id: '/_authenticated/admin/content'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AuthenticatedAdminContentRouteRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/verifications': {
+      id: '/_authenticated/admin/verifications'
+      path: '/verifications'
+      fullPath: '/admin/verifications'
+      preLoaderRoute: typeof AuthenticatedAdminVerificationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/content/': {
+      id: '/_authenticated/admin/content/'
+      path: '/'
+      fullPath: '/admin/content/'
+      preLoaderRoute: typeof AuthenticatedAdminContentIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/advice': {
+      id: '/_authenticated/admin/content/advice'
+      path: '/advice'
+      fullPath: '/admin/content/advice'
+      preLoaderRoute: typeof AuthenticatedAdminContentAdviceRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/judgements': {
+      id: '/_authenticated/admin/content/judgements'
+      path: '/judgements'
+      fullPath: '/admin/content/judgements'
+      preLoaderRoute: typeof AuthenticatedAdminContentJudgementsRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/library': {
+      id: '/_authenticated/admin/content/library'
+      path: '/library'
+      fullPath: '/admin/content/library'
+      preLoaderRoute: typeof AuthenticatedAdminContentLibraryRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/news': {
+      id: '/_authenticated/admin/content/news'
+      path: '/news'
+      fullPath: '/admin/content/news'
+      preLoaderRoute: typeof AuthenticatedAdminContentNewsRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/quotes': {
+      id: '/_authenticated/admin/content/quotes'
+      path: '/quotes'
+      fullPath: '/admin/content/quotes'
+      preLoaderRoute: typeof AuthenticatedAdminContentQuotesRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/security-tips': {
+      id: '/_authenticated/admin/content/security-tips'
+      path: '/security-tips'
+      fullPath: '/admin/content/security-tips'
+      preLoaderRoute: typeof AuthenticatedAdminContentSecurityTipsRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/stations': {
+      id: '/_authenticated/admin/content/stations'
+      path: '/stations'
+      fullPath: '/admin/content/stations'
+      preLoaderRoute: typeof AuthenticatedAdminContentStationsRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/_authenticated/admin/content/wanted': {
+      id: '/_authenticated/admin/content/wanted'
+      path: '/wanted'
+      fullPath: '/admin/content/wanted'
+      preLoaderRoute: typeof AuthenticatedAdminContentWantedRouteImport
+      parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
   }
 }
 
+interface AuthenticatedAdminContentRouteRouteChildren {
+  AuthenticatedAdminContentAdviceRoute: typeof AuthenticatedAdminContentAdviceRoute
+  AuthenticatedAdminContentJudgementsRoute: typeof AuthenticatedAdminContentJudgementsRoute
+  AuthenticatedAdminContentLibraryRoute: typeof AuthenticatedAdminContentLibraryRoute
+  AuthenticatedAdminContentNewsRoute: typeof AuthenticatedAdminContentNewsRoute
+  AuthenticatedAdminContentQuotesRoute: typeof AuthenticatedAdminContentQuotesRoute
+  AuthenticatedAdminContentSecurityTipsRoute: typeof AuthenticatedAdminContentSecurityTipsRoute
+  AuthenticatedAdminContentStationsRoute: typeof AuthenticatedAdminContentStationsRoute
+  AuthenticatedAdminContentWantedRoute: typeof AuthenticatedAdminContentWantedRoute
+  AuthenticatedAdminContentIndexRoute: typeof AuthenticatedAdminContentIndexRoute
+}
+
+const AuthenticatedAdminContentRouteRouteChildren: AuthenticatedAdminContentRouteRouteChildren =
+  {
+    AuthenticatedAdminContentAdviceRoute: AuthenticatedAdminContentAdviceRoute,
+    AuthenticatedAdminContentJudgementsRoute:
+      AuthenticatedAdminContentJudgementsRoute,
+    AuthenticatedAdminContentLibraryRoute:
+      AuthenticatedAdminContentLibraryRoute,
+    AuthenticatedAdminContentNewsRoute: AuthenticatedAdminContentNewsRoute,
+    AuthenticatedAdminContentQuotesRoute: AuthenticatedAdminContentQuotesRoute,
+    AuthenticatedAdminContentSecurityTipsRoute:
+      AuthenticatedAdminContentSecurityTipsRoute,
+    AuthenticatedAdminContentStationsRoute:
+      AuthenticatedAdminContentStationsRoute,
+    AuthenticatedAdminContentWantedRoute: AuthenticatedAdminContentWantedRoute,
+    AuthenticatedAdminContentIndexRoute: AuthenticatedAdminContentIndexRoute,
+  }
+
+const AuthenticatedAdminContentRouteRouteWithChildren =
+  AuthenticatedAdminContentRouteRoute._addFileChildren(
+    AuthenticatedAdminContentRouteRouteChildren,
+  )
+
+interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminContentRouteRoute: typeof AuthenticatedAdminContentRouteRouteWithChildren
+  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminVerificationsRoute: typeof AuthenticatedAdminVerificationsRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
+  {
+    AuthenticatedAdminContentRouteRoute:
+      AuthenticatedAdminContentRouteRouteWithChildren,
+    AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+    AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+    AuthenticatedAdminVerificationsRoute: AuthenticatedAdminVerificationsRoute,
+    AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  }
+
+const AuthenticatedAdminRouteRouteWithChildren =
+  AuthenticatedAdminRouteRoute._addFileChildren(
+    AuthenticatedAdminRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBenchRoute: typeof AuthenticatedBenchRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -534,7 +883,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBenchRoute: AuthenticatedBenchRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -545,6 +894,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface WantedRouteChildren {
+  WantedIdRoute: typeof WantedIdRoute
+}
+
+const WantedRouteChildren: WantedRouteChildren = {
+  WantedIdRoute: WantedIdRoute,
+}
+
+const WantedRouteWithChildren =
+  WantedRoute._addFileChildren(WantedRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -558,7 +918,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SafetyRoute: SafetyRoute,
   StationsRoute: StationsRoute,
-  WantedRoute: WantedRoute,
+  WantedRoute: WantedRouteWithChildren,
   AdviceSlugRoute: AdviceSlugRoute,
   LawyersLawyerIdRoute: LawyersLawyerIdRoute,
   NewsSlugRoute: NewsSlugRoute,

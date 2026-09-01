@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   ArrowRight,
@@ -8,9 +8,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Trash2,
-  Users,
 } from "lucide-react";
-import { toast } from "sonner";
 import {
   StatCard,
   StatusPill,
@@ -18,10 +16,8 @@ import {
   LoadingRows,
   QueryError,
 } from "@/components/common/bits";
-import { Button } from "@/components/ui/button";
-import { lawyersQuery, auditLogsQuery, type AuditLog } from "@/lib/queries";
+import { auditLogsQuery, type AuditLog } from "@/lib/queries";
 import { useSession } from "@/lib/session";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 type AuditActionFilter = "all" | "INSERT" | "UPDATE" | "DELETE";
@@ -259,13 +255,10 @@ function AuditChangeBody({ entry }: { entry: AuditLog }) {
   );
 }
 
-export function AdminAuditWorkspace() {
+export function AuditTrail() {
   const { user } = useSession();
-  const queryClient = useQueryClient();
-  const lawyers = useQuery(lawyersQuery());
   const auditLogs = useQuery(auditLogsQuery(user?.id));
   const [actionFilter, setActionFilter] = useState<AuditActionFilter>("all");
-  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const filteredLogs = useMemo(() => {
     const rows = auditLogs.data ?? [];
@@ -282,29 +275,9 @@ export function AdminAuditWorkspace() {
   ).length;
   const touchedTables = new Set((auditLogs.data ?? []).map((entry) => entry.table_name)).size;
 
-  const setVerification = async (lawyerId: string, verified: boolean) => {
-    setVerifyingId(lawyerId);
-    const { error } = await supabase.from("lawyers").update({ verified }).eq("id", lawyerId);
-    setVerifyingId(null);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(verified ? "Advocate verified" : "Verification removed");
-    queryClient.invalidateQueries({ queryKey: ["lawyers"] });
-    queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
-  };
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="eyebrow text-brass">Administration</p>
-      <h1 className="mt-2 font-display text-4xl font-semibold">Audit & verification</h1>
-      <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Administrative actions are written to a tamper-evident audit trail and reviewed from the
-        same workspace.
-      </p>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div>
+      <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Audit events"
           value={totalEvents}
@@ -321,173 +294,83 @@ export function AdminAuditWorkspace() {
           value={touchedTables}
           icon={<ShieldCheck className="h-4 w-4" />}
         />
-        <StatCard
-          label="Pending verifications"
-          value={lawyers.data?.filter((lawyer) => !lawyer.verified).length ?? 0}
-          icon={<Users className="h-4 w-4" />}
-        />
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
-        <section>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="font-display text-xl font-semibold">Audit trail</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Insert and update payloads are rendered as structured field views.
-              </p>
-            </div>
-            <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-plate">
-              <Filter className="ml-1.5 h-3.5 w-3.5 text-muted-foreground" />
-              {ACTION_FILTERS.map((filter) => (
-                <button
-                  key={filter.id}
-                  type="button"
-                  onClick={() => setActionFilter(filter.id)}
-                  className={cn(
-                    "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                    actionFilter === filter.id
-                      ? "bg-brass/15 text-brass"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-3">
-            {auditLogs.isLoading ? (
-              <LoadingRows rows={5} />
-            ) : auditLogs.isError ? (
-              <QueryError
-                message={auditLogs.error instanceof Error ? auditLogs.error.message : undefined}
-                onRetry={() => auditLogs.refetch()}
-              />
-            ) : filteredLogs.length === 0 ? (
-              <EmptyState
-                title={
-                  actionFilter === "all"
-                    ? "No audit events yet"
-                    : `No ${actionFilter.toLowerCase()} events`
-                }
-                description="Administrative changes, message activity and record updates will appear here."
-              />
-            ) : (
-              filteredLogs.map((entry) => (
-                <article
-                  key={entry.id}
-                  className="rounded-lg border border-border bg-card p-5 shadow-plate"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="font-mono text-xs text-brass">{entry.table_name}</p>
-                      <h3 className="mt-1 font-display text-base font-semibold capitalize">
-                        {entry.action.replace(/_/g, " ").toLowerCase()}
-                      </h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {entry.actor_name ?? entry.actor_id ?? "System"} ·{" "}
-                        {new Date(entry.created_at).toLocaleString()}
-                      </p>
-                      {entry.record_id ? (
-                        <p className="mt-1 font-mono text-[0.65rem] text-muted-foreground/80">
-                          record {entry.record_id}
-                        </p>
-                      ) : null}
-                    </div>
-                    <StatusPill value={entry.action.toLowerCase()} />
-                  </div>
-
-                  <div className="mt-4">
-                    <AuditChangeBody entry={entry} />
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="font-display text-xl font-semibold">Advocate verification</h2>
+      <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Audit trail</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Confirm bar credentials before advocates appear in the public directory.
+            Insert and update payloads are rendered as structured field views.
           </p>
-          <div className="mt-4 space-y-3">
-            {lawyers.isLoading ? (
-              <LoadingRows rows={4} />
-            ) : lawyers.isError ? (
-              <QueryError
-                message={lawyers.error instanceof Error ? lawyers.error.message : undefined}
-                onRetry={() => lawyers.refetch()}
-              />
-            ) : (lawyers.data ?? []).length === 0 ? (
-              <EmptyState
-                title="No advocates on file"
-                description="Advocate profiles will appear here once they are created."
-              />
-            ) : (
-              (lawyers.data ?? []).map((lawyer) => (
-                <div
-                  key={lawyer.id}
-                  className="rounded-lg border border-border bg-card p-5 shadow-plate"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-border bg-secondary">
-                      {lawyer.photo_url ? (
-                        <img src={lawyer.photo_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">
-                          {lawyer.full_name
-                            .split(/\s+/)
-                            .slice(0, 2)
-                            .map((part) => part[0]?.toUpperCase() ?? "")
-                            .join("")}
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate font-display font-semibold">{lawyer.full_name}</p>
-                          <p className="truncate text-sm text-muted-foreground">
-                            {lawyer.firm ?? "Independent"}
-                          </p>
-                        </div>
-                        <StatusPill value={lawyer.verified ? "active" : "pending"} />
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {lawyer.bar_number ?? "Bar number pending"}
-                        {lawyer.county ? ` · ${lawyer.county}` : ""}
-                      </p>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {!lawyer.verified ? (
-                          <Button
-                            size="sm"
-                            variant="brass"
-                            disabled={verifyingId === lawyer.id}
-                            onClick={() => setVerification(lawyer.id, true)}
-                          >
-                            Verify advocate
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={verifyingId === lawyer.id}
-                            onClick={() => setVerification(lawyer.id, false)}
-                          >
-                            Revoke verification
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+        </div>
+        <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-plate">
+          <Filter className="ml-1.5 h-3.5 w-3.5 text-muted-foreground" />
+          {ACTION_FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => setActionFilter(filter.id)}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                actionFilter === filter.id
+                  ? "bg-brass/15 text-brass"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {auditLogs.isLoading ? (
+          <LoadingRows rows={5} />
+        ) : auditLogs.isError ? (
+          <QueryError
+            message={auditLogs.error instanceof Error ? auditLogs.error.message : undefined}
+            onRetry={() => auditLogs.refetch()}
+          />
+        ) : filteredLogs.length === 0 ? (
+          <EmptyState
+            title={
+              actionFilter === "all"
+                ? "No audit events yet"
+                : `No ${actionFilter.toLowerCase()} events`
+            }
+            description="Administrative changes, message activity and record updates will appear here."
+          />
+        ) : (
+          filteredLogs.map((entry) => (
+            <article
+              key={entry.id}
+              className="rounded-lg border border-border bg-card p-5 shadow-plate"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-mono text-xs text-brass">{entry.table_name}</p>
+                  <h3 className="mt-1 font-display text-base font-semibold capitalize">
+                    {entry.action.replace(/_/g, " ").toLowerCase()}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {entry.actor_name ?? entry.actor_id ?? "System"} ·{" "}
+                    {new Date(entry.created_at).toLocaleString()}
+                  </p>
+                  {entry.record_id ? (
+                    <p className="mt-1 font-mono text-[0.65rem] text-muted-foreground/80">
+                      record {entry.record_id}
+                    </p>
+                  ) : null}
                 </div>
-              ))
-            )}
-          </div>
-        </section>
+                <StatusPill value={entry.action.toLowerCase()} />
+              </div>
+
+              <div className="mt-4">
+                <AuditChangeBody entry={entry} />
+              </div>
+            </article>
+          ))
+        )}
       </div>
     </div>
   );

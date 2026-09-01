@@ -164,6 +164,20 @@ export const wantedQuery = queryOptions({
     ),
 });
 
+export const wantedPersonQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["wanted", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wanted_persons")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
 export const securityTipsQuery = queryOptions({
   queryKey: ["security-tips"],
   queryFn: async () => unwrap(await supabase.from("security_tips").select("*")),
@@ -315,3 +329,32 @@ export const auditLogsQuery = (userId: string | undefined) =>
           .limit(100),
       ),
   });
+
+// --- Admin-only reads (RLS permits admin to see every row on these tables) ---
+
+export type CaseRow = AppDatabase["public"]["Tables"]["cases"]["Row"];
+
+export const allCasesQuery = queryOptions({
+  queryKey: ["admin-cases"],
+  queryFn: async () =>
+    unwrap<CaseRow[]>(
+      await supabase.from("cases").select("*").order("created_at", { ascending: false }),
+    ),
+});
+
+export type ProfileRow = AppDatabase["public"]["Tables"]["profiles"]["Row"];
+
+export const allProfilesQuery = queryOptions({
+  queryKey: ["admin-profiles"],
+  queryFn: async () =>
+    unwrap<ProfileRow[]>(
+      await supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+    ),
+});
+
+export type UserRoleRow = AppDatabase["public"]["Tables"]["user_roles"]["Row"];
+
+export const allUserRolesQuery = queryOptions({
+  queryKey: ["admin-user-roles"],
+  queryFn: async () => unwrap<UserRoleRow[]>(await supabase.from("user_roles").select("*")),
+});

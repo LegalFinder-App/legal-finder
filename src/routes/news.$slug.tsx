@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { PublicLayout } from "@/components/site/public-layout";
-import { EmptyState } from "@/components/common/bits";
+import { EmptyState, QueryError } from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
 import { newsQuery } from "@/lib/queries";
+import { MarkdownLite } from "@/lib/markdown-lite";
 
 export const Route = createFileRoute("/news/$slug")({
   head: () => ({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/news/$slug")({
 
 function NewsDetail() {
   const { slug } = Route.useParams();
-  const { data, isLoading } = useQuery(newsQuery(slug));
+  const { data, isLoading, isError, error, refetch } = useQuery(newsQuery(slug));
 
   if (isLoading) {
     return (
@@ -36,12 +37,26 @@ function NewsDetail() {
     );
   }
 
+  if (isError) {
+    return (
+      <PublicLayout>
+        <div className="mx-auto max-w-2xl px-4 py-28">
+          <QueryError
+            message={error instanceof Error ? error.message : undefined}
+            onRetry={() => refetch()}
+          />
+        </div>
+      </PublicLayout>
+    );
+  }
+
   if (!data) {
     return (
       <PublicLayout>
         <div className="mx-auto max-w-2xl px-4 py-28">
           <EmptyState
             title="Story not found"
+            description="This story may have been unpublished or the link is out of date."
             action={
               <Button asChild variant="brass">
                 <Link to="/news">Back to news</Link>
@@ -69,14 +84,10 @@ function NewsDetail() {
         {data.image_url && (
           <img src={data.image_url} alt="" className="mt-8 w-full rounded-xl object-cover" />
         )}
-        <div className="mt-8 space-y-5 text-[1.02rem] leading-[1.75] text-foreground/90">
-          {data.body
-            .split("\n")
-            .filter(Boolean)
-            .map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-        </div>
+        <MarkdownLite
+          text={data.body}
+          className="mt-8 space-y-5 text-[1.02rem] leading-[1.75] text-foreground/90"
+        />
       </article>
     </PublicLayout>
   );

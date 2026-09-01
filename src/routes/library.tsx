@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, ExternalLink } from "lucide-react";
-import { PublicLayout, PageHeader } from "@/components/site/public-layout";
-import { LoadingRows, EmptyState } from "@/components/common/bits";
+import { PublicLayout } from "@/components/site/public-layout";
+import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
+import { SearchInput } from "@/components/common/search-input";
+import { FilterChipGroup } from "@/components/common/filter-chip";
+import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { libraryQuery } from "@/lib/queries";
-import { cn } from "@/lib/utils";
 import library from "@/assets/library.jpg";
 
 export const Route = createFileRoute("/library")({
@@ -27,10 +29,22 @@ export const Route = createFileRoute("/library")({
 });
 
 function LibraryPage() {
-  const { data, isLoading } = useQuery(libraryQuery);
-  const [cat, setCat] = useState<string | null>(null);
-  const cats = Array.from(new Set((data ?? []).map((i) => i.category)));
-  const items = (data ?? []).filter((i) => !cat || i.category === cat);
+  const { data, isLoading, isError, error, refetch } = useQuery(libraryQuery);
+  const [q, setQ] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const categoryOptions = useMemo(
+    () => Array.from(new Set((data ?? []).map((i) => i.category))),
+    [data],
+  );
+  const items = (data ?? []).filter((i) => {
+    if (categories.length > 0 && !categories.includes(i.category)) return false;
+    if (q) {
+      const text = `${i.title} ${i.author ?? ""} ${i.description ?? ""}`.toLowerCase();
+      if (!text.includes(q.toLowerCase())) return false;
+    }
+    return true;
+  });
+  const { page, setPage, totalPages, pageItems } = usePaginatedList(items, 9);
 
   return (
     <PublicLayout>
@@ -49,75 +63,79 @@ function LibraryPage() {
             Constitutions, statutes, procedure rules and practice manuals — collected, tagged and
             free to read.
           </p>
+          <div className="mt-8">
+            <SearchInput
+              value={q}
+              onChange={setQ}
+              label="Search the library"
+              placeholder="Search by title, author or description"
+            />
+          </div>
         </div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setCat(null)}
-            className={cn(
-              "rounded-full border px-4 py-1.5 text-sm",
-              !cat
-                ? "border-brass bg-brass/15 font-semibold"
-                : "border-border text-muted-foreground",
-            )}
-          >
-            All
-          </button>
-          {cats.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={cn(
-                "rounded-full border px-4 py-1.5 text-sm",
-                cat === c
-                  ? "border-brass bg-brass/15 font-semibold"
-                  : "border-border text-muted-foreground hover:bg-secondary",
-              )}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        <FilterChipGroup
+          options={categoryOptions}
+          value={categories}
+          onChange={setCategories}
+          allLabel="All"
+        />
 
         <div className="mt-10">
           {isLoading ? (
             <LoadingRows rows={5} />
+          ) : isError ? (
+            <QueryError
+              message={error instanceof Error ? error.message : undefined}
+              onRetry={() => refetch()}
+            />
           ) : items.length === 0 ? (
             <EmptyState icon={<BookOpen className="h-8 w-8" />} title="Library is empty" />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((i) => (
-                <div
-                  key={i.id}
-                  className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-plate"
-                >
-                  <p className="eyebrow text-brass">{i.category}</p>
-                  <h2 className="mt-2 font-display text-lg font-semibold leading-snug">
-                    {i.title}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {[i.author, i.year].filter(Boolean).join(" · ")}
-                  </p>
-                  {i.description && (
-                    <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
-                      {i.description}
+            <>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {pageItems.map((i) => (
+                  <div
+                    key={i.id}
+                    className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-plate"
+                  >
+                    <p className="eyebrow text-brass">{i.category}</p>
+                    <h2 className="mt-2 font-display text-lg font-semibold leading-snug">
+                      {i.title}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {[i.author, i.year].filter(Boolean).join(" · ")}
                     </p>
-                  )}
-                  {i.file_url && (
-                    <a
-                      href={i.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold text-brass hover:underline"
-                    >
-                      Open <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
+                    {i.description && (
+                      <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
+                        {i.description}
+                      </p>
+                    )}
+                    {i.file_url ? (
+                      <a
+                        href={i.file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold text-brass hover:underline"
+                      >
+                        Open <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : (
+                      <p className="mt-auto pt-5 text-xs text-muted-foreground">
+                        Full text coming soon
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <PaginationBar
+                page={page}
+                totalPages={totalPages}
+                onChange={setPage}
+                className="mt-10"
+              />
+            </>
           )}
         </div>
       </div>

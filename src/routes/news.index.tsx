@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
-import { LoadingRows, EmptyState } from "@/components/common/bits";
+import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
+import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
+import { cn } from "@/lib/utils";
 import { newsListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/news/")({
@@ -21,8 +23,9 @@ export const Route = createFileRoute("/news/")({
 });
 
 function NewsPage() {
-  const { data, isLoading } = useQuery(newsListQuery);
+  const { data, isLoading, isError, error, refetch } = useQuery(newsListQuery);
   const [lead, ...rest] = data ?? [];
+  const { page, setPage, totalPages, pageItems } = usePaginatedList(rest, 6);
 
   return (
     <PublicLayout>
@@ -34,6 +37,11 @@ function NewsPage() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
         {isLoading ? (
           <LoadingRows rows={5} />
+        ) : isError ? (
+          <QueryError
+            message={error instanceof Error ? error.message : undefined}
+            onRetry={() => refetch()}
+          />
         ) : !lead ? (
           <EmptyState title="No news published yet" />
         ) : (
@@ -41,7 +49,10 @@ function NewsPage() {
             <Link
               to="/news/$slug"
               params={{ slug: lead.slug ?? lead.id }}
-              className="group grid gap-8 overflow-hidden rounded-xl border border-border bg-card shadow-plate lg:grid-cols-2"
+              className={cn(
+                "group grid overflow-hidden rounded-xl border border-border bg-card shadow-plate",
+                lead.image_url ? "gap-8 lg:grid-cols-2" : "gap-0",
+              )}
             >
               {lead.image_url && (
                 <img src={lead.image_url} alt="" className="h-full min-h-64 w-full object-cover" />
@@ -59,24 +70,34 @@ function NewsPage() {
               </div>
             </Link>
 
-            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {rest.map((n) => (
-                <Link
-                  key={n.id}
-                  to="/news/$slug"
-                  params={{ slug: n.slug ?? n.id }}
-                  className="group rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-plate"
-                >
-                  <p className="font-mono text-xs text-muted-foreground">
-                    {new Date(n.published_at).toLocaleDateString()}
-                  </p>
-                  <h3 className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-brass">
-                    {n.title}
-                  </h3>
-                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
-                </Link>
-              ))}
-            </div>
+            {rest.length > 0 && (
+              <>
+                <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {pageItems.map((n) => (
+                    <Link
+                      key={n.id}
+                      to="/news/$slug"
+                      params={{ slug: n.slug ?? n.id }}
+                      className="group rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-plate"
+                    >
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {new Date(n.published_at).toLocaleDateString()}
+                      </p>
+                      <h3 className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-brass">
+                        {n.title}
+                      </h3>
+                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
+                    </Link>
+                  ))}
+                </div>
+                <PaginationBar
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                  className="mt-10"
+                />
+              </>
+            )}
           </>
         )}
       </div>

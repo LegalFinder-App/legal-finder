@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Download, Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/app/shell/theme-toggle";
 import { useSession, ROLE_HOME } from "@/lib/session";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 
@@ -41,6 +42,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
+          <ThemeToggle ink />
           {canInstall && (
             <Button variant="outlineInk" size="sm" onClick={() => void promptInstall()}>
               Install app <Download className="h-4 w-4" />
@@ -64,14 +66,17 @@ export function SiteHeader() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle navigation"
-          className="ml-auto grid h-9 w-9 place-items-center rounded-md text-ink-foreground/80 hover:bg-ink-foreground/10 lg:hidden"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="ml-auto flex items-center gap-1 lg:hidden">
+          <ThemeToggle ink />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Toggle navigation"
+            className="grid h-9 w-9 place-items-center rounded-md text-ink-foreground/80 hover:bg-ink-foreground/10"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (

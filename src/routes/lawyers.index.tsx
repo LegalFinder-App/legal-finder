@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LawyerCard } from "@/components/common/lawyer-card";
 import { EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
+import { SearchInput } from "@/components/common/search-input";
+import { FilterChipGroup } from "@/components/common/filter-chip";
+import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { Button } from "@/components/ui/button";
 import { publicLawyersQuery } from "@/lib/queries";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/lawyers/")({
   head: () => ({
@@ -31,15 +33,15 @@ export const Route = createFileRoute("/lawyers/")({
 function LawyersPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(publicLawyersQuery());
   const [q, setQ] = useState("");
-  const [area, setArea] = useState<string | null>(null);
-  const [county, setCounty] = useState<string | null>(null);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [counties, setCounties] = useState<string[]>([]);
   const [acceptingOnly, setAcceptingOnly] = useState(false);
 
-  const areas = useMemo(
+  const areaOptions = useMemo(
     () => Array.from(new Set((data ?? []).flatMap((l) => l.practice_areas))).sort(),
     [data],
   );
-  const counties = useMemo(
+  const countyOptions = useMemo(
     () => Array.from(new Set((data ?? []).map((l) => l.county).filter(Boolean) as string[])).sort(),
     [data],
   );
@@ -47,11 +49,13 @@ function LawyersPage() {
   const results = (data ?? []).filter((l) => {
     const text = `${l.full_name} ${l.firm ?? ""} ${l.headline ?? ""}`.toLowerCase();
     if (q && !text.includes(q.toLowerCase())) return false;
-    if (area && !l.practice_areas.includes(area)) return false;
-    if (county && l.county !== county) return false;
+    if (areas.length > 0 && !areas.some((area) => l.practice_areas.includes(area))) return false;
+    if (counties.length > 0 && (!l.county || !counties.includes(l.county))) return false;
     if (acceptingOnly && !l.accepting_clients) return false;
     return true;
   });
+
+  const { page, setPage, totalPages, pageItems } = usePaginatedList(results, 12);
 
   return (
     <PublicLayout>
@@ -60,15 +64,12 @@ function LawyersPage() {
         title="Find a verified advocate"
         description="Every advocate on LegalFinder is checked against the roll before their profile is published."
       >
-        <div className="relative max-w-xl">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-foreground/40" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by name, firm or specialisation"
-            className="h-12 w-full rounded-md border border-ink-foreground/20 bg-ink-foreground/5 pl-10 pr-4 text-sm text-ink-foreground placeholder:text-ink-foreground/40 focus:border-brass focus:outline-none"
-          />
-        </div>
+        <SearchInput
+          value={q}
+          onChange={setQ}
+          label="Search advocates"
+          placeholder="Search by name, firm or specialisation"
+        />
       </PageHeader>
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -78,8 +79,21 @@ function LawyersPage() {
               <SlidersHorizontal className="h-4 w-4 text-brass" /> Filters
             </div>
 
-            <FilterGroup label="Practice area" options={areas} value={area} onChange={setArea} />
-            <FilterGroup label="District" options={counties} value={county} onChange={setCounty} />
+            <FilterChipGroup
+              label="Practice area"
+              options={areaOptions}
+              value={areas}
+              onChange={setAreas}
+              multiple
+              variant="block"
+            />
+            <FilterChipGroup
+              label="District"
+              options={countyOptions}
+              value={counties}
+              onChange={setCounties}
+              variant="block"
+            />
 
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
@@ -112,8 +126,8 @@ function LawyersPage() {
                     variant="outline"
                     onClick={() => {
                       setQ("");
-                      setArea(null);
-                      setCounty(null);
+                      setAreas([]);
+                      setCounties([]);
                       setAcceptingOnly(false);
                     }}
                   >
@@ -122,51 +136,23 @@ function LawyersPage() {
                 }
               />
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {results.map((l) => (
-                  <LawyerCard key={l.id} lawyer={l} />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {pageItems.map((l) => (
+                    <LawyerCard key={l.id} lawyer={l} />
+                  ))}
+                </div>
+                <PaginationBar
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={setPage}
+                  className="mt-10"
+                />
+              </>
             )}
           </div>
         </div>
       </div>
     </PublicLayout>
-  );
-}
-
-function FilterGroup({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: string[];
-  value: string | null;
-  onChange: (v: string | null) => void;
-}) {
-  if (options.length === 0) return null;
-  return (
-    <div>
-      <p className="eyebrow text-muted-foreground">{label}</p>
-      <div className="mt-3 flex flex-wrap gap-1.5 lg:flex-col lg:items-start">
-        {options.map((o) => (
-          <button
-            key={o}
-            type="button"
-            onClick={() => onChange(value === o ? null : o)}
-            className={cn(
-              "rounded-md px-2.5 py-1.5 text-left text-sm transition-colors",
-              value === o
-                ? "bg-brass/15 font-semibold text-accent-foreground"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-            )}
-          >
-            {o}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

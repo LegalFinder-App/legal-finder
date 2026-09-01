@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { BadgeCheck, Download, Laptop2, Smartphone, Tablet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,9 +35,9 @@ export function PlatformMatrix() {
           </p>
         </div>
         <Button variant="brass" size="sm" asChild>
-          <a href="/dashboard">
+          <Link to="/dashboard">
             Open shared app <Download className="h-4 w-4" />
-          </a>
+          </Link>
         </Button>
       </div>
 

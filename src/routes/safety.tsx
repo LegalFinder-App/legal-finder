@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
-import { LoadingRows, EmptyState } from "@/components/common/bits";
+import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { securityTipsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/safety")({
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/safety")({
 });
 
 function SafetyPage() {
-  const { data, isLoading } = useQuery(securityTipsQuery);
+  const { data, isLoading, isError, error, refetch } = useQuery(securityTipsQuery);
 
   return (
     <PublicLayout>
@@ -37,6 +37,11 @@ function SafetyPage() {
       <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 lg:px-8">
         {isLoading ? (
           <LoadingRows rows={4} />
+        ) : isError ? (
+          <QueryError
+            message={error instanceof Error ? error.message : undefined}
+            onRetry={() => refetch()}
+          />
         ) : (data ?? []).length === 0 ? (
           <EmptyState icon={<ShieldCheck className="h-8 w-8" />} title="No tips published yet" />
         ) : (

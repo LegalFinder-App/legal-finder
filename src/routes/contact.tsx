@@ -40,7 +40,7 @@ function Contact() {
             <Mail className="h-4 w-4 text-brass" /> support@legalfinder.app
           </p>
           <p className="flex items-center gap-3">
-            <Phone className="h-4 w-4 text-brass" /> +254 700 000 000
+            <Phone className="h-4 w-4 text-brass" /> +256 700 000 000
           </p>
           <p className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-4 w-4 text-brass" /> Kampala, Uganda
@@ -63,19 +63,36 @@ function Contact() {
         >
           <div className="space-y-2">
             <Label htmlFor="n">Name</Label>
-            <Input id="n" name="name" required maxLength={100} />
+            <Input id="n" name="name" required maxLength={100} disabled={sent} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="e">Email</Label>
-            <Input id="e" name="email" type="email" required maxLength={255} />
+            <Input id="e" name="email" type="email" required maxLength={255} disabled={sent} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="m">Message</Label>
-            <Textarea id="m" name="message" required maxLength={1000} rows={5} />
+            <Textarea id="m" name="message" required maxLength={1000} rows={5} disabled={sent} />
           </div>
-          <Button type="submit" variant="brass" className="w-full">
-            {sent ? "Message sent" : "Send message"}
+          <Button type="submit" variant="brass" className="w-full" disabled={sent}>
+            {sent ? "Message sent — check your email app" : "Send message"}
           </Button>
+          {sent && (
+            <p className="text-center text-xs text-muted-foreground">
+              Nothing open? Email{" "}
+              <a href="mailto:support@legalfinder.app" className="text-brass hover:underline">
+                support@legalfinder.app
+              </a>{" "}
+              directly, or{" "}
+              <button
+                type="button"
+                onClick={() => setSent(false)}
+                className="text-brass hover:underline"
+              >
+                try again
+              </button>
+              .
+            </p>
+          )}
         </form>
       </div>
     </PublicLayout>

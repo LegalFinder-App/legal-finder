@@ -1,17 +1,11 @@
-import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Logo } from "@/components/brand/logo";
-import { Button } from "@/components/ui/button";
-import { ProfileImageUploader } from "@/components/app/profile-image-uploader";
-import { useSession, ROLE_LABELS, type AppRole } from "@/lib/session";
-import {
-  requestBrowserNotificationPermission,
-  registerAppServiceWorker,
-  showBrowserNotification,
-} from "@/lib/platform-notifications";
+import { AppShell } from "@/components/app/shell/app-shell";
+import { useSession } from "@/lib/session";
+import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -23,36 +17,8 @@ export const Route = createFileRoute("/_authenticated")({
   component: WorkspaceLayout,
 });
 
-const ALL_LINKS = [
-  {
-    to: "/dashboard",
-    label: "Overview",
-    roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[],
-  },
-  {
-    to: "/messages",
-    label: "Messages",
-    roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[],
-  },
-  {
-    to: "/assistant",
-    label: "Assistant",
-    roles: ["user", "lawyer", "police", "judiciary", "admin"] as AppRole[],
-  },
-  { to: "/practice", label: "Practice", roles: ["lawyer", "admin"] as AppRole[] },
-  { to: "/precinct", label: "Precinct", roles: ["police", "admin"] as AppRole[] },
-  { to: "/bench", label: "Bench", roles: ["judiciary", "admin"] as AppRole[] },
-  { to: "/admin", label: "Admin", roles: ["admin"] as AppRole[] },
-] as const;
-
-function linksForRole(role: AppRole) {
-  return ALL_LINKS.filter((link) => link.roles.includes(role));
-}
-
 function WorkspaceLayout() {
-  const { primaryRole, user, roles } = useSession();
-  const navLinks = linksForRole(primaryRole);
-  const navigate = useNavigate();
+  const { user } = useSession();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -114,57 +80,9 @@ function WorkspaceLayout() {
     };
   }, [queryClient, user?.id]);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
-
-  const enableNotifications = async () => {
-    const permission = await requestBrowserNotificationPermission();
-    if (permission === "granted") {
-      toast.success("Browser notifications enabled");
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="surface-ink">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="text-ink-foreground">
-            <Logo />
-          </Link>
-          <nav className="hidden items-center gap-1 md:flex">
-            {navLinks.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="rounded-md px-3 py-2 text-sm text-ink-foreground/70 hover:bg-ink-foreground/10 hover:text-ink-foreground"
-                activeProps={{ className: "text-brass bg-ink-foreground/10" }}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-xs text-ink-foreground/60 sm:block">
-              {ROLE_LABELS[primaryRole]}
-              {roles.length > 1 ? ` · ${roles.length} roles` : ""} · {user?.email}
-            </span>
-            {typeof window !== "undefined" &&
-              "Notification" in window &&
-              Notification.permission !== "granted" && (
-                <Button variant="outlineInk" size="sm" onClick={enableNotifications}>
-                  Enable notifications
-                </Button>
-              )}
-            <ProfileImageUploader />
-            <Button variant="outlineInk" size="sm" onClick={signOut}>
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+    <AppShell>
       <Outlet />
-    </div>
+    </AppShell>
   );
 }

@@ -45,17 +45,17 @@ export function ProfileImageUploader() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink-foreground/20 bg-ink-foreground/10">
+      <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border bg-muted">
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold text-ink-foreground/80">
+          <span className="flex h-full w-full items-center justify-center text-[0.65rem] font-semibold text-muted-foreground">
             {label}
           </span>
         )}
         {uploading ? (
-          <span className="absolute inset-0 flex items-center justify-center bg-ink/50">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-ink-foreground" />
+          <span className="absolute inset-0 flex items-center justify-center bg-foreground/40">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-background" />
           </span>
         ) : null}
       </div>
@@ -68,7 +68,7 @@ export function ProfileImageUploader() {
       />
       <Button
         type="button"
-        variant="outlineInk"
+        variant="outline"
         size="sm"
         disabled={uploading}
         onClick={() => inputRef.current?.click()}

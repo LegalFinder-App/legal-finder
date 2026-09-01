@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 
+type ReportSearch = { subject?: string };
+
 export const Route = createFileRoute("/report")({
+  validateSearch: (search: Record<string, unknown>): ReportSearch => ({
+    subject: typeof search.subject === "string" ? search.subject : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Report an incident — LegalFinder" },
@@ -29,9 +34,10 @@ const CATEGORIES = ["theft", "assault", "fraud", "harassment", "traffic", "other
 
 function ReportPage() {
   const { user } = useSession();
+  const { subject } = Route.useSearch();
   const [form, setForm] = useState({
     category: "theft",
-    description: "",
+    description: subject ? `Sighting report — ${subject}\n\n` : "",
     location: "",
     occurred_at: "",
     anonymous: false,

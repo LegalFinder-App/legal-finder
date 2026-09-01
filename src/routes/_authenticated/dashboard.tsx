@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorkspacePage } from "@/components/app/workspace-page";
+import { ClientWorkspace } from "@/components/app/workspace/client-workspace";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  component: Page,
+  component: ClientWorkspace,
 });
-
-function Page() {
-  return <WorkspacePage surface="dashboard" title="Overview" />;
-}

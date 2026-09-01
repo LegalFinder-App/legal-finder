@@ -39,7 +39,8 @@ export const DEMO_CASES = [
   {
     id: "demo-case-1",
     title: "Nabirye v. Metro Estates — rent dispute",
-    case_number: "HC/CIV/104/26",
+    reference: "HC/CIV/104/26",
+    case_type: "Civil",
     status: "active",
     court: "High Court of Uganda — Civil Division",
     updated_at: "2026-08-24T10:00:00.000Z",
@@ -47,7 +48,8 @@ export const DEMO_CASES = [
   {
     id: "demo-case-2",
     title: "Okello Trading — contract claim",
-    case_number: "SCC/KLA/55/26",
+    reference: "SCC/KLA/55/26",
+    case_type: "Commercial",
     status: "hearing",
     court: "Small Claims Court — Kampala",
     updated_at: "2026-08-21T08:30:00.000Z",
@@ -57,14 +59,14 @@ export const DEMO_CASES = [
 export const DEMO_APPOINTMENTS = [
   {
     id: "demo-appt-1",
-    title: "Consultation with Nabirye Kato",
+    subject: "Consultation with Nabirye Kato",
     scheduled_at: "2026-08-28T10:00:00.000Z",
     mode: "in-person",
     status: "confirmed",
   },
   {
     id: "demo-appt-2",
-    title: "Case review — HC/CIV/104/26",
+    subject: "Case review — HC/CIV/104/26",
     scheduled_at: "2026-09-02T15:30:00.000Z",
     mode: "video",
     status: "pending",
