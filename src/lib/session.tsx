@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import { useAuth, useUser } from "@clerk/tanstack-react-start";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "user" | "lawyer" | "police" | "judiciary" | "admin";
@@ -20,9 +20,15 @@ export const ROLE_HOME: Record<AppRole, string> = {
   admin: "/admin",
 };
 
+/** Minimal identity shape every consumer in the app actually uses — not Clerk's full user object. */
+export interface SessionUser {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+}
+
 export interface SessionState {
-  session: Session | null;
-  user: User | null;
+  user: SessionUser | null;
   roles: AppRole[];
   primaryRole: AppRole;
   loading: boolean;
@@ -35,43 +41,48 @@ export function primaryRoleFrom(roles: AppRole[]): AppRole {
 }
 
 export function useSession(): SessionState {
-  const [session, setSession] = useState<Session | null>(null);
+  const { isLoaded: authLoaded, userId, isSignedIn } = useAuth();
+  const { user: clerkUser } = useUser();
   const [roles, setRoles] = useState<AppRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [rolesLoaded, setRolesLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    const loadRoles = async (userId: string | undefined) => {
-      if (!userId) {
-        if (active) setRoles([]);
-        return;
-      }
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-      if (active) setRoles((data ?? []).map((r) => r.role as AppRole));
-    };
+    if (!userId) {
+      setRoles([]);
+      setRolesLoaded(true);
+      return;
+    }
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      await loadRoles(data.session?.user.id);
-      if (active) setLoading(false);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
-      void loadRoles(next?.user.id);
-    });
+    setRolesLoaded(false);
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .then(({ data }) => {
+        if (!active) return;
+        setRoles((data ?? []).map((r) => r.role as AppRole));
+        setRolesLoaded(true);
+      });
 
     return () => {
       active = false;
-      sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [userId]);
+
+  const user: SessionUser | null =
+    isSignedIn && clerkUser
+      ? {
+          id: clerkUser.id,
+          email: clerkUser.primaryEmailAddress?.emailAddress ?? null,
+          fullName: clerkUser.fullName,
+        }
+      : null;
 
   const primaryRole = primaryRoleFrom(roles);
 
-  return { session, user: session?.user ?? null, roles, primaryRole, loading };
+  return { user, roles, primaryRole, loading: !authLoaded || !rolesLoaded };
 }
 
 export function initials(name: string | null | undefined, fallback = "LF") {

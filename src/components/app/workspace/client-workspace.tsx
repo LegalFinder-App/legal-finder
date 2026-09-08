@@ -11,6 +11,7 @@ import { AppointmentsList } from "./shared/appointments-list";
 import { DocumentVault } from "./shared/document-vault";
 import { PushRegistrationCard } from "./shared/push-registration-card";
 import { PwaInstallCard } from "./shared/pwa-install-card";
+import { LiveCourtroomPanel } from "@/components/app/live-courtroom-panel";
 import { useSession } from "@/lib/session";
 import {
   myCasesQuery,
@@ -141,6 +142,10 @@ export function ClientWorkspace() {
           )}
         </div>
       </section>
+
+      <div className="mt-10">
+        <LiveCourtroomPanel title="Your live hearings" />
+      </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>

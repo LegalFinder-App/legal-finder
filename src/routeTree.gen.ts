@@ -19,6 +19,7 @@ import { Route as LibraryRouteImport } from './routes/library'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as StationsRouteImport } from './routes/stations'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
@@ -99,6 +100,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SafetyRoute = SafetyRouteImport.update({
   id: '/safety',
   path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SsoCallbackRoute = SsoCallbackRouteImport.update({
+  id: '/sso-callback',
+  path: '/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StationsRoute = StationsRouteImport.update({
@@ -283,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
@@ -369,6 +377,7 @@ export interface FileRoutesById {
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
   '/wanted': typeof WantedRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -414,6 +423,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/reset-password'
     | '/safety'
+    | '/sso-callback'
     | '/stations'
     | '/wanted'
     | '/admin'
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/reset-password'
     | '/safety'
+    | '/sso-callback'
     | '/stations'
     | '/wanted'
     | '/assistant'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/report'
     | '/reset-password'
     | '/safety'
+    | '/sso-callback'
     | '/stations'
     | '/wanted'
     | '/_authenticated/admin'
@@ -544,6 +556,7 @@ export interface RootRouteChildren {
   ReportRoute: typeof ReportRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SafetyRoute: typeof SafetyRoute
+  SsoCallbackRoute: typeof SsoCallbackRoute
   StationsRoute: typeof StationsRoute
   WantedRoute: typeof WantedRouteWithChildren
   AdviceSlugRoute: typeof AdviceSlugRoute
@@ -626,6 +639,13 @@ declare module '@tanstack/react-router' {
       path: '/safety'
       fullPath: '/safety'
       preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sso-callback': {
+      id: '/sso-callback'
+      path: '/sso-callback'
+      fullPath: '/sso-callback'
+      preLoaderRoute: typeof SsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stations': {
@@ -957,6 +977,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportRoute: ReportRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SafetyRoute: SafetyRoute,
+  SsoCallbackRoute: SsoCallbackRoute,
   StationsRoute: StationsRoute,
   WantedRoute: WantedRouteWithChildren,
   AdviceSlugRoute: AdviceSlugRoute,

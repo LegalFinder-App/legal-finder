@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 // Type-only import — erased at compile time, so it does not pull the SDK into the client bundle.
 import type Anthropic from "@anthropic-ai/sdk";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
 
 const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -29,7 +29,7 @@ Ground rules:
  * dual-purpose (client stub + server handler), so server-only deps must not load at module scope.
  */
 export const askAssistant = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireClerkAuth])
   .validator(chatRequestSchema)
   .handler(async ({ data }) => {
     const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -40,7 +40,14 @@ export const askAssistant = createServerFn({ method: "POST" })
     }
 
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey });
+    // Org-level (non-workspace-scoped) API keys reject every request with a 400 unless this
+    // header names the workspace to bill against. Workspace-scoped keys don't need it, so it's
+    // optional — only set ANTHROPIC_WORKSPACE_ID if ANTHROPIC_API_KEY isn't already scoped.
+    const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID;
+    const client = new Anthropic({
+      apiKey,
+      defaultHeaders: workspaceId ? { "anthropic-workspace-id": workspaceId } : undefined,
+    });
 
     let response;
     try {

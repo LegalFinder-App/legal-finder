@@ -9,9 +9,10 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
+
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme";
 
@@ -106,7 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
       },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", href: "/legalfinder-logo.png", type: "image/png" },
+      { rel: "icon", href: "/icons/icon-192.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -124,7 +125,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
-        {children}
+        <ClerkProvider>{children}</ClerkProvider>
         <Scripts />
       </body>
     </html>
@@ -134,15 +135,13 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [router, queryClient]);
+    if (!isLoaded) return;
+    router.invalidate();
+    if (isSignedIn) queryClient.invalidateQueries();
+  }, [isLoaded, isSignedIn, router, queryClient]);
 
   return (
     <ThemeProvider>

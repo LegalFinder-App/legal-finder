@@ -1,14 +1,14 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
 
 const uploadRequestSchema = z.object({
   extension: z.string().regex(/^\.[a-z0-9]{1,5}$/i),
 });
 
 export const getImageKitUploadAuth = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireClerkAuth])
   .validator(uploadRequestSchema)
   .handler(({ context, data }) => {
     const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;

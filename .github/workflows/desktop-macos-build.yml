@@ -1,0 +1,55 @@
+name: Desktop — macOS build
+
+# This machine's Windows/Linux runners can't produce a macOS build at all — electron-builder
+# requires actually running on macOS for dmg packaging and code signing. This workflow does that
+# on GitHub's hosted macOS runner. It runs on-demand only (not on every push) since it consumes
+# more expensive macOS-runner minutes than Linux/Windows.
+#
+# Out of the box this produces an UNSIGNED dmg — good enough to test locally, but Gatekeeper will
+# block it on another machine and Apple won't accept it for notarized distribution outside the
+# Mac App Store. To sign + notarize, add these repository secrets and uncomment the signing env
+# vars below:
+#   APPLE_ID                     — your Apple Developer account email
+#   APPLE_APP_SPECIFIC_PASSWORD  — an app-specific password (appleid.apple.com > Security)
+#   APPLE_TEAM_ID                — found at developer.apple.com/account (Membership tab)
+#   CSC_LINK                     — base64-encoded .p12 Developer ID Application certificate
+#   CSC_KEY_PASSWORD             — that .p12 file's export password
+# See platforms/desktop/macos/README.md for the full walkthrough.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "desktop-v*"
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS desktop app
+        env:
+          # Edit platforms/desktop/electron/main.js's PRODUCTION_APP_URL before relying on this,
+          # or set VITE_APP_URL here instead (e.g. from a repo variable) to override it at build time.
+          VITE_APP_URL: ${{ vars.VITE_APP_URL }}
+          # Uncomment once the secrets above are added, to produce a signed + notarized build:
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # CSC_LINK: ${{ secrets.CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: npx electron-builder --config platforms/desktop/electron-builder.yml --mac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legalfinder-macos
+          path: platforms/desktop/release/*.dmg
+          if-no-files-found: error

@@ -269,7 +269,7 @@ function BookingDialog({
         client_id: user.id,
         lawyer_id: lawyerUserId,
         lawyer_name: lawyerName,
-        client_name: (user.user_metadata?.full_name as string) ?? user.email,
+        client_name: user.fullName ?? user.email,
         subject,
         notes,
         scheduled_at: new Date(when).toISOString(),
@@ -484,7 +484,7 @@ function ReviewForm({ lawyerId }: { lawyerId: string }) {
     const { error } = await supabase.from("reviews").insert({
       lawyer_id: lawyerId,
       author_id: user.id,
-      author_name: (user.user_metadata?.full_name as string) ?? "Client",
+      author_name: user.fullName ?? "Client",
       rating,
       comment,
     });

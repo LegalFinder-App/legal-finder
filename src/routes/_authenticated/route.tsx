@@ -6,13 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/shell/app-shell";
 import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
+import { checkClerkSession } from "@/lib/clerk-session.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
+    const { userId } = await checkClerkSession();
+    if (!userId) throw redirect({ to: "/auth" });
+    return { user: { id: userId } };
   },
   component: WorkspaceLayout,
 });

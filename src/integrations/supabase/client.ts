@@ -29,6 +29,37 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+// Supabase's Clerk third-party auth integration: the client sends whatever this callback
+// returns as the request's bearer token, and Supabase verifies it directly (via Clerk's JWKS) —
+// no Supabase-managed session to persist/refresh, so the `auth` namespace isn't used here at all
+// (the supabase-js types call this out explicitly: setting `accessToken` makes `auth` unusable).
+// On a hard navigation, TanStack Router's `beforeLoad` chain can reach this callback before
+// ClerkProvider has finished bootstrapping `window.Clerk` (that bootstrap is independent of the
+// server-side cookie check `checkClerkSession()` runs) — calling this too early must not be
+// mistaken for "signed out", or an authenticated user's own RLS-scoped reads silently come back
+// empty instead of erroring, which looks exactly like "no matching rows" to the caller.
+async function waitForClerk(timeoutMs = 8000): Promise<Window["Clerk"] | undefined> {
+  const start = Date.now();
+  while (!window.Clerk && Date.now() - start < timeoutMs) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  if (window.Clerk && !window.Clerk.loaded) {
+    await window.Clerk.load().catch(() => undefined);
+  }
+  return window.Clerk;
+}
+
+async function getClerkAccessToken(): Promise<string | null> {
+  if (typeof window === "undefined") {
+    // SSR: only reachable for public, unauthenticated queries — routes that need an
+    // authenticated Supabase client run through requireClerkAuth's own per-request client
+    // instead, which is why an isomorphic `auth()` import isn't needed here.
+    return null;
+  }
+  const clerk = await waitForClerk();
+  return (await clerk?.session?.getToken()) ?? null;
+}
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
@@ -50,11 +81,7 @@ function createSupabaseClient() {
     global: {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
-    auth: {
-      storage: typeof window !== "undefined" ? localStorage : undefined,
-      persistSession: true,
-      autoRefreshToken: true,
-    },
+    accessToken: getClerkAccessToken,
   });
 }
 

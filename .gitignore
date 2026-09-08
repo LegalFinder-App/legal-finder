@@ -26,6 +26,18 @@ supabase-token.txt
 .wrangler/
 .dev.vars
 
+# Mobile (Capacitor) — native projects are committed, their build output/machine-specific
+# config is not
+platforms/mobile/android/**/build/
+platforms/mobile/android/.gradle/
+platforms/mobile/android/local.properties
+platforms/mobile/android/**/*.iml
+platforms/mobile/ios/App/Pods/
+platforms/mobile/ios/App/**/DerivedData/
+
+# Desktop (Electron) — packaged build output
+platforms/desktop/release/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

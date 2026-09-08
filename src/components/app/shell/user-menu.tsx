@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/tanstack-react-start";
 import { LogOut, User as UserIcon } from "lucide-react";
 import {
   DropdownMenu,
@@ -12,12 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProfileImageUploader } from "@/components/app/profile-image-uploader";
 import { profileQuery } from "@/lib/queries";
-import { supabase } from "@/integrations/supabase/client";
 import { initials, ROLE_LABELS, useSession } from "@/lib/session";
 
 export function UserMenu() {
   const { user, primaryRole } = useSession();
   const profile = useQuery(profileQuery(user?.id));
+  const { signOut: clerkSignOut } = useAuth();
   const navigate = useNavigate();
 
   const avatarUrl = profile.data?.avatar_url ?? null;
@@ -25,7 +26,7 @@ export function UserMenu() {
   const label = initials(profile.data?.full_name ?? user?.email ?? null);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await clerkSignOut();
     navigate({ to: "/auth", replace: true });
   };
 

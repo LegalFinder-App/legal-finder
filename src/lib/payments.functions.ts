@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
 
 const initiateSchema = z.object({ paymentId: z.string().uuid() });
 
@@ -11,7 +11,7 @@ const initiateSchema = z.object({ paymentId: z.string().uuid() });
  * at module scope.
  */
 export const initiatePesapalPayment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireClerkAuth])
   .validator(initiateSchema)
   .handler(async ({ context, data }) => {
     const { data: payment, error } = await context.supabase
@@ -54,6 +54,12 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
     const { getIpnId, submitOrder } = await import("@/lib/pesapal.server");
     const ipnId = await getIpnId(ipnUrl);
 
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", context.userId)
+      .maybeSingle();
+
     const order = await submitOrder({
       merchantReference: payment.id,
       amount: Number(payment.amount),
@@ -62,7 +68,7 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
       callbackUrl,
       ipnId,
       billing: {
-        emailAddress: typeof context.claims.email === "string" ? context.claims.email : undefined,
+        emailAddress: profile?.email ?? undefined,
       },
     });
 

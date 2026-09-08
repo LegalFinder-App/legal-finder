@@ -1,12 +1,21 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
+import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 
+import "@/lib/server-fn-manifest";
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
-const errorMiddleware = createMiddleware().server(async ({ next }) => {
+// Server function RPCs must let their errors propagate untouched — TanStack Start's own
+// serverFn serialization turns a thrown Error into a rejected promise the client can read
+// (e.g. the assistant's "Assistant error: ..." message shown via toast). Swapping that for
+// this HTML fallback previously replaced every serverFn error — auth failures, misconfigured
+// API keys, rate limits — with an opaque "This page didn't load" page.
+const errorMiddleware = createMiddleware().server(async ({ next, handlerType }) => {
   try {
     return await next();
   } catch (error) {
+    if (handlerType === "serverFn") {
+      throw error;
+    }
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
@@ -26,6 +35,5 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [clerkMiddleware(), errorMiddleware, csrfMiddleware],
 }));

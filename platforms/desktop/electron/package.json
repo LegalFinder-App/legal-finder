@@ -1,0 +1,9 @@
+{
+  "name": "legalfinder-desktop-shell",
+  "version": "0.1.0",
+  "description": "LegalFinder desktop shell — a thin Electron window pointed at the deployed web app.",
+  "author": "LegalFinder",
+  "private": true,
+  "type": "commonjs",
+  "main": "main.js"
+}

@@ -58,7 +58,7 @@ function ReportPage() {
       occurred_at: form.occurred_at ? new Date(form.occurred_at).toISOString() : null,
       anonymous: form.anonymous,
       reporter_id: form.anonymous ? null : (user?.id ?? null),
-      reporter_name: form.anonymous ? null : ((user?.user_metadata?.full_name as string) ?? null),
+      reporter_name: form.anonymous ? null : (user?.fullName ?? null),
     });
     setBusy(false);
     if (error) return toast.error(error.message);

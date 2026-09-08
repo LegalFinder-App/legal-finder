@@ -1,0 +1,5 @@
+{
+  "name": "legalfinder-mobile",
+  "private": true,
+  "description": "Capacitor project root for the LegalFinder mobile wrapper — see README.md. Native dependencies (Capacitor CLI, android/ios plugins) live in the repo root's node_modules; this file only exists so the Capacitor CLI recognizes this directory as its project root."
+}

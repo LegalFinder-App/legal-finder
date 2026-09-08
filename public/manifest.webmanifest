@@ -9,9 +9,22 @@
   "description": "LegalFinder connects clients, advocates, police, and the judiciary across web, mobile, and desktop.",
   "icons": [
     {
-      "src": "/legalfinder-logo.png",
-      "sizes": "1000x1000",
-      "type": "image/png"
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

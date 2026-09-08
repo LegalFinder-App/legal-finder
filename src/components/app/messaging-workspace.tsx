@@ -81,7 +81,7 @@ export function MessagingWorkspace() {
     const body = draft.trim();
     if (!body || !user?.id || !selectedConversationId || !selectedConversation) return;
 
-    const senderName = user.user_metadata?.full_name || user.email || "LegalFinder user";
+    const senderName = user.fullName || user.email || "LegalFinder user";
 
     const { error } = await supabase.from("messages").insert({
       conversation_id: selectedConversationId,

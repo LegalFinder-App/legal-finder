@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BookOpen, Briefcase, CalendarDays, FileText, Users } from "lucide-react";
+import { BookOpen, Briefcase, CalendarDays, FileText, Users, Video } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,7 @@ import { EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
 import { StatCardRow } from "./shared/stat-card-row";
 import { DocumentVault } from "./shared/document-vault";
 import { HearingCalendar } from "./shared/hearing-calendar";
+import { LiveCourtroomPanel } from "@/components/app/live-courtroom-panel";
 import { ContentCrudTable } from "@/components/app/admin/content/content-crud-table";
 import { adviceConfig } from "@/components/app/admin/content/configs/advice";
 import { myCasesQuery, documentsQuery, type CaseRow } from "@/lib/queries";
@@ -192,6 +193,9 @@ export function PracticeWorkspace() {
           <TabsTrigger value="calendar">
             <CalendarDays className="mr-1.5 h-4 w-4" /> Calendar
           </TabsTrigger>
+          <TabsTrigger value="courtroom">
+            <Video className="mr-1.5 h-4 w-4" /> Live courtroom
+          </TabsTrigger>
           <TabsTrigger value="documents">
             <FileText className="mr-1.5 h-4 w-4" /> Documents
           </TabsTrigger>
@@ -207,6 +211,9 @@ export function PracticeWorkspace() {
         </TabsContent>
         <TabsContent value="calendar" className="mt-6">
           <HearingCalendar />
+        </TabsContent>
+        <TabsContent value="courtroom" className="mt-6">
+          <LiveCourtroomPanel title="Your live hearings" />
         </TabsContent>
         <TabsContent value="documents" className="mt-6">
           <DocumentVault userId={user?.id} documents={docs.data ?? []} isLoading={docs.isLoading} />

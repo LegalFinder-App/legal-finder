@@ -6,7 +6,19 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      // Generated/vendored native projects (Capacitor, Electron packaging output) — not code we
+      // own or want linted with this project's JS/TS rules.
+      "platforms/mobile/android",
+      "platforms/mobile/ios",
+      "platforms/mobile/www",
+      "platforms/desktop/release",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

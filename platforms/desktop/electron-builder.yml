@@ -1,0 +1,49 @@
+# Packaging config for the thin Electron desktop shell (see electron/main.js). The "app" being
+# packaged is just electron/main.js + preload.js — there's no local web build to bundle, since
+# the shell always loads the real deployed site (platforms/README.md explains why).
+#
+# Run from the repo root via the npm scripts in package.json:
+#   npm run desktop:dist:win
+#   npm run desktop:dist:linux
+#   npm run desktop:dist:mac      (only produces a real artifact on macOS — see platforms/desktop/macos/README.md)
+appId: com.legalfinder.desktop
+productName: LegalFinder
+directories:
+  app: platforms/desktop/electron
+  output: platforms/desktop/release
+
+files:
+  - "**/*"
+
+# Windows uses a pre-generated .ico (platforms/shared/icons/icon.ico, built by
+# `node -e "require('png-to-ico')..."` from source-icon.png — see platforms/shared/README.md)
+# rather than letting electron-builder auto-convert the PNG: that auto-conversion needs to
+# download its winCodeSign helper tool, which timed out on this network. macOS's icns conversion
+# runs through the OS's own built-in iconutil when built on real macOS, so it doesn't hit the
+# same issue — mac.icon below can stay pointed at the plain PNG source.
+win:
+  target:
+    - nsis
+  icon: platforms/shared/icons/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: platforms/shared/icons/source-icon.png
+  category: Office
+
+mac:
+  target:
+    - dmg
+    - zip
+  icon: platforms/shared/icons/source-icon.png
+  category: public.app-category.business
+  # Real notarization needs an Apple Developer account — see .github/workflows/desktop-macos-build.yml
+  # and platforms/desktop/macos/README.md for the secrets/steps required.
+  hardenedRuntime: true

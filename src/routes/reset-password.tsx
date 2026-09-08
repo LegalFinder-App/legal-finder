@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useAuth, useSignIn } from "@clerk/tanstack-react-start";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { navigateAfterAuth } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-justice.jpg";
 
+type ResetPasswordSearch = { email?: string };
+
 export const Route = createFileRoute("/reset-password")({
+  validateSearch: (search: Record<string, unknown>): ResetPasswordSearch => ({
+    email: typeof search.email === "string" ? search.email : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Reset password — LegalFinder" },
@@ -34,54 +40,44 @@ function passwordStrength(password: string) {
 }
 
 function ResetPassword() {
+  const { email: initialEmail } = Route.useSearch();
+  const { signIn } = useSignIn();
+  const { isLoaded: authLoaded, isSignedIn, userId } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoaded || !isSignedIn || !userId) return;
+    navigateAfterAuth(userId).then((home) => navigate({ to: home, replace: true }));
+  }, [authLoaded, isSignedIn, userId, navigate]);
+
+  // Two steps: request a code by email, then enter that code alongside the new password.
+  const [step, setStep] = useState<"request" | "reset">("request");
+  const [email, setEmail] = useState(initialEmail ?? "");
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [ready, setReady] = useState(false);
-  const navigate = useNavigate();
 
   const strength = useMemo(() => passwordStrength(password), [password]);
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
-  useEffect(() => {
-    let active = true;
-
-    const verifyRecoverySession = async () => {
-      const hash = window.location.hash.startsWith("#")
-        ? new URLSearchParams(window.location.hash.slice(1))
-        : null;
-      const accessToken = hash?.get("access_token");
-      const refreshToken = hash?.get("refresh_token");
-
-      if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        if (error) {
-          toast.error("Reset link expired or invalid");
-          navigate({ to: "/auth", replace: true });
-          return;
-        }
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
-      if (!data.session) {
-        toast.error("Reset link expired or invalid");
-        navigate({ to: "/auth", replace: true });
-        return;
-      }
-      setReady(true);
-    };
-
-    void verifyRecoverySession();
-    return () => {
-      active = false;
-    };
-  }, [navigate]);
+  const requestCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error: identifierError } = await signIn.create({ identifier: email });
+      if (identifierError) throw identifierError;
+      const { error: codeError } = await signIn.resetPasswordEmailCode.sendCode();
+      if (codeError) throw codeError;
+      setStep("reset");
+      toast.message("Check your email", { description: "Enter the code we just sent you." });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't send a reset code");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,11 +86,25 @@ function ResetPassword() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Password updated");
-    navigate({ to: "/dashboard" });
+    try {
+      const { error: verifyError } = await signIn.resetPasswordEmailCode.verifyCode({ code });
+      if (verifyError) throw verifyError;
+      const { error: submitError } = await signIn.resetPasswordEmailCode.submitPassword({
+        password,
+      });
+      if (submitError) throw submitError;
+      if (signIn.status !== "complete") {
+        throw new Error("Couldn't complete the reset — check the code and try again.");
+      }
+      const { error: finalizeError } = await signIn.finalize();
+      if (finalizeError) throw finalizeError;
+      toast.success("Password updated");
+      // Navigation happens via the useAuth()-driven effect above once isSignedIn flips true.
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't reset your password");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -129,14 +139,43 @@ function ResetPassword() {
           <Link to="/" className="lg:hidden">
             <Logo />
           </Link>
-          <h1 className="mt-8 font-display text-3xl font-semibold lg:mt-0">Set a new password</h1>
+          <h1 className="mt-8 font-display text-3xl font-semibold lg:mt-0">
+            {step === "request" ? "Reset your password" : "Set a new password"}
+          </h1>
 
-          {!ready ? (
-            <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Verifying your reset link…
-            </div>
+          {step === "request" ? (
+            <form onSubmit={requestCode} className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </div>
+              <Button type="submit" variant="brass" size="lg" className="w-full" disabled={busy}>
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                Send reset code
+              </Button>
+            </form>
           ) : (
             <form onSubmit={submit} className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code">Verification code</Label>
+                <Input
+                  id="code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                  autoFocus
+                  inputMode="numeric"
+                  placeholder="123456"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="pw">New password</Label>
                 <div className="relative">
@@ -201,11 +240,18 @@ function ResetPassword() {
                 variant="brass"
                 size="lg"
                 className="w-full"
-                disabled={busy || !ready || mismatch || password.length === 0}
+                disabled={busy || mismatch || password.length === 0}
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 Update password
               </Button>
+              <button
+                type="button"
+                onClick={() => setStep("request")}
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+              >
+                Didn't get a code? Send again
+              </button>
             </form>
           )}
         </div>

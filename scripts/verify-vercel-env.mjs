@@ -1,4 +1,9 @@
-const requiredBrowserVariables = ["VITE_SUPABASE_URL", "VITE_SUPABASE_PUBLISHABLE_KEY"];
+const requiredBrowserVariables = [
+  "VITE_SUPABASE_URL",
+  "VITE_SUPABASE_PUBLISHABLE_KEY",
+  "VITE_CLERK_PUBLISHABLE_KEY",
+];
+const requiredServerVariables = ["CLERK_SECRET_KEY"];
 const recommendedImageKitVariables = [
   "VITE_IMAGEKIT_URL_ENDPOINT",
   "IMAGEKIT_PUBLIC_KEY",
@@ -12,6 +17,14 @@ if (process.env.VERCEL === "1") {
   if (missing.length > 0) {
     console.error(
       `Vercel production build blocked: set ${missing.join(", ")} for the Production environment.`,
+    );
+    process.exit(1);
+  }
+
+  const missingServer = requiredServerVariables.filter((key) => !process.env[key]?.trim());
+  if (missingServer.length > 0) {
+    console.error(
+      `Vercel production build blocked: set ${missingServer.join(", ")} for the Production environment.`,
     );
     process.exit(1);
   }

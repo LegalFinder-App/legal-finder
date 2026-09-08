@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Shown by Capacitor's server.errorPath when the device can't reach the production site. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LegalFinder — Offline</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #1a2338;
+        color: #f8fafc;
+        font: 15px/1.6 system-ui, -apple-system, sans-serif;
+        text-align: center;
+        padding: 1.5rem;
+      }
+      .card { max-width: 24rem; }
+      h1 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+      p { color: #cbd5e1; margin: 0 0 1.25rem; }
+      button {
+        padding: 0.6rem 1.25rem;
+        border-radius: 0.5rem;
+        border: none;
+        background: #f8fafc;
+        color: #1a2338;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>You're offline</h1>
+      <p>LegalFinder needs an internet connection. Check your network and try again.</p>
+      <button onclick="location.reload()">Retry</button>
+    </div>
+  </body>
+</html>
