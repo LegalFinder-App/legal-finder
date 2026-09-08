@@ -188,6 +188,20 @@ export const quotesQuery = queryOptions({
   queryFn: async () => unwrap(await supabase.from("quotes").select("*")),
 });
 
+export const userRolesQuery = (userId: string | undefined) =>
+  queryOptions({
+    queryKey: ["roles", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId!);
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((entry) => entry.role);
+    },
+  });
+
 export const profileQuery = (userId: string | undefined) =>
   queryOptions({
     queryKey: ["profile", userId],

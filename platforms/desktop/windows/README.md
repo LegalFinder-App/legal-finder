@@ -13,10 +13,20 @@ can rename the folder. It's not a problem with this project's config — everyth
 point (icon generation, native module rebuild, Electron binary download, file extraction) is
 unaffected. Fixes, in order of effort:
 1. Just run the command again — it's a race condition and sometimes clears on a retry.
-2. Add a Defender exclusion for this repo folder (needs an elevated PowerShell prompt you
+2. **The reliable fix** — pre-extract Electron yourself once, then point electron-builder at the
+   already-unpacked folder so it never does the extract-then-rename dance that's racing Defender:
+   ```
+   # Find the cached zip (downloaded by your first build attempt, whichever failed):
+   #   %LOCALAPPDATA%\electron\Cache\<hash>\electron-v<version>-win32-x64.zip
+   powershell -Command "Expand-Archive -Path '<path to the zip above>' -DestinationPath '.electron-dist-win32-x64' -Force"
+   npx electron-builder --config platforms/desktop/electron-builder.yml --win -c.electronDist=.electron-dist-win32-x64
+   ```
+   Confirmed working — this got past the rename step successfully after four consecutive
+   plain-retry failures. `.electron-dist-win32-x64/` is gitignored; regenerate it (or bump the
+   version in the path) whenever you upgrade the `electron` dependency.
+3. Add a Defender exclusion for this repo folder (needs an elevated PowerShell prompt you
    approve interactively — running it from an unattended script doesn't work, since UAC needs a
    real click): `Add-MpPreference -ExclusionPath 'C:\path\to\this\repo'`.
-3. Temporarily pause real-time protection for the duration of the build.
 
 Produces an NSIS installer at `platforms/desktop/release/` (e.g. `LegalFinder Setup 0.1.0.exe`).
 Running the installer adds a desktop shortcut and Start Menu entry (see `nsis:` in

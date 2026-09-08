@@ -27,7 +27,9 @@
     "desktop:dev": "electron platforms/desktop/electron/main.js",
     "desktop:dist:win": "electron-builder --config platforms/desktop/electron-builder.yml --win",
     "desktop:dist:linux": "electron-builder --config platforms/desktop/electron-builder.yml --linux",
-    "desktop:dist:mac": "electron-builder --config platforms/desktop/electron-builder.yml --mac"
+    "desktop:dist:mac": "electron-builder --config platforms/desktop/electron-builder.yml --mac",
+    "desktop:dist:win:eperm-fix": "electron-builder --config platforms/desktop/electron-builder.yml --win -c.electronDist=.electron-dist-win32-x64",
+    "desktop:dist:linux:eperm-fix": "electron-builder --config platforms/desktop/electron-builder.yml --linux -c.electronDist=.electron-dist-linux-x64"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

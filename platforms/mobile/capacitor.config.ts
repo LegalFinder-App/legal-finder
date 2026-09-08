@@ -3,16 +3,10 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // `npx cap sync` (run from this directory) reads this file once with Node and bakes the
 // resolved server.url into the generated native project — so VITE_APP_URL must be set in your
 // shell/.env at sync time, not at app-launch time (there is no .env file on an installed app).
-// Falls back to a placeholder so a forgotten env var fails loudly instead of silently shipping
-// localhost.
-const PRODUCTION_APP_URL = "https://REPLACE-WITH-YOUR-PRODUCTION-URL.example.com";
+// Falls back to the real production URL so a forgotten env var still ships something correct
+// rather than silently defaulting to localhost. Override VITE_APP_URL for a staging sync.
+const PRODUCTION_APP_URL = "https://legalfinder.vercel.app";
 const APP_URL = process.env.VITE_APP_URL || PRODUCTION_APP_URL;
-
-if (APP_URL === PRODUCTION_APP_URL) {
-  console.warn(
-    "[legalfinder-mobile] VITE_APP_URL is not set — capacitor.config.ts is using a placeholder URL. Set VITE_APP_URL before running `npx cap sync`.",
-  );
-}
 
 // This app runs in "remote content" mode: the WebView navigates straight to the real deployed
 // site (server.url below) instead of bundling a local copy of the client. See

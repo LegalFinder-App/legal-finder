@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import { QueryClient } from "@tanstack/react-query";
 import { loadUserRoles, requireRoles } from "../rbac";
-import { supabase } from "@/integrations/supabase/client";
 
-// Mock supabase
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -18,18 +17,16 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 describe("RBAC integration", () => {
   it("loadUserRoles fetches roles correctly", async () => {
-    const roles = await loadUserRoles("user-123");
+    const queryClient = new QueryClient();
+    const roles = await loadUserRoles(queryClient, "user-123");
     expect(roles).toEqual(["user"]);
   });
 
   it("requireRoles throws redirect for unauthorized role", async () => {
     const handler = requireRoles(["admin"]);
-    // Simulate context with a user
-    const context = { user: { id: "user-123" } };
+    const context = { user: { id: "user-123" }, queryClient: new QueryClient() };
 
-    // We expect a redirect to be thrown.
-    // Since we mocked loadUserRoles to return ['user'],
-    // it should redirect for 'admin' requirement.
+    // loadUserRoles resolves to ["user"] (mocked above), so an "admin" requirement redirects.
     await expect(handler({ context })).rejects.toThrow();
   });
 });

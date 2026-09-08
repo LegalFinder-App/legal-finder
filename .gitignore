@@ -31,12 +31,18 @@ supabase-token.txt
 platforms/mobile/android/**/build/
 platforms/mobile/android/.gradle/
 platforms/mobile/android/local.properties
+# Release signing key — never commit. See platforms/mobile/android/keystore/README.md.
+platforms/mobile/android/keystore/*.keystore
+platforms/mobile/android/keystore/*.jks
+platforms/mobile/android/keystore.properties
 platforms/mobile/android/**/*.iml
 platforms/mobile/ios/App/Pods/
 platforms/mobile/ios/App/**/DerivedData/
 
-# Desktop (Electron) — packaged build output
+# Desktop (Electron) — packaged build output, and a local pre-extracted Electron binary used to
+# work around a Windows-specific electron-builder rename race (see platforms/desktop/windows/README.md)
 platforms/desktop/release/
+.electron-dist-*/
 
 # Editor directories and files
 .vscode/*
@@ -48,3 +54,4 @@ platforms/desktop/release/
 *.njsproj
 *.sln
 *.sw?
+.env*

@@ -5,7 +5,7 @@ import { getImageKitUploadAuth } from "@/lib/imagekit.functions";
 const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export async function uploadProfileImage(file: File): Promise<string> {
+export async function uploadProfileImage(file: File, userId: string): Promise<string> {
   if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
     throw new Error("Choose a JPG, PNG, or WebP image.");
   }
@@ -25,10 +25,6 @@ export async function uploadProfileImage(file: File): Promise<string> {
     useUniqueFileName: true,
     tags: ["profile", "legalfinder"],
   });
-
-  const { data: sessionData } = await supabase.auth.getUser();
-  const userId = sessionData.user?.id;
-  if (!userId) throw new Error("Sign in again before updating your profile image.");
 
   if (!response.url) {
     throw new Error("Upload succeeded, but no URL was returned from ImageKit.");

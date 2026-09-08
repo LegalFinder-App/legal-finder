@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useSignIn } from "@clerk/tanstack-react-start";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -44,11 +45,12 @@ function ResetPassword() {
   const { signIn } = useSignIn();
   const { isLoaded: authLoaded, isSignedIn, userId } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!authLoaded || !isSignedIn || !userId) return;
-    navigateAfterAuth(userId).then((home) => navigate({ to: home, replace: true }));
-  }, [authLoaded, isSignedIn, userId, navigate]);
+    navigateAfterAuth(queryClient, userId).then((home) => navigate({ to: home, replace: true }));
+  }, [authLoaded, isSignedIn, userId, navigate, queryClient]);
 
   // Two steps: request a code by email, then enter that code alongside the new password.
   const [step, setStep] = useState<"request" | "reset">("request");

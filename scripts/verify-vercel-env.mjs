@@ -9,6 +9,13 @@ const recommendedImageKitVariables = [
   "IMAGEKIT_PUBLIC_KEY",
   "IMAGEKIT_PRIVATE_KEY",
 ];
+// These features degrade gracefully rather than breaking the whole site, so a missing key here
+// is a warning, not a build-blocking failure — but it was previously not checked at all, so a
+// missing key failed silently at runtime (a confusing "nothing happens" moment for a user
+// clicking Pay or asking the assistant a question) instead of showing up here at build time.
+const recommendedAssistantVariables = ["ANTHROPIC_API_KEY"];
+const recommendedPesapalVariables = ["PESAPAL_CONSUMER_KEY", "PESAPAL_CONSUMER_SECRET"];
+const recommendedWebPushVariables = ["VITE_WEB_PUSH_PUBLIC_KEY", "WEB_PUSH_PRIVATE_KEY"];
 
 // Vite exposes only VITE_* variables to browser code at build time. Failing the
 // Vercel build here prevents a deployment that can load but fails at runtime.
@@ -33,6 +40,27 @@ if (process.env.VERCEL === "1") {
   if (missingImageKit.length > 0) {
     console.warn(
       `ImageKit upload will be unavailable until these Vercel env vars are set: ${missingImageKit.join(", ")}.`,
+    );
+  }
+
+  const missingAssistant = recommendedAssistantVariables.filter((key) => !process.env[key]?.trim());
+  if (missingAssistant.length > 0) {
+    console.warn(
+      `The AI assistant will be unavailable until these Vercel env vars are set: ${missingAssistant.join(", ")}.`,
+    );
+  }
+
+  const missingPesapal = recommendedPesapalVariables.filter((key) => !process.env[key]?.trim());
+  if (missingPesapal.length > 0) {
+    console.warn(
+      `Payments will be unavailable until these Vercel env vars are set: ${missingPesapal.join(", ")}.`,
+    );
+  }
+
+  const missingWebPush = recommendedWebPushVariables.filter((key) => !process.env[key]?.trim());
+  if (missingWebPush.length > 0) {
+    console.warn(
+      `Push notifications will be unavailable until these Vercel env vars are set: ${missingWebPush.join(", ")}.`,
     );
   }
 }

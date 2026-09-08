@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth, useUser } from "@clerk/tanstack-react-start";
-import { supabase } from "@/integrations/supabase/client";
+import { userRolesQuery } from "@/lib/queries";
 
 export type AppRole = "user" | "lawyer" | "police" | "judiciary" | "admin";
 
@@ -43,33 +43,8 @@ export function primaryRoleFrom(roles: AppRole[]): AppRole {
 export function useSession(): SessionState {
   const { isLoaded: authLoaded, userId, isSignedIn } = useAuth();
   const { user: clerkUser } = useUser();
-  const [roles, setRoles] = useState<AppRole[]>([]);
-  const [rolesLoaded, setRolesLoaded] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    if (!userId) {
-      setRoles([]);
-      setRolesLoaded(true);
-      return;
-    }
-
-    setRolesLoaded(false);
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .then(({ data }) => {
-        if (!active) return;
-        setRoles((data ?? []).map((r) => r.role as AppRole));
-        setRolesLoaded(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [userId]);
+  const rolesQuery = useQuery(userRolesQuery(userId ?? undefined));
+  const roles = rolesQuery.data ?? [];
 
   const user: SessionUser | null =
     isSignedIn && clerkUser
@@ -82,7 +57,7 @@ export function useSession(): SessionState {
 
   const primaryRole = primaryRoleFrom(roles);
 
-  return { user, roles, primaryRole, loading: !authLoaded || !rolesLoaded };
+  return { user, roles, primaryRole, loading: !authLoaded || rolesQuery.isLoading };
 }
 
 export function initials(name: string | null | undefined, fallback = "LF") {

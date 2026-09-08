@@ -47,14 +47,17 @@ export function UsersPanel() {
     );
   }, [profiles.data, search]);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin-user-roles"] });
+  const invalidate = (userId: string) => {
+    queryClient.invalidateQueries({ queryKey: ["admin-user-roles"] });
+    queryClient.invalidateQueries({ queryKey: ["roles", userId] });
+  };
 
   const handleAssign = async (userId: string, role: AppRole) => {
     setBusyKey(`${userId}:${role}`);
     try {
       await assignRole(userId, role);
       toast.success(`${ROLE_LABELS[role]} role added`);
-      invalidate();
+      invalidate(userId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to add role");
     } finally {
@@ -67,7 +70,7 @@ export function UsersPanel() {
     try {
       await revokeRole(userId, role);
       toast.success(`${ROLE_LABELS[role]} role removed`);
-      invalidate();
+      invalidate(userId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to remove role");
     } finally {

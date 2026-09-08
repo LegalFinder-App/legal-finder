@@ -1,8 +1,39 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
+import type { AppDatabase } from "@/integrations/supabase/app-database";
 
 const initiateSchema = z.object({ paymentId: z.string().uuid() });
+
+type PaymentRow = AppDatabase["public"]["Tables"]["payments"]["Row"];
+
+// Pulled out of the handler below so the two defense-in-depth checks — ownership and
+// server-side fee re-verification — are directly unit-testable without going through
+// createServerFn's request-handling machinery.
+export function assertPaymentInitiatable(
+  payment: PaymentRow | null,
+  userId: string,
+): asserts payment is PaymentRow {
+  if (!payment) throw new Error("Payment not found.");
+  if (payment.client_id !== userId) {
+    throw new Error("You don't have access to this payment.");
+  }
+  if (payment.status === "completed") {
+    throw new Error("This payment has already been completed.");
+  }
+}
+
+// RLS only checks client_id on insert, so a client could otherwise submit an arbitrary `amount`
+// for a real advocate's fee. Re-verify against the lawyer's actual consultation_fee before ever
+// telling Pesapal how much to charge.
+export function assertAmountMatchesConsultationFee(
+  amount: number,
+  consultationFee: number | null | undefined,
+): void {
+  if (consultationFee != null && amount !== Number(consultationFee)) {
+    throw new Error("This payment amount no longer matches the advocate's consultation fee.");
+  }
+}
 
 /**
  * Registers the Pesapal order for an already-created (pending) payment row and returns the
@@ -21,17 +52,8 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (error) throw new Error(error.message);
-    if (!payment) throw new Error("Payment not found.");
-    if (payment.client_id !== context.userId) {
-      throw new Error("You don't have access to this payment.");
-    }
-    if (payment.status === "completed") {
-      throw new Error("This payment has already been completed.");
-    }
+    assertPaymentInitiatable(payment, context.userId);
 
-    // Defense in depth: RLS only checks client_id on insert, so a client could otherwise submit
-    // an arbitrary `amount` for a real advocate's fee. Re-verify against the lawyer's actual
-    // consultation_fee before ever telling Pesapal how much to charge.
     if (payment.lawyer_id) {
       const { data: lawyerRow, error: lawyerError } = await context.supabase
         .from("lawyers")
@@ -39,12 +61,7 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
         .eq("user_id", payment.lawyer_id)
         .maybeSingle();
       if (lawyerError) throw new Error(lawyerError.message);
-      if (
-        lawyerRow?.consultation_fee != null &&
-        Number(payment.amount) !== Number(lawyerRow.consultation_fee)
-      ) {
-        throw new Error("This payment amount no longer matches the advocate's consultation fee.");
-      }
+      assertAmountMatchesConsultationFee(Number(payment.amount), lawyerRow?.consultation_fee);
     }
 
     const appUrl = (process.env.VITE_APP_URL || "http://localhost:3000").replace(/\/$/, "");

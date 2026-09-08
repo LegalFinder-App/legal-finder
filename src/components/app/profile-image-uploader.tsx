@@ -23,11 +23,13 @@ export function ProfileImageUploader() {
     event.target.value = "";
     if (!file) return;
 
+    if (!user) return;
+
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
     setUploading(true);
     try {
-      const uploadedUrl = await uploadProfileImage(file);
+      const uploadedUrl = await uploadProfileImage(file, user.id);
       setPreviewUrl(uploadedUrl);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["profile", user?.id] }),

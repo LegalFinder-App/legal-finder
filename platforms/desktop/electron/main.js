@@ -7,16 +7,10 @@ const path = require("node:path");
 
 // A packaged, distributed app has no .env file on the end user's machine, so the URL a real
 // build ships with has to be baked in here — process.env.VITE_APP_URL only matters for local
-// `npm run desktop:dev` testing against a dev server. Before running an actual
-// desktop:dist:* build, replace PRODUCTION_APP_URL with your real deployed URL.
-const PRODUCTION_APP_URL = "https://REPLACE-WITH-YOUR-PRODUCTION-URL.example.com";
+// `npm run desktop:dev` testing against a dev server. If you fork this for a different
+// deployment, update PRODUCTION_APP_URL to match.
+const PRODUCTION_APP_URL = "https://legalfinder.vercel.app";
 const APP_URL = process.env.VITE_APP_URL || PRODUCTION_APP_URL;
-
-if (APP_URL === PRODUCTION_APP_URL) {
-  console.warn(
-    "[legalfinder-desktop] PRODUCTION_APP_URL is still a placeholder — edit platforms/desktop/electron/main.js before distributing a build.",
-  );
-}
 
 function isSameOrigin(targetUrl) {
   try {

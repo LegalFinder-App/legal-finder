@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -51,6 +52,7 @@ function AuthPage() {
   const { isLoaded: authLoaded, isSignedIn, userId } = useAuth();
   const { signIn } = useSignIn();
   const { signUp } = useSignUp();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>(initialMode || "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,8 +66,8 @@ function AuthPage() {
 
   useEffect(() => {
     if (!authLoaded || !isSignedIn || !userId) return;
-    navigateAfterAuth(userId).then((home) => navigate({ to: home, replace: true }));
-  }, [authLoaded, isSignedIn, userId, navigate]);
+    navigateAfterAuth(queryClient, userId).then((home) => navigate({ to: home, replace: true }));
+  }, [authLoaded, isSignedIn, userId, navigate, queryClient]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
