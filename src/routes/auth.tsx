@@ -66,7 +66,13 @@ function AuthPage() {
 
   useEffect(() => {
     if (!authLoaded || !isSignedIn || !userId) return;
-    navigateAfterAuth(queryClient, userId).then((home) => navigate({ to: home, replace: true }));
+    navigateAfterAuth(queryClient, userId)
+      .then((home) => navigate({ to: home, replace: true }))
+      .catch((err) => {
+        toast.error("Signed in, but we couldn't load your workspace", {
+          description: err instanceof Error ? err.message : "Please try refreshing the page.",
+        });
+      });
   }, [authLoaded, isSignedIn, userId, navigate, queryClient]);
 
   const submit = async (e: React.FormEvent) => {
