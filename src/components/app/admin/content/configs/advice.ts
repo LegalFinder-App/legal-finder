@@ -38,7 +38,7 @@ export const adviceConfig: ContentCrudConfig = {
     },
     { name: "summary", label: "Summary", type: "textarea" },
     { name: "body", label: "Body", type: "textarea" },
-    { name: "image_url", label: "Image URL", type: "text" },
+    { name: "image_url", label: "Image", type: "image" },
     { name: "author_name", label: "Author name", type: "text" },
     { name: "published", label: "Published", type: "boolean" },
   ],

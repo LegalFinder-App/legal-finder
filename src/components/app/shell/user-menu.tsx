@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { LogOut, User as UserIcon } from "lucide-react";
@@ -61,8 +61,10 @@ export function UserMenu() {
           <ProfileImageUploader />
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled className="opacity-60">
-          <UserIcon /> Profile settings
+        <DropdownMenuItem asChild>
+          <Link to="/settings">
+            <UserIcon /> Profile settings
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => void signOut()} className="text-destructive">

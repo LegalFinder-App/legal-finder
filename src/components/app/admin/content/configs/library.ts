@@ -32,7 +32,7 @@ export const libraryConfig: ContentCrudConfig = {
     { name: "author", label: "Author", type: "text" },
     { name: "category", label: "Category", type: "text", placeholder: "e.g. Statute, Guide" },
     { name: "description", label: "Description", type: "textarea" },
-    { name: "cover_url", label: "Cover image URL", type: "text" },
+    { name: "cover_url", label: "Cover image", type: "image" },
     { name: "file_url", label: "File URL", type: "text" },
     { name: "year", label: "Year", type: "number" },
   ],

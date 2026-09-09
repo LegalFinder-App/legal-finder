@@ -32,7 +32,7 @@ export const newsConfig: ContentCrudConfig = {
     { name: "slug", label: "Slug", type: "text", placeholder: "auto-generated if left blank" },
     { name: "summary", label: "Summary", type: "textarea" },
     { name: "body", label: "Body", type: "textarea" },
-    { name: "image_url", label: "Image URL", type: "text" },
+    { name: "image_url", label: "Image", type: "image" },
     { name: "source", label: "Source", type: "text" },
     { name: "author_name", label: "Author name", type: "text" },
     { name: "published", label: "Published", type: "boolean" },

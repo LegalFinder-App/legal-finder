@@ -35,7 +35,7 @@ export const wantedConfig: ContentCrudConfig = {
     { name: "description", label: "Description", type: "textarea" },
     { name: "offence", label: "Offence", type: "text" },
     { name: "last_seen", label: "Last seen", type: "text" },
-    { name: "photo_url", label: "Photo URL", type: "text" },
+    { name: "photo_url", label: "Photo", type: "image" },
     { name: "reward", label: "Reward (UGX)", type: "number" },
     {
       name: "danger_level",

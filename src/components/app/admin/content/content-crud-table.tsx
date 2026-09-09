@@ -53,8 +53,9 @@ import {
 } from "@/components/ui/table";
 import { EmptyState, LoadingRows, QueryError, SectionHeading } from "@/components/common/bits";
 import { insertRow, updateRow, deleteRow, type TableName } from "@/lib/mutations";
+import { ImageUploadField } from "@/components/app/admin/content/image-upload-field";
 
-export type CrudFieldType = "text" | "textarea" | "number" | "boolean" | "date" | "select";
+export type CrudFieldType = "text" | "textarea" | "number" | "boolean" | "date" | "select" | "image";
 
 export interface CrudField {
   name: string;
@@ -291,6 +292,8 @@ function formatCell(value: unknown): ReactNode {
 
 function renderInput(field: CrudField, rhfField: ControllerRenderProps) {
   switch (field.type) {
+    case "image":
+      return <ImageUploadField rhfField={rhfField} />;
     case "textarea":
       return (
         <Textarea

@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/shell/app-shell";
+import { MaintenanceGate } from "@/components/site/maintenance-gate";
 import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
@@ -83,7 +84,9 @@ function WorkspaceLayout() {
 
   return (
     <AppShell>
-      <Outlet />
+      <MaintenanceGate>
+        <Outlet />
+      </MaintenanceGate>
     </AppShell>
   );
 }

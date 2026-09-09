@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/common/bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { wantedPersonQuery } from "@/lib/queries";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/wanted/$id")({
   head: () => ({
@@ -28,6 +29,26 @@ const TONE: Record<string, "destructive" | "warning" | "muted"> = {
 function WantedDetail() {
   const { id } = Route.useParams();
   const { data, isLoading } = useQuery(wantedPersonQuery(id));
+  const settings = useQuery(appSettingsQuery);
+
+  if (settings.data && !settings.data.wanted_notices_enabled) {
+    return (
+      <PublicLayout>
+        <div className="mx-auto max-w-2xl px-4 py-28">
+          <EmptyState
+            icon={<AlertTriangle className="h-8 w-8" />}
+            title="Public notices are temporarily unavailable"
+            description="This feature has been paused by an administrator."
+            action={
+              <Button asChild variant="brass">
+                <Link to="/">Back home</Link>
+              </Button>
+            }
+          />
+        </div>
+      </PublicLayout>
+    );
+  }
 
   if (isLoading) {
     return (

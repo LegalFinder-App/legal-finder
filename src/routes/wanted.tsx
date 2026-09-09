@@ -6,6 +6,7 @@ import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { Badge } from "@/components/ui/badge";
 import { wantedQuery } from "@/lib/queries";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/wanted")({
   head: () => ({
@@ -31,8 +32,24 @@ const TONE: Record<string, "destructive" | "warning" | "muted"> = {
 
 function WantedPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(wantedQuery);
+  const settings = useQuery(appSettingsQuery);
   const items = data ?? [];
   const { page, setPage, totalPages, pageItems } = usePaginatedList(items, 9);
+
+  if (settings.data && !settings.data.wanted_notices_enabled) {
+    return (
+      <PublicLayout>
+        <PageHeader eyebrow="Public notices" title="Persons of interest" />
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+          <EmptyState
+            icon={<AlertTriangle className="h-8 w-8" />}
+            title="Public notices are temporarily unavailable"
+            description="This feature has been paused by an administrator."
+          />
+        </div>
+      </PublicLayout>
+    );
+  }
 
   return (
     <PublicLayout>

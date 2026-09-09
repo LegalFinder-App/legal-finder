@@ -31,6 +31,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedPracticeRouteImport } from './routes/_authenticated/practice'
 import { Route as AuthenticatedPrecinctRouteImport } from './routes/_authenticated/precinct'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AdviceIndexRouteImport } from './routes/advice.index'
 import { Route as AdviceSlugRouteImport } from './routes/advice.$slug'
 import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
@@ -41,6 +42,7 @@ import { Route as WantedIdRouteImport } from './routes/wanted.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminContentRouteRouteImport } from './routes/_authenticated/admin/content/route'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
@@ -166,6 +168,11 @@ const AuthenticatedPrecinctRoute = AuthenticatedPrecinctRouteImport.update({
   path: '/precinct',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AdviceIndexRoute = AdviceIndexRouteImport.update({
   id: '/advice/',
   path: '/advice/',
@@ -215,6 +222,12 @@ const AuthenticatedAdminContentRouteRoute =
   AuthenticatedAdminContentRouteRouteImport.update({
     id: '/content',
     path: '/content',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
@@ -326,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof AuthenticatedMessagesRoute
   '/practice': typeof AuthenticatedPracticeRoute
   '/precinct': typeof AuthenticatedPrecinctRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -335,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/news/': typeof NewsIndexRoute
   '/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
@@ -373,6 +388,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesRoute
   '/practice': typeof AuthenticatedPracticeRoute
   '/precinct': typeof AuthenticatedPrecinctRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -381,6 +397,7 @@ export interface FileRoutesByTo {
   '/lawyers': typeof LawyersIndexRoute
   '/news': typeof NewsIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
@@ -422,6 +439,7 @@ export interface FileRoutesById {
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/practice': typeof AuthenticatedPracticeRoute
   '/_authenticated/precinct': typeof AuthenticatedPrecinctRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -431,6 +449,7 @@ export interface FileRoutesById {
   '/news/': typeof NewsIndexRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
@@ -472,6 +491,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/practice'
     | '/precinct'
+    | '/settings'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -481,6 +501,7 @@ export interface FileRouteTypes {
     | '/news/'
     | '/admin/content'
     | '/admin/audit'
+    | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
     | '/cases/$caseId'
@@ -519,6 +540,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/practice'
     | '/precinct'
+    | '/settings'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -527,6 +549,7 @@ export interface FileRouteTypes {
     | '/lawyers'
     | '/news'
     | '/admin/audit'
+    | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
     | '/cases/$caseId'
@@ -567,6 +590,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages'
     | '/_authenticated/practice'
     | '/_authenticated/precinct'
+    | '/_authenticated/settings'
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
@@ -576,6 +600,7 @@ export interface FileRouteTypes {
     | '/news/'
     | '/_authenticated/admin/content'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verifications'
     | '/_authenticated/cases/$caseId'
@@ -777,6 +802,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPrecinctRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/advice/': {
       id: '/advice/'
       path: '/advice'
@@ -845,6 +877,13 @@ declare module '@tanstack/react-router' {
       path: '/content'
       fullPath: '/admin/content'
       preLoaderRoute: typeof AuthenticatedAdminContentRouteRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/users': {
@@ -992,6 +1031,7 @@ const AuthenticatedAdminContentRouteRouteWithChildren =
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminContentRouteRoute: typeof AuthenticatedAdminContentRouteRouteWithChildren
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVerificationsRoute: typeof AuthenticatedAdminVerificationsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1002,6 +1042,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminContentRouteRoute:
       AuthenticatedAdminContentRouteRouteWithChildren,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+    AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminVerificationsRoute: AuthenticatedAdminVerificationsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -1020,6 +1061,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedPracticeRoute: typeof AuthenticatedPracticeRoute
   AuthenticatedPrecinctRoute: typeof AuthenticatedPrecinctRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCasesCaseIdRoute: typeof AuthenticatedCasesCaseIdRoute
 }
 
@@ -1031,6 +1073,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedPracticeRoute: AuthenticatedPracticeRoute,
   AuthenticatedPrecinctRoute: AuthenticatedPrecinctRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCasesCaseIdRoute: AuthenticatedCasesCaseIdRoute,
 }
 

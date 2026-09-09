@@ -13,7 +13,9 @@ export async function uploadProfileImage(file: File, userId: string): Promise<st
     throw new Error("Profile images must be 5 MB or smaller.");
   }
 
-  const auth = await getImageKitUploadAuth({ data: { extension: extensionFor(file) } });
+  const auth = await getImageKitUploadAuth({
+    data: { extension: extensionFor(file), purpose: "profile" },
+  });
   const response = await upload({
     file,
     fileName: auth.fileName,
@@ -50,6 +52,39 @@ export async function uploadProfileImage(file: File, userId: string): Promise<st
       .update({ photo_url: response.url })
       .eq("id", lawyerRow.id);
     if (lawyerError) throw lawyerError;
+  }
+
+  return response.url;
+}
+
+const MAX_CONTENT_IMAGE_BYTES = 5 * 1024 * 1024;
+
+/** Used by the admin content manager (wanted persons, news, library covers, legal advice). */
+export async function uploadContentImage(file: File): Promise<string> {
+  if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
+    throw new Error("Choose a JPG, PNG, or WebP image.");
+  }
+  if (file.size > MAX_CONTENT_IMAGE_BYTES) {
+    throw new Error("Images must be 5 MB or smaller.");
+  }
+
+  const auth = await getImageKitUploadAuth({
+    data: { extension: extensionFor(file), purpose: "content" },
+  });
+  const response = await upload({
+    file,
+    fileName: auth.fileName,
+    folder: auth.folder,
+    token: auth.token,
+    expire: auth.expire,
+    signature: auth.signature,
+    publicKey: auth.publicKey,
+    useUniqueFileName: true,
+    tags: ["content", "legalfinder"],
+  });
+
+  if (!response.url) {
+    throw new Error("Upload succeeded, but no URL was returned from ImageKit.");
   }
 
   return response.url;

@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ShieldOff } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
+import { EmptyState } from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { appSettingsQuery } from "@/lib/app-settings";
 import { useSession } from "@/lib/session";
 
 type ReportSearch = { subject?: string };
@@ -34,6 +38,7 @@ const CATEGORIES = ["theft", "assault", "fraud", "harassment", "traffic", "other
 
 function ReportPage() {
   const { user } = useSession();
+  const settings = useQuery(appSettingsQuery);
   const { subject } = Route.useSearch();
   const [form, setForm] = useState({
     category: "theft",
@@ -71,6 +76,21 @@ function ReportPage() {
       anonymous: false,
     });
   };
+
+  if (settings.data && !settings.data.incident_reporting_enabled) {
+    return (
+      <PublicLayout>
+        <PageHeader eyebrow="Police services" title="Report an incident" />
+        <div className="mx-auto max-w-2xl px-4 py-14 sm:px-6">
+          <EmptyState
+            icon={<ShieldOff className="h-8 w-8" />}
+            title="Incident reporting is temporarily unavailable"
+            description="This feature has been paused. Please phone your nearest police station for emergencies."
+          />
+        </div>
+      </PublicLayout>
+    );
+  }
 
   return (
     <PublicLayout>

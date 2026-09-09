@@ -44,7 +44,6 @@ export function DocumentVault({
 }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [demoUploads, setDemoUploads] = useState<DocumentLike[]>([]);
 
   const normalizedDocuments: DocumentLike[] = documents.map((document) => ({
     ...document,
@@ -55,8 +54,8 @@ export function DocumentVault({
     normalizedDocuments.length > 0
       ? normalizedDocuments
       : allowDemoFallback
-        ? [...DEMO_DOCUMENTS, ...demoUploads]
-        : demoUploads;
+        ? DEMO_DOCUMENTS
+        : [];
 
   const uploadDocument = async (fileList: FileList | null) => {
     const file = fileList?.[0];
@@ -69,23 +68,8 @@ export function DocumentVault({
       .upload(storagePath, file, { upsert: false, contentType: file.type || undefined });
 
     if (uploadError) {
-      // Presentation fallback when storage buckets are not wired yet.
-      const objectUrl = URL.createObjectURL(file);
-      setDemoUploads((prev) => [
-        {
-          id: `local-${Date.now()}`,
-          name: file.name,
-          category: "general",
-          size_bytes: file.size,
-          created_at: new Date().toISOString(),
-          href: objectUrl,
-        },
-        ...prev,
-      ]);
       setUploading(false);
-      toast.message("Saved as demo upload", {
-        description: "Storage is using local presentation mode for this session.",
-      });
+      toast.error(uploadError.message || "Upload failed");
       return;
     }
 
