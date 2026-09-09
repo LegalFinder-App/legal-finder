@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Fingerprint, Loader2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -113,30 +113,53 @@ function AuthPage() {
       } else {
         const { error } = await signIn.password({ identifier: email, password });
         if (error) throw error;
-        if (signIn.status === "complete") {
-          const { error: finalizeError } = await signIn.finalize();
-          if (finalizeError) throw finalizeError;
-          toast.success("Signed in");
-        } else if (signIn.status === "needs_client_trust") {
-          // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — send a
-          // one-time code to confirm it's really this user, same UI as the signup verify step.
-          const usesPhone = signIn.supportedSecondFactors?.some((f) => f.strategy === "phone_code");
-          const { error: codeError } = usesPhone
-            ? await signIn.mfa.sendPhoneCode()
-            : await signIn.mfa.sendEmailCode();
-          if (codeError) throw codeError;
-          setVerificationCode("");
-          toast.message("Verify this device", {
-            description: usesPhone
-              ? "Enter the code we just texted you."
-              : "Enter the code we just emailed you.",
-          });
-        } else {
-          throw new Error("Additional verification is required for this account.");
-        }
+        await handleSignInOutcome();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Shared by password and passkey sign-in — both land here once Clerk has verified the first
+  // factor, and both need the same "new device needs a trust code" handling from that point on.
+  const handleSignInOutcome = async () => {
+    if (signIn.status === "complete") {
+      const { error: finalizeError } = await signIn.finalize();
+      if (finalizeError) throw finalizeError;
+      toast.success("Signed in");
+    } else if (signIn.status === "needs_client_trust") {
+      // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — send a
+      // one-time code to confirm it's really this user, same UI as the signup verify step.
+      const usesPhone = signIn.supportedSecondFactors?.some((f) => f.strategy === "phone_code");
+      const { error: codeError } = usesPhone
+        ? await signIn.mfa.sendPhoneCode()
+        : await signIn.mfa.sendEmailCode();
+      if (codeError) throw codeError;
+      setVerificationCode("");
+      toast.message("Verify this device", {
+        description: usesPhone
+          ? "Enter the code we just texted you."
+          : "Enter the code we just emailed you.",
+      });
+    } else {
+      throw new Error("Additional verification is required for this account.");
+    }
+  };
+
+  const signInWithPasskey = async () => {
+    setBusy(true);
+    try {
+      const { error } = await signIn.passkey({ flow: "discoverable" });
+      if (error) throw error;
+      await handleSignInOutcome();
+    } catch (err) {
+      // The user cancelling the OS's passkey picker is normal, not an error worth alarming them with.
+      const message = err instanceof Error ? err.message : "";
+      if (!/not allowed|cancel/i.test(message)) {
+        toast.error(message || "Passkey sign-in failed");
+      }
     } finally {
       setBusy(false);
     }
@@ -464,6 +487,20 @@ function AuthPage() {
                 </svg>
                 Continue with Google
               </Button>
+
+              {mode === "signin" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="mt-3 w-full"
+                  disabled={busy}
+                  onClick={() => void signInWithPasskey()}
+                >
+                  <Fingerprint className="h-4 w-4" />
+                  Sign in with a passkey
+                </Button>
+              )}
             </>
           )}
 

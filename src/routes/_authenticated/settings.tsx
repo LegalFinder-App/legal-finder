@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PushRegistrationCard } from "@/components/app/workspace/shared/push-registration-card";
 import { AvatarUploadCard } from "@/components/app/settings/avatar-upload-card";
+import { PasskeyManager } from "@/components/app/settings/passkey-manager";
 import { profileQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteOwnAccount } from "@/lib/account.functions";
@@ -127,6 +128,13 @@ function SettingsPage() {
             Save changes
           </Button>
         </form>
+      </section>
+
+      <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+        <h2 className="font-display text-lg font-semibold">Passkeys</h2>
+        <div className="mt-4">
+          <PasskeyManager />
+        </div>
       </section>
 
       <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
