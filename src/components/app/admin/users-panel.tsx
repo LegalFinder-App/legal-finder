@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Trash2, UserPlus, X } from "lucide-react";
+import { Search, Trash2, UserPlus, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard, EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
 import {
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { allProfilesQuery, allUserRolesQuery } from "@/lib/queries";
 import { assignRole, deleteUser, revokeRole } from "@/lib/mutations";
+import { backfillProfileNames } from "@/lib/admin-users.functions";
 import { ROLE_LABELS, useSession, type AppRole } from "@/lib/session";
 
 const ALL_ROLES: AppRole[] = ["user", "lawyer", "police", "judiciary", "admin"];
@@ -104,6 +105,22 @@ export function UsersPanel() {
     }
   };
 
+  const [backfilling, setBackfilling] = useState(false);
+  const missingNameCount = (profiles.data ?? []).filter((row) => !row.full_name).length;
+
+  const handleBackfillNames = async () => {
+    setBackfilling(true);
+    try {
+      const { fixed } = await backfillProfileNames();
+      toast.success(fixed > 0 ? `Fixed ${fixed} user name(s)` : "No missing names found");
+      if (fixed > 0) queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to fix names");
+    } finally {
+      setBackfilling(false);
+    }
+  };
+
   const isLoading = profiles.isLoading || userRoles.isLoading;
   const isError = profiles.isError || userRoles.isError;
   const errorMessage =
@@ -128,19 +145,33 @@ export function UsersPanel() {
             Assign or revoke platform roles. Changes are written to the audit trail.
           </p>
         </div>
-        <div className="w-full max-w-xs">
-          <Label htmlFor="user-search" className="sr-only">
-            Search users
-          </Label>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="user-search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by name or email"
-              className="pl-9"
-            />
+        <div className="flex items-end gap-2">
+          {missingNameCount > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={backfilling}
+              onClick={() => void handleBackfillNames()}
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              {backfilling ? "Fixing…" : `Fix ${missingNameCount} missing name(s)`}
+            </Button>
+          )}
+          <div className="w-full max-w-xs">
+            <Label htmlFor="user-search" className="sr-only">
+              Search users
+            </Label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="user-search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by name or email"
+                className="pl-9"
+              />
+            </div>
           </div>
         </div>
       </div>

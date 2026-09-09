@@ -30,7 +30,13 @@ export async function ensureProfileProvisioned(userId: string): Promise<void> {
   const user = await clerkClient().users.getUser(userId);
   const primaryEmail =
     user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ?? null;
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+  // The password sign-up form (src/routes/auth.tsx) collects one "Full name" field into
+  // unsafeMetadata.full_name — Clerk's native firstName/lastName are only populated by social
+  // sign-in (e.g. Google), so that pair is only a fallback, not the primary source.
+  const metadataFullName =
+    typeof user.unsafeMetadata?.full_name === "string" ? user.unsafeMetadata.full_name.trim() : "";
+  const nativeFullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+  const fullName = metadataFullName || nativeFullName;
   const requestedRole = parseRequestedRole(user.unsafeMetadata?.requested_role);
 
   const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
