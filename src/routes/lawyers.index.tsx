@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal } from "lucide-react";
@@ -9,6 +9,13 @@ import { SearchInput } from "@/components/common/search-input";
 import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { publicLawyersQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/lawyers/")({
@@ -57,6 +64,38 @@ function LawyersPage() {
 
   const { page, setPage, totalPages, pageItems } = usePaginatedList(results, 12);
 
+  const activeFilterCount = areas.length + counties.length + (acceptingOnly ? 1 : 0);
+
+  const filterControls: ReactNode = (
+    <>
+      <FilterChipGroup
+        label="Practice area"
+        options={areaOptions}
+        value={areas}
+        onChange={setAreas}
+        multiple
+        variant="block"
+      />
+      <FilterChipGroup
+        label="District"
+        options={countyOptions}
+        value={counties}
+        onChange={setCounties}
+        variant="block"
+      />
+
+      <label className="flex cursor-pointer items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={acceptingOnly}
+          onChange={(e) => setAcceptingOnly(e.target.checked)}
+          className="h-4 w-4 accent-[oklch(0.66_0.113_74)]"
+        />
+        Accepting new clients
+      </label>
+    </>
+  );
+
   return (
     <PublicLayout>
       <PageHeader
@@ -74,42 +113,40 @@ function LawyersPage() {
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
-          <aside className="space-y-8">
+          <aside className="hidden space-y-8 lg:block">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <SlidersHorizontal className="h-4 w-4 text-brass" /> Filters
             </div>
-
-            <FilterChipGroup
-              label="Practice area"
-              options={areaOptions}
-              value={areas}
-              onChange={setAreas}
-              multiple
-              variant="block"
-            />
-            <FilterChipGroup
-              label="District"
-              options={countyOptions}
-              value={counties}
-              onChange={setCounties}
-              variant="block"
-            />
-
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={acceptingOnly}
-                onChange={(e) => setAcceptingOnly(e.target.checked)}
-                className="h-4 w-4 accent-[oklch(0.66_0.113_74)]"
-              />
-              Accepting new clients
-            </label>
+            {filterControls}
           </aside>
 
           <div>
-            <p className="mb-5 text-sm text-muted-foreground">
-              {isLoading ? "Loading…" : `${results.length} advocates`}
-            </p>
+            <div className="mb-5 flex items-center justify-between gap-3 lg:block">
+              <p className="text-sm text-muted-foreground">
+                {isLoading ? "Loading…" : `${results.length} advocates`}
+              </p>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="lg:hidden">
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Filters
+                    {activeFilterCount > 0 && (
+                      <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-brass text-[0.65rem] font-semibold text-accent-foreground">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[85vw] overflow-y-auto sm:max-w-sm">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                      <SlidersHorizontal className="h-4 w-4 text-brass" /> Filters
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-8">{filterControls}</div>
+                </SheetContent>
+              </Sheet>
+            </div>
             {isLoading ? (
               <LoadingRows rows={6} />
             ) : isError ? (

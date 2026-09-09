@@ -7,6 +7,14 @@ import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
 import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { judgementsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/judgements")({
@@ -44,6 +52,17 @@ function JudgementsPage() {
 
   const { page, setPage, totalPages, pageItems } = usePaginatedList(items, 8);
 
+  const filterControls = (
+    <FilterChipGroup
+      label="Court"
+      options={courtOptions}
+      value={courts}
+      onChange={setCourts}
+      multiple
+      variant="block"
+    />
+  );
+
   return (
     <PublicLayout>
       <PageHeader
@@ -61,24 +80,40 @@ function JudgementsPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[220px_1fr]">
-          <aside className="space-y-6">
+          <aside className="hidden space-y-6 lg:block">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <SlidersHorizontal className="h-4 w-4 text-brass" /> Filters
             </div>
-            <FilterChipGroup
-              label="Court"
-              options={courtOptions}
-              value={courts}
-              onChange={setCourts}
-              multiple
-              variant="block"
-            />
+            {filterControls}
           </aside>
 
           <div>
-            <p className="mb-5 text-sm text-muted-foreground">
-              {isLoading ? "Loading…" : `${items.length} judgements`}
-            </p>
+            <div className="mb-5 flex items-center justify-between gap-3 lg:block">
+              <p className="text-sm text-muted-foreground">
+                {isLoading ? "Loading…" : `${items.length} judgements`}
+              </p>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="lg:hidden">
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Filters
+                    {courts.length > 0 && (
+                      <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-brass text-[0.65rem] font-semibold text-accent-foreground">
+                        {courts.length}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[85vw] overflow-y-auto sm:max-w-sm">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                      <SlidersHorizontal className="h-4 w-4 text-brass" /> Filters
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-6">{filterControls}</div>
+                </SheetContent>
+              </Sheet>
+            </div>
             {isLoading ? (
               <LoadingRows rows={6} />
             ) : isError ? (
