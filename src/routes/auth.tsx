@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
@@ -60,6 +61,7 @@ function AuthPage() {
   const [role, setRole] = useState<AppRole>("user");
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   // Set once signUp.create() reports the account needs email verification before it can
   // activate — Clerk's default for password sign-up. Switches the form to a code-entry step.
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
@@ -80,9 +82,14 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (!legalAccepted) {
+          toast.error("Please agree to the terms and privacy policy to continue.");
+          return;
+        }
         const { error } = await signUp.password({
           emailAddress: email,
           password,
+          legalAccepted,
           unsafeMetadata: { full_name: fullName, requested_role: role },
         });
         if (error) throw error;
@@ -137,12 +144,20 @@ function AuthPage() {
 
   const submitVerificationCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!verificationCode) return;
+    const code = verificationCode?.trim();
+    if (!code) return;
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await signUp.verifications.verifyEmailCode({ code: verificationCode });
+        const { error } = await signUp.verifications.verifyEmailCode({ code });
         if (error) throw error;
+        if (signUp.status === "missing_requirements") {
+          // The code itself was correct — Clerk marked the email verified — but something else
+          // the sign-up now requires wasn't supplied, so it can't finalize into an account.
+          throw new Error(
+            `Your email is verified, but sign-up needs: ${signUp.missingFields.join(", ")}. Contact support@legalfinder.co — your email may already show as verified on a retry.`,
+          );
+        }
         if (signUp.status !== "complete") {
           throw new Error("That code didn't work — check it and try again.");
         }
@@ -157,8 +172,8 @@ function AuthPage() {
       } else {
         const usesPhone = signIn.supportedSecondFactors?.some((f) => f.strategy === "phone_code");
         const { error } = usesPhone
-          ? await signIn.mfa.verifyPhoneCode({ code: verificationCode })
-          : await signIn.mfa.verifyEmailCode({ code: verificationCode });
+          ? await signIn.mfa.verifyPhoneCode({ code })
+          : await signIn.mfa.verifyEmailCode({ code });
         if (error) throw error;
         if (signIn.status !== "complete") {
           throw new Error("That code didn't work — check it and try again.");
@@ -264,6 +279,8 @@ function AuthPage() {
                   required
                   autoFocus
                   inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
                   placeholder="123456"
                 />
               </div>
@@ -387,7 +404,35 @@ function AuthPage() {
                   </div>
                 </div>
 
-                <Button type="submit" variant="brass" size="lg" className="w-full" disabled={busy}>
+                {mode === "signup" && (
+                  <div className="flex items-start gap-2">
+                    <Checkbox
+                      id="legal-accepted"
+                      checked={legalAccepted}
+                      onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <Label htmlFor="legal-accepted" className="text-xs font-normal leading-relaxed">
+                      I agree to LegalFinder's{" "}
+                      <Link to="/terms-of-service" className="text-brass hover:underline" target="_blank">
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link to="/privacy-policy" className="text-brass hover:underline" target="_blank">
+                        Privacy Policy
+                      </Link>
+                      .
+                    </Label>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="brass"
+                  size="lg"
+                  className="w-full"
+                  disabled={busy || (mode === "signup" && !legalAccepted)}
+                >
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                   {mode === "signin" ? "Sign in" : "Create account"}
                 </Button>
