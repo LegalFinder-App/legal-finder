@@ -1,9 +1,21 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, UserPlus, X } from "lucide-react";
+import { Search, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard, EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { allProfilesQuery, allUserRolesQuery } from "@/lib/queries";
-import { assignRole, revokeRole } from "@/lib/mutations";
+import { assignRole, deleteUser, revokeRole } from "@/lib/mutations";
 import { ROLE_LABELS, useSession, type AppRole } from "@/lib/session";
 
 const ALL_ROLES: AppRole[] = ["user", "lawyer", "police", "judiciary", "admin"];
@@ -73,6 +85,20 @@ export function UsersPanel() {
       invalidate(userId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to remove role");
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleDelete = async (userId: string) => {
+    setBusyKey(`${userId}:delete`);
+    try {
+      await deleteUser(userId);
+      toast.success("User deleted");
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      invalidate(userId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to delete user");
     } finally {
       setBusyKey(null);
     }
@@ -195,6 +221,43 @@ export function UsersPanel() {
                         ))}
                       </SelectContent>
                     </Select>
+                  )}
+                  {!isSelf && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          disabled={busyKey === `${profile.id}:delete`}
+                          aria-label={`Delete ${profile.full_name || profile.email || "user"}`}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Delete {profile.full_name || profile.email || "this user"}?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This permanently deletes their Clerk account and removes them from
+                            Users &amp; roles — they'll no longer be able to sign in. Their case,
+                            document and message history is kept for the audit trail.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => void handleDelete(profile.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </div>
               </div>

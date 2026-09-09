@@ -75,3 +75,8 @@ export async function revokeRole(userId: string, role: AppRole): Promise<void> {
     .eq("role", role);
   if (error) throw new Error(error.message);
 }
+
+export async function deleteUser(userId: string): Promise<void> {
+  const { deleteUserAccount } = await import("@/lib/admin-users.functions");
+  await deleteUserAccount({ data: { userId } });
+}
