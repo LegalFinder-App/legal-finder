@@ -423,7 +423,15 @@ function AuthPage() {
           )}
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            By continuing you agree to LegalFinder's terms and privacy policy.
+            By continuing you agree to LegalFinder's{" "}
+            <Link to="/terms-of-service" className="text-brass hover:underline">
+              terms
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy-policy" className="text-brass hover:underline">
+              privacy policy
+            </Link>
+            .
           </p>
         </div>
       </div>

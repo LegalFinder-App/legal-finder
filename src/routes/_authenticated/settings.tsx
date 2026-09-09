@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PushRegistrationCard } from "@/components/app/workspace/shared/push-registration-card";
+import { AvatarUploadCard } from "@/components/app/settings/avatar-upload-card";
 import { profileQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteOwnAccount } from "@/lib/account.functions";
@@ -95,7 +96,15 @@ function SettingsPage() {
 
       <section className="mt-10 rounded-xl border border-border bg-card p-6 shadow-plate">
         <h2 className="font-display text-lg font-semibold">Profile</h2>
-        <form onSubmit={saveProfile} className="mt-4 space-y-4">
+        <div className="mt-4">
+          <AvatarUploadCard
+            userId={user?.id}
+            avatarUrl={profile.data?.avatar_url}
+            fullName={profile.data?.full_name}
+            email={user?.email}
+          />
+        </div>
+        <form onSubmit={saveProfile} className="mt-6 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="full-name">Full name</Label>
             <Input

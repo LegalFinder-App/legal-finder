@@ -34,7 +34,7 @@ async function sendPushToUser(userId: string, title: string, body: string, url: 
 
   const { default: webpush } = await import("web-push");
   const subject =
-    process.env.WEB_PUSH_SUBJECT || process.env.VITE_APP_URL || "https://legalfinder.vercel.app";
+    process.env.WEB_PUSH_SUBJECT || process.env.VITE_APP_URL || "https://legalfinder.co";
   webpush.setVapidDetails(subject, publicKey, privateKey);
 
   const payload = JSON.stringify({ title, body, url });

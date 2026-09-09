@@ -24,6 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>LegalFinder needs camera access so you can take a photo for your profile or to attach to a case document.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LegalFinder needs photo library access so you can choose a photo for your profile or to attach to a case document.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

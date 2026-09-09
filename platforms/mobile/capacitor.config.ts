@@ -5,7 +5,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // shell/.env at sync time, not at app-launch time (there is no .env file on an installed app).
 // Falls back to the real production URL so a forgotten env var still ships something correct
 // rather than silently defaulting to localhost. Override VITE_APP_URL for a staging sync.
-const PRODUCTION_APP_URL = "https://legalfinder.vercel.app";
+const PRODUCTION_APP_URL = "https://legalfinder.co";
 const APP_URL = process.env.VITE_APP_URL || PRODUCTION_APP_URL;
 
 // This app runs in "remote content" mode: the WebView navigates straight to the real deployed

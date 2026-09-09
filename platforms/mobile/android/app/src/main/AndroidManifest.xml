@@ -32,4 +32,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Required on Android 13+ (targetSdk 36 here) for any notification to display at all —
+         the JS-side Notification.requestPermission() call in platform-notifications.ts only
+         triggers the native prompt if this is declared. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

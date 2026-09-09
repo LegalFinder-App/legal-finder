@@ -9,7 +9,7 @@ const path = require("node:path");
 // build ships with has to be baked in here — process.env.VITE_APP_URL only matters for local
 // `npm run desktop:dev` testing against a dev server. If you fork this for a different
 // deployment, update PRODUCTION_APP_URL to match.
-const PRODUCTION_APP_URL = "https://legalfinder.vercel.app";
+const PRODUCTION_APP_URL = "https://legalfinder.co";
 const APP_URL = process.env.VITE_APP_URL || PRODUCTION_APP_URL;
 
 function isSameOrigin(targetUrl) {
