@@ -41,6 +41,8 @@ import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminContentRouteRouteImport } from './routes/_authenticated/admin/content/route'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
+import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
+import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
 import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
 import { Route as ApiPesapalIpnRouteImport } from './routes/api.pesapal.ipn'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin/content/index'
@@ -214,6 +216,17 @@ const AuthenticatedAdminVerificationsRoute =
     path: '/verifications',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedCasesCaseIdRoute =
+  AuthenticatedCasesCaseIdRouteImport.update({
+    id: '/cases/$caseId',
+    path: '/cases/$caseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiCronComplianceCheckRoute = ApiCronComplianceCheckRouteImport.update({
+  id: '/api/cron/compliance-check',
+  path: '/api/cron/compliance-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPesapalCallbackRoute = ApiPesapalCallbackRouteImport.update({
   id: '/api/pesapal/callback',
   path: '/api/pesapal/callback',
@@ -310,6 +323,8 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -352,6 +367,8 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -398,6 +415,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
+  '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -444,6 +463,8 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/users'
     | '/admin/verifications'
+    | '/cases/$caseId'
+    | '/api/cron/compliance-check'
     | '/api/pesapal/callback'
     | '/api/pesapal/ipn'
     | '/admin/'
@@ -486,6 +507,8 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/users'
     | '/admin/verifications'
+    | '/cases/$caseId'
+    | '/api/cron/compliance-check'
     | '/api/pesapal/callback'
     | '/api/pesapal/ipn'
     | '/admin'
@@ -531,6 +554,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verifications'
+    | '/_authenticated/cases/$caseId'
+    | '/api/cron/compliance-check'
     | '/api/pesapal/callback'
     | '/api/pesapal/ipn'
     | '/_authenticated/admin/'
@@ -565,6 +590,7 @@ export interface RootRouteChildren {
   AdviceIndexRoute: typeof AdviceIndexRoute
   LawyersIndexRoute: typeof LawyersIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
+  ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
   ApiPesapalIpnRoute: typeof ApiPesapalIpnRoute
 }
@@ -795,6 +821,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVerificationsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/cases/$caseId': {
+      id: '/_authenticated/cases/$caseId'
+      path: '/cases/$caseId'
+      fullPath: '/cases/$caseId'
+      preLoaderRoute: typeof AuthenticatedCasesCaseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/cron/compliance-check': {
+      id: '/api/cron/compliance-check'
+      path: '/api/cron/compliance-check'
+      fullPath: '/api/cron/compliance-check'
+      preLoaderRoute: typeof ApiCronComplianceCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pesapal/callback': {
       id: '/api/pesapal/callback'
       path: '/api/pesapal/callback'
@@ -940,6 +980,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedPracticeRoute: typeof AuthenticatedPracticeRoute
   AuthenticatedPrecinctRoute: typeof AuthenticatedPrecinctRoute
+  AuthenticatedCasesCaseIdRoute: typeof AuthenticatedCasesCaseIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -950,6 +991,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedPracticeRoute: AuthenticatedPracticeRoute,
   AuthenticatedPrecinctRoute: AuthenticatedPrecinctRoute,
+  AuthenticatedCasesCaseIdRoute: AuthenticatedCasesCaseIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -986,6 +1028,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdviceIndexRoute: AdviceIndexRoute,
   LawyersIndexRoute: LawyersIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
+  ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
   ApiPesapalIpnRoute: ApiPesapalIpnRoute,
 }

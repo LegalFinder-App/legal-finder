@@ -10,13 +10,38 @@ import {
   QueryError,
 } from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
-import { lawyersQuery } from "@/lib/queries";
+import { Input } from "@/components/ui/input";
+import { lawyersQuery, lawyerCpdRecordsQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
+
+function CpdHoursBadge({ lawyerId }: { lawyerId: string }) {
+  const cpd = useQuery(lawyerCpdRecordsQuery(lawyerId));
+  const totalHours = (cpd.data ?? []).reduce((sum, r) => sum + Number(r.hours), 0);
+  return <span className="text-xs text-muted-foreground">{totalHours}h CPD logged</span>;
+}
 
 export function VerificationsPanel() {
   const queryClient = useQueryClient();
   const lawyers = useQuery(lawyersQuery());
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [expiryDrafts, setExpiryDrafts] = useState<Record<string, string>>({});
+  const [savingExpiryId, setSavingExpiryId] = useState<string | null>(null);
+
+  const saveLicenseExpiry = async (lawyerId: string) => {
+    const value = expiryDrafts[lawyerId];
+    setSavingExpiryId(lawyerId);
+    const { error } = await supabase
+      .from("lawyers")
+      .update({ bar_license_expires_at: value || null })
+      .eq("id", lawyerId);
+    setSavingExpiryId(null);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("License expiry updated");
+    queryClient.invalidateQueries({ queryKey: ["lawyers"] });
+  };
 
   const setVerification = async (lawyerId: string, verified: boolean) => {
     setVerifyingId(lawyerId);
@@ -105,6 +130,38 @@ export function VerificationsPanel() {
                       {lawyer.bar_number ?? "Bar number pending"}
                       {lawyer.county ? ` · ${lawyer.county}` : ""}
                     </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <StatusPill value={lawyer.license_status} />
+                      <CpdHoursBadge lawyerId={lawyer.id} />
+                    </div>
+                    <div className="mt-3 flex items-end gap-2">
+                      <div className="flex-1 space-y-1">
+                        <label className="text-xs text-muted-foreground">License expiry</label>
+                        <Input
+                          type="date"
+                          className="h-8 text-xs"
+                          value={
+                            expiryDrafts[lawyer.id] ??
+                            lawyer.bar_license_expires_at?.slice(0, 10) ??
+                            ""
+                          }
+                          onChange={(event) =>
+                            setExpiryDrafts((prev) => ({
+                              ...prev,
+                              [lawyer.id]: event.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={savingExpiryId === lawyer.id}
+                        onClick={() => void saveLicenseExpiry(lawyer.id)}
+                      >
+                        Save
+                      </Button>
+                    </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {!lawyer.verified ? (
                         <Button

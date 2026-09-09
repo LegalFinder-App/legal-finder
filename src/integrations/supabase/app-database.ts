@@ -1,5 +1,31 @@
 import type { Database as BaseDatabase, Json } from "./types";
 
+export type CaseOutcome = "won" | "lost" | "settled" | "dismissed" | "withdrawn" | "other";
+export type CaseDeadlineType = "filing" | "statute_of_limitations" | "hearing" | "other";
+export type CaseDeadlineStatus = "upcoming" | "completed" | "missed";
+export type LawyerLicenseStatus = "active" | "expiring" | "expired" | "unknown";
+
+type CaseDeadlineRow = {
+  id: string;
+  case_id: string;
+  title: string;
+  deadline_type: CaseDeadlineType;
+  due_date: string;
+  status: CaseDeadlineStatus;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type LawyerCpdRecordRow = {
+  id: string;
+  lawyer_id: string;
+  title: string;
+  hours: number;
+  completed_on: string;
+  created_at: string;
+};
+
 type AuditLogRow = {
   id: string;
   actor_id: string | null;
@@ -45,7 +71,76 @@ type PushSubscriptionRow = {
 
 export type AppDatabase = Omit<BaseDatabase, "public"> & {
   public: Omit<BaseDatabase["public"], "Tables"> & {
-    Tables: BaseDatabase["public"]["Tables"] & {
+    Tables: Omit<BaseDatabase["public"]["Tables"], "cases" | "lawyers"> & {
+      cases: Omit<BaseDatabase["public"]["Tables"]["cases"], "Row" | "Insert" | "Update"> & {
+        Row: BaseDatabase["public"]["Tables"]["cases"]["Row"] & { outcome: CaseOutcome | null };
+        Insert: BaseDatabase["public"]["Tables"]["cases"]["Insert"] & {
+          outcome?: CaseOutcome | null;
+        };
+        Update: BaseDatabase["public"]["Tables"]["cases"]["Update"] & {
+          outcome?: CaseOutcome | null;
+        };
+      };
+      lawyers: Omit<BaseDatabase["public"]["Tables"]["lawyers"], "Row" | "Insert" | "Update"> & {
+        Row: BaseDatabase["public"]["Tables"]["lawyers"]["Row"] & {
+          bar_license_expires_at: string | null;
+          license_status: LawyerLicenseStatus;
+        };
+        Insert: BaseDatabase["public"]["Tables"]["lawyers"]["Insert"] & {
+          bar_license_expires_at?: string | null;
+          license_status?: LawyerLicenseStatus;
+        };
+        Update: BaseDatabase["public"]["Tables"]["lawyers"]["Update"] & {
+          bar_license_expires_at?: string | null;
+          license_status?: LawyerLicenseStatus;
+        };
+      };
+      case_deadlines: {
+        Row: CaseDeadlineRow;
+        Insert: {
+          id?: string;
+          case_id: string;
+          title: string;
+          deadline_type?: CaseDeadlineType;
+          due_date: string;
+          status?: CaseDeadlineStatus;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          case_id?: string;
+          title?: string;
+          deadline_type?: CaseDeadlineType;
+          due_date?: string;
+          status?: CaseDeadlineStatus;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      lawyer_cpd_records: {
+        Row: LawyerCpdRecordRow;
+        Insert: {
+          id?: string;
+          lawyer_id: string;
+          title: string;
+          hours: number;
+          completed_on: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          lawyer_id?: string;
+          title?: string;
+          hours?: number;
+          completed_on?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       audit_logs: {
         Row: AuditLogRow;
         Insert: {

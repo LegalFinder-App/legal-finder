@@ -35,6 +35,8 @@ export type Lawyer = {
   email: string | null;
   phone: string | null;
   bar_number: string | null;
+  bar_license_expires_at: string | null;
+  license_status: "active" | "expiring" | "expired" | "unknown";
 };
 
 export const lawyersQuery = (search?: LawyerSearch, options?: { verifiedOnly?: boolean }) =>
@@ -54,6 +56,35 @@ type LawyerSearch = { q?: string; area?: string; county?: string };
 
 export const publicLawyersQuery = (search?: LawyerSearch) =>
   lawyersQuery(search, { verifiedOnly: true });
+
+export const myLawyerProfileQuery = (userId: string | undefined) =>
+  queryOptions({
+    queryKey: ["my-lawyer-profile", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lawyers")
+        .select("*")
+        .eq("user_id", userId!)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return data as Lawyer | null;
+    },
+  });
+
+export const lawyerCpdRecordsQuery = (lawyerId: string | undefined) =>
+  queryOptions({
+    queryKey: ["lawyer-cpd-records", lawyerId],
+    enabled: Boolean(lawyerId),
+    queryFn: async () =>
+      unwrap(
+        await supabase
+          .from("lawyer_cpd_records")
+          .select("*")
+          .eq("lawyer_id", lawyerId!)
+          .order("completed_on", { ascending: false }),
+      ),
+  });
 
 export const lawyerQuery = (id: string) =>
   queryOptions({
@@ -248,6 +279,19 @@ export const caseUpdatesQuery = (caseId: string) =>
       ),
   });
 
+export const caseDeadlinesQuery = (caseId: string) =>
+  queryOptions({
+    queryKey: ["case-deadlines", caseId],
+    queryFn: async () =>
+      unwrap(
+        await supabase
+          .from("case_deadlines")
+          .select("*")
+          .eq("case_id", caseId)
+          .order("due_date", { ascending: true }),
+      ),
+  });
+
 export const appointmentsQuery = (userId: string | undefined) =>
   queryOptions({
     queryKey: ["appointments", userId],
@@ -371,4 +415,17 @@ export type UserRoleRow = AppDatabase["public"]["Tables"]["user_roles"]["Row"];
 export const allUserRolesQuery = queryOptions({
   queryKey: ["admin-user-roles"],
   queryFn: async () => unwrap<UserRoleRow[]>(await supabase.from("user_roles").select("*")),
+});
+
+export type PaymentRow = AppDatabase["public"]["Tables"]["payments"]["Row"];
+
+// RLS (payments_read) already scopes rows to client_id = self, lawyer_id = self, or admin — so
+// this same query works both for the admin platform dashboard (sees every row) and the advocate
+// practice dashboard (sees only their own), no separate query needed for each.
+export const allPaymentsQuery = queryOptions({
+  queryKey: ["payments"],
+  queryFn: async () =>
+    unwrap<PaymentRow[]>(
+      await supabase.from("payments").select("*").order("created_at", { ascending: false }),
+    ),
 });

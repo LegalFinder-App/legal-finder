@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { StatusPill, EmptyState, LoadingRows } from "@/components/common/bits";
 
 export interface MatterLike {
@@ -28,7 +29,12 @@ export function MattersList({
   return (
     <div className="space-y-3">
       {cases.map((c) => (
-        <div key={c.id} className="rounded-lg border border-border bg-card p-5">
+        <Link
+          key={c.id}
+          to="/cases/$caseId"
+          params={{ caseId: c.id }}
+          className="block rounded-lg border border-border bg-card p-5 hover:border-brass/50"
+        >
           <div className="flex items-center justify-between gap-3">
             <p className="font-mono text-xs text-brass">{c.reference}</p>
             <StatusPill value={c.status} />
@@ -37,7 +43,7 @@ export function MattersList({
           <p className="mt-1 text-sm text-muted-foreground">
             {c.case_type} · {c.court ?? "Court to be assigned"}
           </p>
-        </div>
+        </Link>
       ))}
     </div>
   );

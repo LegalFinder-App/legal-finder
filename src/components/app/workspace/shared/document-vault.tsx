@@ -14,6 +14,7 @@ export interface DocumentLike {
   size_bytes: number;
   created_at: string;
   href?: string;
+  case_id?: string | null;
 }
 
 export interface DocumentRowLike {
@@ -22,16 +23,20 @@ export interface DocumentRowLike {
   category: string;
   size_bytes: number | null;
   created_at: string;
+  case_id?: string | null;
 }
 
 export function DocumentVault({
   userId,
+  caseId,
   documents,
   isLoading,
   allowDemoFallback = false,
   description = "Store pleadings, evidence and correspondence in your secure vault.",
 }: {
   userId: string | undefined;
+  /** When set, new uploads through this vault are tied to this case. */
+  caseId?: string;
   documents: DocumentRowLike[];
   isLoading?: boolean;
   allowDemoFallback?: boolean;
@@ -86,6 +91,7 @@ export function DocumentVault({
 
     const { error: recordError } = await supabase.from("documents").insert({
       owner_id: userId,
+      case_id: caseId ?? null,
       name: file.name,
       storage_path: storagePath,
       mime_type: file.type || null,

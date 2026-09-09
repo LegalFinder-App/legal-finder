@@ -1,7 +1,17 @@
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { BookOpen, Briefcase, CalendarDays, FileText, Users, Video } from "lucide-react";
+import {
+  BarChart3,
+  BookOpen,
+  Briefcase,
+  CalendarDays,
+  FileText,
+  ShieldCheck,
+  Users,
+  Video,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
 import { StatCardRow } from "./shared/stat-card-row";
 import { DocumentVault } from "./shared/document-vault";
+import { CompliancePanel } from "./shared/compliance-panel";
+import { PracticeAnalytics } from "./shared/practice-analytics";
 import { HearingCalendar } from "./shared/hearing-calendar";
 import { LiveCourtroomPanel } from "@/components/app/live-courtroom-panel";
 import { ContentCrudTable } from "@/components/app/admin/content/content-crud-table";
@@ -75,11 +87,15 @@ function CasePipeline() {
           <div className="mt-3 space-y-3">
             {column.items.map((c) => (
               <div key={c.id} className="rounded-lg border border-border bg-card p-4 shadow-plate">
-                <p className="font-mono text-xs text-brass">{c.reference}</p>
-                <p className="mt-1 font-display text-sm font-semibold">{c.title}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {c.case_type} · {c.court ?? "Court to be assigned"}
-                </p>
+                <Link to="/cases/$caseId" params={{ caseId: c.id }} className="block">
+                  <p className="font-mono text-xs text-brass">{c.reference}</p>
+                  <p className="mt-1 font-display text-sm font-semibold hover:underline">
+                    {c.title}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {c.case_type} · {c.court ?? "Court to be assigned"}
+                  </p>
+                </Link>
                 <Select
                   value={c.status}
                   onValueChange={(status) => void updateStatus(c.id, status)}
@@ -202,6 +218,12 @@ export function PracticeWorkspace() {
           <TabsTrigger value="advice">
             <BookOpen className="mr-1.5 h-4 w-4" /> Advice guides
           </TabsTrigger>
+          <TabsTrigger value="compliance">
+            <ShieldCheck className="mr-1.5 h-4 w-4" /> Compliance
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <BarChart3 className="mr-1.5 h-4 w-4" /> Analytics
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="pipeline" className="mt-6">
           <CasePipeline />
@@ -220,6 +242,12 @@ export function PracticeWorkspace() {
         </TabsContent>
         <TabsContent value="advice" className="mt-6">
           <ContentCrudTable config={adviceConfig} />
+        </TabsContent>
+        <TabsContent value="compliance" className="mt-6">
+          <CompliancePanel userId={user?.id} />
+        </TabsContent>
+        <TabsContent value="analytics" className="mt-6">
+          <PracticeAnalytics userId={user?.id} />
         </TabsContent>
       </Tabs>
     </div>
