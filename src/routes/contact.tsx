@@ -37,7 +37,7 @@ function Contact() {
       <div className="mx-auto grid max-w-5xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.3fr] lg:px-8">
         <div className="space-y-5 text-sm">
           <p className="flex items-center gap-3">
-            <Mail className="h-4 w-4 text-brass" /> support@legalfinder.app
+            <Mail className="h-4 w-4 text-brass" /> support@legalfinder.co
           </p>
           <p className="flex items-center gap-3">
             <Phone className="h-4 w-4 text-brass" /> +256 700 000 000
@@ -53,10 +53,10 @@ function Contact() {
             const name = (form.elements.namedItem("name") as HTMLInputElement).value;
             const email = (form.elements.namedItem("email") as HTMLInputElement).value;
             const message = (form.elements.namedItem("message") as HTMLTextAreaElement).value;
-            window.location.href = `mailto:support@legalfinder.app?subject=${encodeURIComponent(`LegalFinder contact from ${name}`)}&body=${encodeURIComponent(`${message}\n\n— ${name} (${email})`)}`;
+            window.location.href = `mailto:support@legalfinder.co?subject=${encodeURIComponent(`LegalFinder contact from ${name}`)}&body=${encodeURIComponent(`${message}\n\n— ${name} (${email})`)}`;
             setSent(true);
             toast.success("Opening your email app", {
-              description: "If nothing opens, email support@legalfinder.app directly.",
+              description: "If nothing opens, email support@legalfinder.co directly.",
             });
           }}
           className="space-y-4 rounded-xl border border-border bg-card p-7 shadow-plate"
@@ -79,8 +79,8 @@ function Contact() {
           {sent && (
             <p className="text-center text-xs text-muted-foreground">
               Nothing open? Email{" "}
-              <a href="mailto:support@legalfinder.app" className="text-brass hover:underline">
-                support@legalfinder.app
+              <a href="mailto:support@legalfinder.co" className="text-brass hover:underline">
+                support@legalfinder.co
               </a>{" "}
               directly, or{" "}
               <button

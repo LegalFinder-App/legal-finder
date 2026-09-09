@@ -16,11 +16,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as JudgementsRouteImport } from './routes/judgements'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as StationsRouteImport } from './routes/stations'
+import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
@@ -89,6 +91,11 @@ const LibraryRoute = LibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportRoute = ReportRouteImport.update({
   id: '/report',
   path: '/report',
@@ -112,6 +119,11 @@ const SsoCallbackRoute = SsoCallbackRouteImport.update({
 const StationsRoute = StationsRouteImport.update({
   id: '/stations',
   path: '/stations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
+  id: '/terms-of-service',
+  path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WantedRoute = WantedRouteImport.update({
@@ -299,11 +311,13 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
   '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/wanted': typeof WantedRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
@@ -345,11 +359,13 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
   '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/wanted': typeof WantedRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bench': typeof AuthenticatedBenchRoute
@@ -391,11 +407,13 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
   '/safety': typeof SafetyRoute
   '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/wanted': typeof WantedRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
@@ -439,11 +457,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/judgements'
     | '/library'
+    | '/privacy-policy'
     | '/report'
     | '/reset-password'
     | '/safety'
     | '/sso-callback'
     | '/stations'
+    | '/terms-of-service'
     | '/wanted'
     | '/admin'
     | '/assistant'
@@ -485,11 +505,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/judgements'
     | '/library'
+    | '/privacy-policy'
     | '/report'
     | '/reset-password'
     | '/safety'
     | '/sso-callback'
     | '/stations'
+    | '/terms-of-service'
     | '/wanted'
     | '/assistant'
     | '/bench'
@@ -530,11 +552,13 @@ export interface FileRouteTypes {
     | '/contact'
     | '/judgements'
     | '/library'
+    | '/privacy-policy'
     | '/report'
     | '/reset-password'
     | '/safety'
     | '/sso-callback'
     | '/stations'
+    | '/terms-of-service'
     | '/wanted'
     | '/_authenticated/admin'
     | '/_authenticated/assistant'
@@ -578,11 +602,13 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   JudgementsRoute: typeof JudgementsRoute
   LibraryRoute: typeof LibraryRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ReportRoute: typeof ReportRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SafetyRoute: typeof SafetyRoute
   SsoCallbackRoute: typeof SsoCallbackRoute
   StationsRoute: typeof StationsRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
   WantedRoute: typeof WantedRouteWithChildren
   AdviceSlugRoute: typeof AdviceSlugRoute
   LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
@@ -646,6 +672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/report': {
       id: '/report'
       path: '/report'
@@ -679,6 +712,13 @@ declare module '@tanstack/react-router' {
       path: '/stations'
       fullPath: '/stations'
       preLoaderRoute: typeof StationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wanted': {
@@ -1016,11 +1056,13 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   JudgementsRoute: JudgementsRoute,
   LibraryRoute: LibraryRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ReportRoute: ReportRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SafetyRoute: SafetyRoute,
   SsoCallbackRoute: SsoCallbackRoute,
   StationsRoute: StationsRoute,
+  TermsOfServiceRoute: TermsOfServiceRoute,
   WantedRoute: WantedRouteWithChildren,
   AdviceSlugRoute: AdviceSlugRoute,
   LawyersLawyerIdRoute: LawyersLawyerIdRoute,

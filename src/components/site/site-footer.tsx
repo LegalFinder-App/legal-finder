@@ -65,8 +65,18 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-ink-foreground/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-ink-foreground/50 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-xs text-ink-foreground/50 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} LegalFinder. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Link to="/terms-of-service" className="transition-colors hover:text-brass">
+              Terms of Service
+            </Link>
+            <Link to="/privacy-policy" className="transition-colors hover:text-brass">
+              Privacy Policy
+            </Link>
+          </div>
+        </div>
+        <div className="mx-auto max-w-7xl px-4 pb-6 text-xs text-ink-foreground/50 sm:px-6 lg:px-8">
           <p>
             Information on this platform is general guidance and is not a substitute for legal
             advice from a qualified advocate.
