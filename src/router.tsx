@@ -15,6 +15,10 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // Progressive enhancement: browsers/WebViews without View Transitions support just
+    // navigate instantly, same as before — this only adds a native-feeling cross-fade/slide
+    // where the API exists (including the Capacitor Android/iOS WebViews).
+    defaultViewTransition: true,
   });
 
   return router;

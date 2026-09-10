@@ -14,7 +14,8 @@ import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/react";
-import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme";
+import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
+import { useHideNativeSplashScreen, useNativeBackButton, useNativeStatusBar } from "@/lib/native";
 
 function NotFoundComponent() {
   return (
@@ -77,7 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
       { title: "LegalFinder — Find trusted legal help" },
       {
         name: "description",
@@ -146,6 +150,7 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
+        <NativeAppEffects />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="top-right" richColors closeButton />
@@ -153,4 +158,14 @@ function RootComponent() {
       </QueryClientProvider>
     </ThemeProvider>
   );
+}
+
+/** No-op on the web; inside the Capacitor app this keeps native chrome in sync with the UI. */
+function NativeAppEffects() {
+  const { resolvedTheme } = useTheme();
+  const router = useRouter();
+  useNativeStatusBar(resolvedTheme);
+  useNativeBackButton(router);
+  useHideNativeSplashScreen();
+  return null;
 }

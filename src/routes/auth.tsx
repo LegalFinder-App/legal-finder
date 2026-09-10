@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Eye, EyeOff, Fingerprint, Loader2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";

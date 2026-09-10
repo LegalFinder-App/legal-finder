@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Loader2, Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
 import { PushRegistrationCard } from "@/components/app/workspace/shared/push-registration-card";
 import { AvatarUploadCard } from "@/components/app/settings/avatar-upload-card";
 import { PasskeyManager } from "@/components/app/settings/passkey-manager";
+import { PayoutDetailsCard } from "@/components/app/settings/payout-details-card";
 import { profileQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteOwnAccount } from "@/lib/account.functions";
@@ -40,7 +41,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: typeof Sun }
 ];
 
 function SettingsPage() {
-  const { user } = useSession();
+  const { user, primaryRole } = useSession();
   const profile = useQuery(profileQuery(user?.id));
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
@@ -130,6 +131,15 @@ function SettingsPage() {
         </form>
       </section>
 
+      {primaryRole === "lawyer" && (
+        <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+          <h2 className="font-display text-lg font-semibold">Payout details</h2>
+          <div className="mt-4">
+            <PayoutDetailsCard lawyerUserId={user?.id} />
+          </div>
+        </section>
+      )}
+
       <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
         <h2 className="font-display text-lg font-semibold">Passkeys</h2>
         <div className="mt-4">
@@ -149,7 +159,9 @@ function SettingsPage() {
 
       <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
         <h2 className="font-display text-lg font-semibold">Appearance</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Choose how LegalFinder looks on this device.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Choose how LegalFinder looks on this device.
+        </p>
         <div className="mt-4 grid grid-cols-3 gap-2">
           {THEME_OPTIONS.map((option) => (
             <button
@@ -177,7 +189,11 @@ function SettingsPage() {
         </p>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button type="button" variant="outline" className="mt-4 text-destructive hover:text-destructive">
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4 text-destructive hover:text-destructive"
+            >
               Delete my account
             </Button>
           </AlertDialogTrigger>

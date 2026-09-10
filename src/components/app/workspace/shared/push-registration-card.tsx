@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { pushSubscriptionsQuery } from "@/lib/queries";
 import { subscribeBrowserPush, unsubscribeBrowserPush } from "@/lib/platform-notifications";

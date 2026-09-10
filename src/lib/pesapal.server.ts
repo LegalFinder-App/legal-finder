@@ -217,11 +217,22 @@ export async function getTransactionStatus(
 export async function finalizePayment(orderTrackingId: string): Promise<PesapalPaymentStatus> {
   const result = await getTransactionStatus(orderTrackingId);
 
-  const { error } = await supabaseAdmin
+  const { data: payment, error } = await supabaseAdmin
     .from("payments")
     .update({ status: result.status, pesapal_order_tracking_id: orderTrackingId })
-    .eq("pesapal_order_tracking_id", orderTrackingId);
+    .eq("pesapal_order_tracking_id", orderTrackingId)
+    .select("id")
+    .maybeSingle();
 
   if (error) throw new Error(error.message);
+
+  // Fire the lawyer payout the instant Pesapal confirms the client's payment — never let a
+  // payout failure surface as a payment-confirmation failure (attemptLawyerPayout catches its
+  // own errors and records them on the payment row instead of throwing).
+  if (result.status === "completed" && payment) {
+    const { attemptLawyerPayout } = await import("@/lib/payouts.server");
+    await attemptLawyerPayout(payment.id);
+  }
+
   return result.status;
 }

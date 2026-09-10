@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useUser } from "@clerk/tanstack-react-start";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Fingerprint, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

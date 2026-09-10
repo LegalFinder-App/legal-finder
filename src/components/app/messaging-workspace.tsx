@@ -1,18 +1,23 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock3, Send, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState, LoadingRows, StatusPill } from "@/components/common/bits";
 import { conversationsQuery, messagesQuery } from "@/lib/queries";
 import { useSession } from "@/lib/session";
+import { getEmptyStateMedia, siteMediaQuery } from "@/lib/site-media";
 
 export function MessagingWorkspace() {
   const { user } = useSession();
   const queryClient = useQueryClient();
   const conversations = useQuery(conversationsQuery(user?.id));
+  const siteMedia = useQuery(siteMediaQuery);
+  const emptyMedia = siteMedia.data
+    ? getEmptyStateMedia(siteMedia.data, "empty-state-chambers")
+    : undefined;
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
 
@@ -129,6 +134,8 @@ export function MessagingWorkspace() {
               <LoadingRows rows={4} />
             ) : (conversations.data ?? []).length === 0 ? (
               <EmptyState
+                imageUrl={emptyMedia?.image_url}
+                imageAlt={emptyMedia?.alt_text}
                 title="No conversations yet"
                 description="When a lawyer, client or officer starts a thread, it will appear here."
               />

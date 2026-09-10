@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Switch } from "@/components/ui/switch";
 import { QueryError, LoadingRows } from "@/components/common/bits";
 import { appSettingsQuery, updateAppSettings, type AppSettings } from "@/lib/app-settings";

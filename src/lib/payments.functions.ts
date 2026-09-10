@@ -64,7 +64,7 @@ export const initiatePesapalPayment = createServerFn({ method: "POST" })
       assertAmountMatchesConsultationFee(Number(payment.amount), lawyerRow?.consultation_fee);
     }
 
-    const appUrl = (process.env.VITE_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+    const appUrl = (process.env.VITE_APP_URL || "https://legalfinder.co").replace(/\/$/, "");
     const callbackUrl = `${appUrl}/api/pesapal/callback`;
     const ipnUrl = `${appUrl}/api/pesapal/ipn`;
 

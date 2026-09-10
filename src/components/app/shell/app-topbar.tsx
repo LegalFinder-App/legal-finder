@@ -28,7 +28,7 @@ export function AppTopbar({ onOpenSearch }: { onOpenSearch: () => void }) {
     labelForPath(pathname) ?? titleCase(pathname.split("/").filter(Boolean).pop() ?? "");
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur">
+    <header className="sticky top-0 z-30 flex min-h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 px-safe pt-safe backdrop-blur">
       <SidebarTrigger />
       <Separator orientation="vertical" className="h-5" />
       <Breadcrumb className="hidden sm:block">

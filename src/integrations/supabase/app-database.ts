@@ -40,6 +40,8 @@ type AuditLogRow = {
   created_at: string;
 };
 
+export type PayoutStatus = "not_applicable" | "pending" | "processing" | "completed" | "failed";
+
 type PaymentRow = {
   id: string;
   appointment_id: string | null;
@@ -51,6 +53,11 @@ type PaymentRow = {
   description: string | null;
   pesapal_order_tracking_id: string | null;
   pesapal_merchant_reference: string | null;
+  payout_status: PayoutStatus;
+  flutterwave_transfer_id: string | null;
+  flutterwave_transfer_reference: string | null;
+  payout_failure_reason: string | null;
+  paid_out_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -184,6 +191,11 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           description?: string | null;
           pesapal_order_tracking_id?: string | null;
           pesapal_merchant_reference?: string | null;
+          payout_status?: PayoutStatus;
+          flutterwave_transfer_id?: string | null;
+          flutterwave_transfer_reference?: string | null;
+          payout_failure_reason?: string | null;
+          paid_out_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -198,6 +210,11 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           description?: string | null;
           pesapal_order_tracking_id?: string | null;
           pesapal_merchant_reference?: string | null;
+          payout_status?: PayoutStatus;
+          flutterwave_transfer_id?: string | null;
+          flutterwave_transfer_reference?: string | null;
+          payout_failure_reason?: string | null;
+          paid_out_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

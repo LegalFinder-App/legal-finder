@@ -1,7 +1,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Camera, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { uploadProfileImage } from "@/lib/imagekit";
 import { initials } from "@/lib/session";
@@ -54,7 +54,7 @@ export function AvatarUploadCard({
 
   return (
     <div className="flex items-center gap-4">
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-brass/10 ring-1 ring-brass/30">
         {displayUrl ? (
           <img src={displayUrl} alt="" className="h-full w-full object-cover" />
         ) : (
@@ -83,7 +83,11 @@ export function AvatarUploadCard({
           disabled={uploading || !userId}
           onClick={() => inputRef.current?.click()}
         >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Camera className="h-4 w-4" />
+          )}
           {displayUrl ? "Change photo" : "Upload photo"}
         </Button>
         <p className="mt-2 text-xs text-muted-foreground">JPG, PNG, or WebP. Up to 5 MB.</p>

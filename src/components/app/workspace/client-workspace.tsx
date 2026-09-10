@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Briefcase, CalendarDays, FileText, Users } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { EmptyState, StatusPill } from "@/components/common/bits";
 import { StatCardRow } from "./shared/stat-card-row";

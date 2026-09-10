@@ -55,18 +55,32 @@ export function Stars({ value, className }: { value: number; className?: string 
 
 export function EmptyState({
   icon,
+  imageUrl,
+  imageAlt,
   title,
   description,
   action,
 }: {
   icon?: ReactNode;
+  /** Optional site_media illustration — takes precedence over `icon` when present. */
+  imageUrl?: string;
+  imageAlt?: string;
   title: string;
   description?: string;
   action?: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50 px-6 py-16 text-center">
-      {icon && <div className="mb-4 text-muted-foreground/60">{icon}</div>}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={imageAlt ?? ""}
+          loading="lazy"
+          className="mb-5 h-28 w-28 rounded-full object-cover shadow-plate ring-1 ring-brass/20"
+        />
+      ) : (
+        icon && <div className="mb-4 text-muted-foreground/60">{icon}</div>
+      )}
       <p className="font-display text-lg font-semibold">{title}</p>
       {description && (
         <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">{description}</p>

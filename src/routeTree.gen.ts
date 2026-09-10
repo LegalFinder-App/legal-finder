@@ -42,11 +42,13 @@ import { Route as WantedIdRouteImport } from './routes/wanted.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminContentRouteRouteImport } from './routes/_authenticated/admin/content/route'
+import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin/payouts'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
 import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
+import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
 import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
 import { Route as ApiPesapalIpnRouteImport } from './routes/api.pesapal.ipn'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin/content/index'
@@ -224,6 +226,12 @@ const AuthenticatedAdminContentRouteRoute =
     path: '/content',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminPayoutsRoute =
+  AuthenticatedAdminPayoutsRouteImport.update({
+    id: '/payouts',
+    path: '/payouts',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -250,6 +258,11 @@ const AuthenticatedCasesCaseIdRoute =
 const ApiCronComplianceCheckRoute = ApiCronComplianceCheckRouteImport.update({
   id: '/api/cron/compliance-check',
   path: '/api/cron/compliance-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFlutterwaveWebhookRoute = ApiFlutterwaveWebhookRouteImport.update({
+  id: '/api/flutterwave/webhook',
+  path: '/api/flutterwave/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPesapalCallbackRoute = ApiPesapalCallbackRouteImport.update({
@@ -349,11 +362,13 @@ export interface FileRoutesByFullPath {
   '/news/': typeof NewsIndexRoute
   '/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
+  '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -397,11 +412,13 @@ export interface FileRoutesByTo {
   '/lawyers': typeof LawyersIndexRoute
   '/news': typeof NewsIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
+  '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -449,11 +466,13 @@ export interface FileRoutesById {
   '/news/': typeof NewsIndexRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
+  '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -501,11 +520,13 @@ export interface FileRouteTypes {
     | '/news/'
     | '/admin/content'
     | '/admin/audit'
+    | '/admin/payouts'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
+    | '/api/flutterwave/webhook'
     | '/api/pesapal/callback'
     | '/api/pesapal/ipn'
     | '/admin/'
@@ -549,11 +570,13 @@ export interface FileRouteTypes {
     | '/lawyers'
     | '/news'
     | '/admin/audit'
+    | '/admin/payouts'
     | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
+    | '/api/flutterwave/webhook'
     | '/api/pesapal/callback'
     | '/api/pesapal/ipn'
     | '/admin'
@@ -600,11 +623,13 @@ export interface FileRouteTypes {
     | '/news/'
     | '/_authenticated/admin/content'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verifications'
     | '/_authenticated/cases/$caseId'
     | '/api/cron/compliance-check'
+    | '/api/flutterwave/webhook'
     | '/api/pesapal/callback'
     | '/api/pesapal/ipn'
     | '/_authenticated/admin/'
@@ -642,6 +667,7 @@ export interface RootRouteChildren {
   LawyersIndexRoute: typeof LawyersIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
   ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
+  ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
   ApiPesapalIpnRoute: typeof ApiPesapalIpnRoute
 }
@@ -879,6 +905,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminContentRouteRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/payouts': {
+      id: '/_authenticated/admin/payouts'
+      path: '/payouts'
+      fullPath: '/admin/payouts'
+      preLoaderRoute: typeof AuthenticatedAdminPayoutsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/settings'
@@ -912,6 +945,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/compliance-check'
       fullPath: '/api/cron/compliance-check'
       preLoaderRoute: typeof ApiCronComplianceCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/flutterwave/webhook': {
+      id: '/api/flutterwave/webhook'
+      path: '/api/flutterwave/webhook'
+      fullPath: '/api/flutterwave/webhook'
+      preLoaderRoute: typeof ApiFlutterwaveWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/pesapal/callback': {
@@ -1031,6 +1071,7 @@ const AuthenticatedAdminContentRouteRouteWithChildren =
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminContentRouteRoute: typeof AuthenticatedAdminContentRouteRouteWithChildren
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVerificationsRoute: typeof AuthenticatedAdminVerificationsRoute
@@ -1042,6 +1083,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminContentRouteRoute:
       AuthenticatedAdminContentRouteRouteWithChildren,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+    AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminVerificationsRoute: AuthenticatedAdminVerificationsRoute,
@@ -1114,6 +1156,7 @@ const rootRouteChildren: RootRouteChildren = {
   LawyersIndexRoute: LawyersIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
   ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
+  ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
   ApiPesapalIpnRoute: ApiPesapalIpnRoute,
 }

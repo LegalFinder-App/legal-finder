@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   BadgeCheck,
   CalendarDays,
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { lawyerQuery, reviewsQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
+import { matchPracticeAreaMedia, siteMediaQuery } from "@/lib/site-media";
 import { useSession } from "@/lib/session";
 import { initiatePesapalPayment } from "@/lib/payments.functions";
 
@@ -54,6 +55,9 @@ function LawyerProfile() {
   const { lawyerId } = Route.useParams();
   const { data: lawyer, isLoading } = useQuery(lawyerQuery(lawyerId));
   const { data: reviews } = useQuery(reviewsQuery(lawyerId));
+  const { data: siteMedia } = useQuery(siteMediaQuery);
+  const practiceIllustration =
+    lawyer && siteMedia ? matchPracticeAreaMedia(siteMedia, lawyer.practice_areas) : undefined;
 
   if (isLoading) {
     return (
@@ -147,12 +151,22 @@ function LawyerProfile() {
 
           <div>
             <h2 className="font-display text-2xl font-semibold">Practice areas</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {lawyer.practice_areas.map((a) => (
-                <Badge key={a} variant="brass">
-                  {a}
-                </Badge>
-              ))}
+            <div className="mt-4 flex items-center gap-4">
+              {practiceIllustration && (
+                <img
+                  src={practiceIllustration.image_url}
+                  alt={practiceIllustration.alt_text}
+                  loading="lazy"
+                  className="h-16 w-16 shrink-0 rounded-lg bg-brass/10 p-2 shadow-plate ring-1 ring-brass/20"
+                />
+              )}
+              <div className="flex flex-wrap gap-2">
+                {lawyer.practice_areas.map((a) => (
+                  <Badge key={a} variant="brass">
+                    {a}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
 

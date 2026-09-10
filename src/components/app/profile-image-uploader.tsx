@@ -1,7 +1,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { uploadProfileImage } from "@/lib/imagekit";
 import { profileQuery } from "@/lib/queries";
@@ -47,7 +47,7 @@ export function ProfileImageUploader() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-8 w-8 overflow-hidden rounded-full border border-border bg-muted">
+      <div className="relative h-8 w-8 overflow-hidden rounded-full bg-brass/10 ring-1 ring-brass/30">
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
         ) : (

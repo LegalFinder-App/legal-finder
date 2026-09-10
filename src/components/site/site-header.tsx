@@ -22,8 +22,8 @@ export function SiteHeader() {
   const { canInstall, promptInstall } = usePwaInstall();
 
   return (
-    <header className="sticky top-0 z-50 surface-ink border-b border-ink-foreground/10 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 surface-ink border-b border-ink-foreground/10 pt-safe backdrop-blur">
+      <div className="mx-auto flex min-h-16 max-w-7xl items-center gap-6 px-4 px-safe sm:px-6 lg:px-8">
         <Link to="/" className="text-ink-foreground">
           <Logo />
         </Link>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { Button } from "@/components/ui/button";

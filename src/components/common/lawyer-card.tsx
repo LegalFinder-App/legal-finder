@@ -1,10 +1,17 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, MapPin, UserRound } from "lucide-react";
 import { Stars } from "./bits";
 import { Badge } from "@/components/ui/badge";
 import type { Lawyer } from "@/lib/queries";
+import { matchPracticeAreaMedia, siteMediaQuery } from "@/lib/site-media";
 
 export function LawyerCard({ lawyer }: { lawyer: Lawyer }) {
+  const siteMedia = useQuery(siteMediaQuery);
+  const practiceIllustration = siteMedia.data
+    ? matchPracticeAreaMedia(siteMedia.data, lawyer.practice_areas)
+    : undefined;
+
   return (
     <Link
       to="/lawyers/$lawyerId"
@@ -12,7 +19,7 @@ export function LawyerCard({ lawyer }: { lawyer: Lawyer }) {
       className="group flex flex-col rounded-lg border border-border bg-card p-5 shadow-plate transition-all hover:-translate-y-0.5 hover:shadow-raised"
     >
       <div className="flex items-start gap-4">
-        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-secondary ring-1 ring-border">
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-brass/10 ring-1 ring-brass/30">
           {lawyer.photo_url ? (
             <img
               src={lawyer.photo_url}
@@ -48,7 +55,16 @@ export function LawyerCard({ lawyer }: { lawyer: Lawyer }) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <div className="mt-4 flex flex-wrap items-center gap-1.5">
+        {practiceIllustration && (
+          <img
+            src={practiceIllustration.image_url}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            className="h-6 w-6 shrink-0 rounded-full bg-brass/10 p-1 ring-1 ring-brass/20"
+          />
+        )}
         {lawyer.practice_areas.slice(0, 3).map((a) => (
           <Badge key={a} variant="brass">
             {a}

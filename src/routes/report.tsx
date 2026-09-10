@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ShieldOff } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { EmptyState } from "@/components/common/bits";

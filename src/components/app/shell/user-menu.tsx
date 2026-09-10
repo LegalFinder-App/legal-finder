@@ -43,7 +43,7 @@ export function UserMenu() {
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="flex h-full w-full items-center justify-center bg-muted text-xs font-semibold text-muted-foreground">
+            <span className="flex h-full w-full items-center justify-center bg-brass/10 text-xs font-semibold text-muted-foreground ring-1 ring-inset ring-brass/30">
               {label}
             </span>
           )}

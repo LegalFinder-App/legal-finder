@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/lib/toast";
 import { FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, LoadingRows, StatusPill } from "@/components/common/bits";
 import { supabase } from "@/integrations/supabase/client";
 import { DEMO_DOCUMENTS } from "@/lib/demo-data";
+import { getEmptyStateMedia, siteMediaQuery } from "@/lib/site-media";
 
 export interface DocumentLike {
   id: string;
@@ -44,6 +45,10 @@ export function DocumentVault({
 }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const siteMedia = useQuery(siteMediaQuery);
+  const emptyMedia = siteMedia.data
+    ? getEmptyStateMedia(siteMedia.data, "empty-state-library")
+    : undefined;
 
   const normalizedDocuments: DocumentLike[] = documents.map((document) => ({
     ...document,
@@ -51,11 +56,7 @@ export function DocumentVault({
   }));
 
   const rows =
-    normalizedDocuments.length > 0
-      ? normalizedDocuments
-      : allowDemoFallback
-        ? DEMO_DOCUMENTS
-        : [];
+    normalizedDocuments.length > 0 ? normalizedDocuments : allowDemoFallback ? DEMO_DOCUMENTS : [];
 
   const uploadDocument = async (fileList: FileList | null) => {
     const file = fileList?.[0];
@@ -121,6 +122,8 @@ export function DocumentVault({
         ) : rows.length === 0 ? (
           <EmptyState
             icon={<FileText className="h-8 w-8" />}
+            imageUrl={emptyMedia?.image_url}
+            imageAlt={emptyMedia?.alt_text}
             title="No documents yet"
             description="Upload filings, contracts or evidence to keep them with your matters."
           />

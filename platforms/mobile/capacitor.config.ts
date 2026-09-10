@@ -31,6 +31,20 @@ const config: CapacitorConfig = {
     // Shown if the device can't reach APP_URL (see platforms/mobile/README.md).
     errorPath: "offline.html",
   },
+  plugins: {
+    // Matches the app's dark "ink" background (see --background/--ink in src/styles.css and
+    // the generated splash assets under android/app/src/main/res/drawable*/splash.png).
+    // launchAutoHide: false hands control to src/lib/native.ts, which hides the splash once
+    // the themed app shell has actually painted instead of Capacitor's fixed native timeout.
+    SplashScreen: {
+      launchAutoHide: false,
+      backgroundColor: "#1a2338",
+      androidScaleType: "CENTER_CROP",
+    },
+    StatusBar: {
+      overlaysWebView: false,
+    },
+  },
 };
 
 export default config;

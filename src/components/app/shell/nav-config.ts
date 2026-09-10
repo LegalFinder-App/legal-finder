@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
+  Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { AppRole } from "@/lib/session";
@@ -54,6 +55,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: "/admin", label: "Overview", icon: Activity, roles: ["admin"] },
       { to: "/admin/audit", label: "Audit trail", icon: ShieldCheck, roles: ["admin"] },
       { to: "/admin/verifications", label: "Verifications", icon: Users, roles: ["admin"] },
+      { to: "/admin/payouts", label: "Payouts", icon: Wallet, roles: ["admin"] },
       { to: "/admin/users", label: "Users & roles", icon: Users, roles: ["admin"] },
       { to: "/admin/content", label: "Content", icon: FolderCog, roles: ["admin"] },
     ],
