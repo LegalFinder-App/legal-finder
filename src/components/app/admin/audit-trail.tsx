@@ -1,21 +1,25 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow, isSameDay, isToday, isYesterday } from "date-fns";
 import {
   Activity,
   ArrowRight,
+  Database,
   Filter,
   PlusCircle,
   RefreshCw,
+  Search,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
 import {
-  StatCard,
-  StatusPill,
-  EmptyState,
-  LoadingRows,
-  QueryError,
-} from "@/components/common/bits";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
+import { StatCard, EmptyState, LoadingRows, QueryError } from "@/components/common/bits";
 import { auditLogsQuery, type AuditLog } from "@/lib/queries";
 import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -28,6 +32,71 @@ const ACTION_FILTERS: Array<{ id: AuditActionFilter; label: string }> = [
   { id: "UPDATE", label: "Updates" },
   { id: "DELETE", label: "Deletes" },
 ];
+
+const ACTION_META: Record<
+  string,
+  { icon: typeof PlusCircle; tone: string; iconColor: string; ring: string; label: string }
+> = {
+  INSERT: {
+    icon: PlusCircle,
+    tone: "bg-success/15 text-success",
+    iconColor: "text-success",
+    ring: "ring-success/30",
+    label: "Insert",
+  },
+  UPDATE: {
+    icon: RefreshCw,
+    tone: "bg-brass/15 text-brass",
+    iconColor: "text-brass",
+    ring: "ring-brass/30",
+    label: "Update",
+  },
+  DELETE: {
+    icon: Trash2,
+    tone: "bg-destructive/15 text-destructive",
+    iconColor: "text-destructive",
+    ring: "ring-destructive/30",
+    label: "Delete",
+  },
+};
+
+function actionMeta(action: string) {
+  return (
+    ACTION_META[action.toUpperCase()] ?? {
+      icon: Activity,
+      tone: "bg-secondary text-secondary-foreground",
+      iconColor: "text-muted-foreground",
+      ring: "ring-border",
+      label: action,
+    }
+  );
+}
+
+function dateGroupLabel(date: Date) {
+  if (isToday(date)) return "Today";
+  if (isYesterday(date)) return "Yesterday";
+  return date.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+  });
+}
+
+/** Groups already-sorted (newest-first) entries into same-day buckets, preserving order. */
+function groupByDay(entries: AuditLog[]) {
+  const groups: { label: string; entries: AuditLog[] }[] = [];
+  for (const entry of entries) {
+    const created = new Date(entry.created_at);
+    const last = groups[groups.length - 1];
+    if (last && isSameDay(new Date(last.entries[0].created_at), created)) {
+      last.entries.push(entry);
+    } else {
+      groups.push({ label: dateGroupLabel(created), entries: [entry] });
+    }
+  }
+  return groups;
+}
 
 const SENSITIVE_KEYS = new Set([
   "password",
@@ -259,12 +328,25 @@ export function AuditTrail() {
   const { user } = useSession();
   const auditLogs = useQuery(auditLogsQuery(user?.id));
   const [actionFilter, setActionFilter] = useState<AuditActionFilter>("all");
+  const [search, setSearch] = useState("");
 
   const filteredLogs = useMemo(() => {
     const rows = auditLogs.data ?? [];
-    if (actionFilter === "all") return rows;
-    return rows.filter((entry) => entry.action.toUpperCase() === actionFilter);
-  }, [actionFilter, auditLogs.data]);
+    const byAction =
+      actionFilter === "all"
+        ? rows
+        : rows.filter((entry) => entry.action.toUpperCase() === actionFilter);
+
+    const query = search.trim().toLowerCase();
+    if (!query) return byAction;
+    return byAction.filter((entry) =>
+      [entry.table_name, entry.actor_name, entry.actor_id, entry.record_id]
+        .filter(Boolean)
+        .some((field) => field!.toLowerCase().includes(query)),
+    );
+  }, [actionFilter, auditLogs.data, search]);
+
+  const groups = useMemo(() => groupByDay(filteredLogs), [filteredLogs]);
 
   const totalEvents = auditLogs.data?.length ?? 0;
   const insertCount = (auditLogs.data ?? []).filter(
@@ -273,37 +355,53 @@ export function AuditTrail() {
   const updateCount = (auditLogs.data ?? []).filter(
     (entry) => entry.action.toUpperCase() === "UPDATE",
   ).length;
+  const deleteCount = (auditLogs.data ?? []).filter(
+    (entry) => entry.action.toUpperCase() === "DELETE",
+  ).length;
   const touchedTables = new Set((auditLogs.data ?? []).map((entry) => entry.table_name)).size;
 
   return (
     <div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Audit events"
           value={totalEvents}
           icon={<Activity className="h-4 w-4" />}
         />
-        <StatCard
-          label="Inserts"
-          value={insertCount}
-          hint={`${updateCount} updates`}
-          icon={<PlusCircle className="h-4 w-4" />}
-        />
-        <StatCard
-          label="Tables touched"
-          value={touchedTables}
-          icon={<ShieldCheck className="h-4 w-4" />}
-        />
+        <StatCard label="Inserts" value={insertCount} icon={<PlusCircle className="h-4 w-4" />} />
+        <StatCard label="Updates" value={updateCount} icon={<RefreshCw className="h-4 w-4" />} />
+        <StatCard label="Deletes" value={deleteCount} icon={<Trash2 className="h-4 w-4" />} />
       </div>
 
       <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-semibold">Audit trail</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Insert and update payloads are rendered as structured field views.
+            A chronological record of every administrative change, keyed to the actor who made it.
           </p>
         </div>
-        <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-plate">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="hidden h-4 w-4 text-brass sm:block" aria-hidden="true" />
+          <span className="hidden text-xs font-medium text-muted-foreground sm:inline">
+            {touchedTables} table{touchedTables === 1 ? "" : "s"} tracked
+          </span>
+        </div>
+      </div>
+
+      <div
+        className="sticky z-10 mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card/95 p-2 shadow-plate backdrop-blur"
+        style={{ top: "calc(3.5rem + var(--safe-top))" }}
+      >
+        <div className="relative min-w-[12rem] flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search table, actor or record id…"
+            className="h-8 border-none bg-transparent pl-8 shadow-none focus-visible:ring-1"
+          />
+        </div>
+        <div className="inline-flex items-center gap-1 rounded-lg bg-secondary/60 p-1">
           <Filter className="ml-1.5 h-3.5 w-3.5 text-muted-foreground" />
           {ACTION_FILTERS.map((filter) => (
             <button
@@ -323,7 +421,7 @@ export function AuditTrail() {
         </div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-6">
         {auditLogs.isLoading ? (
           <LoadingRows rows={5} />
         ) : auditLogs.isError ? (
@@ -333,43 +431,102 @@ export function AuditTrail() {
           />
         ) : filteredLogs.length === 0 ? (
           <EmptyState
-            title={
-              actionFilter === "all"
-                ? "No audit events yet"
-                : `No ${actionFilter.toLowerCase()} events`
+            title={search ? "No matching events" : "No audit events yet"}
+            description={
+              search
+                ? "Try a different table name, actor, or record id."
+                : "Administrative changes, message activity and record updates will appear here."
             }
-            description="Administrative changes, message activity and record updates will appear here."
           />
         ) : (
-          filteredLogs.map((entry) => (
-            <article
-              key={entry.id}
-              className="rounded-lg border border-border bg-card p-5 shadow-plate"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-mono text-xs text-brass">{entry.table_name}</p>
-                  <h3 className="mt-1 font-display text-base font-semibold capitalize">
-                    {entry.action.replace(/_/g, " ").toLowerCase()}
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {entry.actor_name ?? entry.actor_id ?? "System"} ·{" "}
-                    {new Date(entry.created_at).toLocaleString()}
+          <div className="space-y-8">
+            {groups.map((group) => (
+              <div key={group.label}>
+                <div className="mb-3 flex items-center gap-3">
+                  <p className="eyebrow text-muted-foreground">{group.label}</p>
+                  <div className="h-px flex-1 bg-border" />
+                  <p className="text-xs text-muted-foreground">
+                    {group.entries.length} event{group.entries.length === 1 ? "" : "s"}
                   </p>
-                  {entry.record_id ? (
-                    <p className="mt-1 font-mono text-[0.65rem] text-muted-foreground/80">
-                      record {entry.record_id}
-                    </p>
-                  ) : null}
                 </div>
-                <StatusPill value={entry.action.toLowerCase()} />
-              </div>
 
-              <div className="mt-4">
-                <AuditChangeBody entry={entry} />
+                <div className="relative pl-9">
+                  <div
+                    className="absolute left-[0.9375rem] top-1 bottom-1 w-px bg-border"
+                    aria-hidden="true"
+                  />
+                  <Accordion type="multiple" className="space-y-3">
+                    {group.entries.map((entry) => {
+                      const meta = actionMeta(entry.action);
+                      const created = new Date(entry.created_at);
+                      return (
+                        <AccordionItem
+                          key={entry.id}
+                          value={entry.id}
+                          className="relative border-none"
+                        >
+                          <span
+                            className={cn(
+                              "absolute -left-9 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-card ring-4 ring-background",
+                              meta.ring,
+                            )}
+                            aria-hidden="true"
+                          >
+                            <meta.icon className={cn("h-3.5 w-3.5", meta.iconColor)} />
+                          </span>
+                          <div className="rounded-lg border border-border bg-card shadow-plate transition-shadow hover:shadow-raised">
+                            <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                              <div className="flex flex-1 flex-wrap items-center justify-between gap-3 pr-2 text-left">
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className={cn(
+                                      "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold",
+                                      meta.tone,
+                                    )}
+                                  >
+                                    {meta.label}
+                                  </span>
+                                  <div>
+                                    <p className="flex items-center gap-1.5 font-mono text-xs text-brass">
+                                      <Database className="h-3 w-3" aria-hidden="true" />
+                                      {entry.table_name}
+                                    </p>
+                                    <p className="mt-0.5 text-sm text-muted-foreground">
+                                      {entry.actor_name ?? entry.actor_id ?? "System"}
+                                      {entry.record_id && (
+                                        <span className="font-mono text-xs text-muted-foreground/70">
+                                          {" "}
+                                          · {entry.record_id.slice(0, 8)}
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs font-medium text-foreground/80">
+                                    {formatDistanceToNow(created, { addSuffix: true })}
+                                  </p>
+                                  <p className="text-[0.7rem] text-muted-foreground">
+                                    {created.toLocaleTimeString(undefined, {
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-5">
+                              <AuditChangeBody entry={entry} />
+                            </AccordionContent>
+                          </div>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                </div>
               </div>
-            </article>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>
