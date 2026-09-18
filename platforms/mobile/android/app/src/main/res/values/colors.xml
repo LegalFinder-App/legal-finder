@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Matches the "Chambers" theme's ink navy + brass palette (see --ink/--brass in
-      src/styles.css and the splash background used across capacitor.config.ts / native.ts).
-      styles.xml's AppTheme referenced these three colors with no colors.xml defining them,
-      which would fail the Gradle resource-merge step on a clean build.
+      Matches the "Chambers" theme's ink navy and brass palette (see the ink/brass CSS
+      variables in src/styles.css and the splash background used across capacitor.config.ts
+      and native.ts). styles.xml's AppTheme referenced these three colors with no colors.xml
+      defining them, which would fail the Gradle resource-merge step on a clean build.
     -->
     <color name="colorPrimary">#1A2338</color>
     <color name="colorPrimaryDark">#11172A</color>
