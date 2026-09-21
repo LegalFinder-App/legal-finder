@@ -223,6 +223,10 @@ export const userRolesQuery = (userId: string | undefined) =>
   queryOptions({
     queryKey: ["roles", userId],
     enabled: Boolean(userId),
+    // Roles change rarely (only via the admin users panel, which invalidates this exact key on
+    // write — see rbac.ts). A short staleTime lets a same-tab sign-out/sign-in skip a redundant
+    // round trip on the post-auth redirect without weakening that invalidation.
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")

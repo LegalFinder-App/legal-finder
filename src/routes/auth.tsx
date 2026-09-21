@@ -74,12 +74,23 @@ function AuthPage() {
         toast.error("Signed in, but we couldn't load your workspace", {
           description: err instanceof Error ? err.message : "Please try refreshing the page.",
         });
-      });
+      })
+      // Whether this lands on a redirect (component unmounts, so this is a no-op) or an error
+      // (user stays on this page), busy must clear either way -- see the note in submit() about
+      // why it isn't cleared any earlier.
+      .finally(() => setBusy(false));
   }, [authLoaded, isSignedIn, userId, navigate, queryClient]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    // Reaching Clerk's "complete" status below hands off to the isSignedIn effect above, which
+    // still has its own Supabase round trip (role lookup) before the redirect actually happens.
+    // Clearing busy here rather than leaving it to that effect made the button/spinner stop
+    // *before* anything visible had happened yet, reading as a stall -- so on that path we
+    // deliberately leave busy on and let the effect's own finally() above clear it once the
+    // redirect (or a failure) actually occurs.
+    let redirecting = false;
     try {
       if (mode === "signup") {
         if (!legalAccepted) {
@@ -102,6 +113,7 @@ function AuthPage() {
                 ? "Welcome to LegalFinder."
                 : "Your account is active. Privileged roles require administrator approval.",
           });
+          redirecting = true;
         } else {
           const { error: codeError } = await signUp.verifications.sendEmailCode();
           if (codeError) throw codeError;
@@ -113,22 +125,25 @@ function AuthPage() {
       } else {
         const { error } = await signIn.password({ identifier: email, password });
         if (error) throw error;
-        await handleSignInOutcome();
+        redirecting = await handleSignInOutcome();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setBusy(false);
+      if (!redirecting) setBusy(false);
     }
   };
 
   // Shared by password and passkey sign-in — both land here once Clerk has verified the first
   // factor, and both need the same "new device needs a trust code" handling from that point on.
+  // Returns true when this reached "complete" and handed off to the isSignedIn redirect effect,
+  // false when it switched to a code-entry step instead (caller should re-enable its form).
   const handleSignInOutcome = async () => {
     if (signIn.status === "complete") {
       const { error: finalizeError } = await signIn.finalize();
       if (finalizeError) throw finalizeError;
       toast.success("Signed in");
+      return true;
     } else if (signIn.status === "needs_client_trust") {
       // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — send a
       // one-time code to confirm it's really this user, same UI as the signup verify step.
@@ -143,6 +158,7 @@ function AuthPage() {
           ? "Enter the code we just texted you."
           : "Enter the code we just emailed you.",
       });
+      return false;
     } else {
       throw new Error("Additional verification is required for this account.");
     }
@@ -150,10 +166,11 @@ function AuthPage() {
 
   const signInWithPasskey = async () => {
     setBusy(true);
+    let redirecting = false;
     try {
       const { error } = await signIn.passkey({ flow: "discoverable" });
       if (error) throw error;
-      await handleSignInOutcome();
+      redirecting = await handleSignInOutcome();
     } catch (err) {
       // The user cancelling the OS's passkey picker is normal, not an error worth alarming them with.
       const message = err instanceof Error ? err.message : "";
@@ -161,7 +178,7 @@ function AuthPage() {
         toast.error(message || "Passkey sign-in failed");
       }
     } finally {
-      setBusy(false);
+      if (!redirecting) setBusy(false);
     }
   };
 
@@ -205,9 +222,11 @@ function AuthPage() {
         if (finalizeError) throw finalizeError;
         toast.success("Signed in");
       }
+      // Both branches above only reach here via finalize() succeeding, which hands off to the
+      // isSignedIn redirect effect -- so busy stays on and that effect's finally() clears it,
+      // same reasoning as submit().
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Verification failed");
-    } finally {
       setBusy(false);
     }
   };
