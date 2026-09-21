@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { toast } from "@/lib/toast";
-import { Eye, EyeOff, Fingerprint, Loader2 } from "lucide-react";
+import { Apple, Eye, EyeOff, Fingerprint, Linkedin, Loader2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -223,6 +223,36 @@ function AuthPage() {
       if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+      setBusy(false);
+    }
+  };
+
+  const apple = async () => {
+    setBusy(true);
+    try {
+      const { error } = await signIn.sso({
+        strategy: "oauth_apple",
+        redirectUrl: `${window.location.origin}/sso-callback`,
+        redirectCallbackUrl: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Apple sign-in failed");
+      setBusy(false);
+    }
+  };
+
+  const linkedin = async () => {
+    setBusy(true);
+    try {
+      const { error } = await signIn.sso({
+        strategy: "oauth_linkedin_oidc",
+        redirectUrl: `${window.location.origin}/sso-callback`,
+        redirectCallbackUrl: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "LinkedIn sign-in failed");
       setBusy(false);
     }
   };
@@ -486,6 +516,28 @@ function AuthPage() {
                   />
                 </svg>
                 Continue with Google
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="mt-3 w-full"
+                onClick={apple}
+              >
+                <Apple className="h-4 w-4" />
+                Continue with Apple
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="mt-3 w-full"
+                onClick={linkedin}
+              >
+                <Linkedin className="h-4 w-4" />
+                Continue with LinkedIn
               </Button>
 
               {mode === "signin" && (
