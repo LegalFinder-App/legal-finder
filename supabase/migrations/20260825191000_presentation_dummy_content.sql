@@ -75,7 +75,7 @@ SELECT * FROM (
       'medium',
       'wanted',
       1000000,
-      NULL
+      '/images/profiles/suspect-no-photo.jpg'
     ),
     (
       'Demo suspect — Case OB 188/25',
