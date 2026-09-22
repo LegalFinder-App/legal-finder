@@ -78,6 +78,40 @@ export function SiteFooter() {
         </div>
         <div className="mx-auto max-w-7xl px-4 pb-6 text-xs text-ink-foreground/50 sm:px-6 lg:px-8">
           <p>
+            LegalFinder is an independent, privately operated platform. It is not a government
+            entity and is not affiliated with, endorsed by, or operated on behalf of the Government
+            of Uganda, the Judiciary of Uganda, the Uganda Police Force, or any other government
+            body. Court judgements and advocate-roll verification referenced on this platform can be
+            independently verified at{" "}
+            <a
+              href="https://judiciary.go.ug/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-brass"
+            >
+              judiciary.go.ug
+            </a>
+            ,{" "}
+            <a
+              href="https://ulii.org/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-brass"
+            >
+              ulii.org
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://upf.go.ug/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-brass"
+            >
+              upf.go.ug
+            </a>
+            .
+          </p>
+          <p className="mt-2">
             Information on this platform is general guidance and is not a substitute for legal
             advice from a qualified advocate.
           </p>
