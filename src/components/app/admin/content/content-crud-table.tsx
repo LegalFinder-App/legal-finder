@@ -55,7 +55,8 @@ import { EmptyState, LoadingRows, QueryError, SectionHeading } from "@/component
 import { insertRow, updateRow, deleteRow, type TableName } from "@/lib/mutations";
 import { ImageUploadField } from "@/components/app/admin/content/image-upload-field";
 
-export type CrudFieldType = "text" | "textarea" | "number" | "boolean" | "date" | "select" | "image";
+export type CrudFieldType =
+  "text" | "textarea" | "number" | "boolean" | "date" | "select" | "image";
 
 export interface CrudField {
   name: string;

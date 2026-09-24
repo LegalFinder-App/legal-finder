@@ -8,7 +8,10 @@ import { useSession } from "@/lib/session";
 const TOGGLES: {
   key: keyof Pick<
     AppSettings,
-    "maintenance_mode" | "incident_reporting_enabled" | "wanted_notices_enabled" | "ai_assistant_enabled"
+    | "maintenance_mode"
+    | "incident_reporting_enabled"
+    | "wanted_notices_enabled"
+    | "ai_assistant_enabled"
   >;
   label: string;
   description: string;
@@ -78,7 +81,13 @@ export function PlatformSettingsPanel() {
             className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4 shadow-plate"
           >
             <div className="min-w-0">
-              <p className={item.destructive ? "font-display font-semibold text-destructive" : "font-display font-semibold"}>
+              <p
+                className={
+                  item.destructive
+                    ? "font-display font-semibold text-destructive"
+                    : "font-display font-semibold"
+                }
+              >
                 {item.label}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>

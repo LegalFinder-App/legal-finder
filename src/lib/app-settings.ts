@@ -20,7 +20,9 @@ const settingsClient = supabase as unknown as {
       eq: (
         col: string,
         val: string,
-      ) => { single: () => Promise<{ data: AppSettings | null; error: { message: string } | null }> };
+      ) => {
+        single: () => Promise<{ data: AppSettings | null; error: { message: string } | null }>;
+      };
     };
     update: (values: Partial<AppSettings>) => {
       eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
@@ -41,7 +43,11 @@ const FALLBACK_SETTINGS: AppSettings = {
 export const appSettingsQuery = queryOptions({
   queryKey: ["app-settings"],
   queryFn: async (): Promise<AppSettings> => {
-    const { data, error } = await settingsClient.from("app_settings").select("*").eq("id", "global").single();
+    const { data, error } = await settingsClient
+      .from("app_settings")
+      .select("*")
+      .eq("id", "global")
+      .single();
     if (error) throw new Error(error.message);
     // Row always exists (seeded by migration) — fallback only guards a pre-migration environment.
     return data ?? FALLBACK_SETTINGS;

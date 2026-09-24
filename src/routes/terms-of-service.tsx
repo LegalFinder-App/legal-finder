@@ -39,8 +39,8 @@ const SECTIONS: Section[] = [
           "Service").
         </p>
         <p>
-          By creating an account, browsing the directory, or otherwise using the Service, you
-          agree to be bound by these Terms and by our{" "}
+          By creating an account, browsing the directory, or otherwise using the Service, you agree
+          to be bound by these Terms and by our{" "}
           <Link to="/privacy-policy" className="text-brass hover:underline">
             Privacy Policy
           </Link>
@@ -56,21 +56,25 @@ const SECTIONS: Section[] = [
       <>
         <p>
           LegalFinder is a public-interest platform that connects people with verified advocates,
-          courts, and police services, and publishes plain-language legal information. Depending
-          on your role, the Service may let you:
+          courts, and police services, and publishes plain-language legal information. Depending on
+          your role, the Service may let you:
         </p>
         <ul className="list-disc space-y-1.5 pl-5">
-          <li>Search and contact advocates listed in the directory, and book paid consultations;</li>
           <li>
-            Track a case or matter, exchange messages, and share documents with an advocate or
-            other party;
+            Search and contact advocates listed in the directory, and book paid consultations;
           </li>
-          <li>Report an incident, or view public-interest notices such as wanted persons alerts;</li>
+          <li>
+            Track a case or matter, exchange messages, and share documents with an advocate or other
+            party;
+          </li>
+          <li>
+            Report an incident, or view public-interest notices such as wanted persons alerts;
+          </li>
           <li>Browse court judgements, legal news, an e-library, and safety guidance;</li>
           <li>Use an AI-assisted chat feature that answers general legal questions; and</li>
           <li>
-            For police, judiciary, and administrator accounts, manage records and users relevant
-            to your institutional role.
+            For police, judiciary, and administrator accounts, manage records and users relevant to
+            your institutional role.
           </li>
         </ul>
         <p>
@@ -86,22 +90,21 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <p>
-          You must be at least 18 years old to create an account. Account authentication is
-          handled by our identity provider, Clerk; your password is never stored by LegalFinder
-          directly. You are responsible for maintaining the confidentiality of your credentials
-          and for all activity under your account.
+          You must be at least 18 years old to create an account. Account authentication is handled
+          by our identity provider, Clerk; your password is never stored by LegalFinder directly.
+          You are responsible for maintaining the confidentiality of your credentials and for all
+          activity under your account.
         </p>
         <p>
-          You must provide accurate information when registering, and keep it up to date. When
-          you sign up, you request a role (client, advocate, police, or judiciary). Every account
-          starts as a client by default; privileged roles are only activated after review and
-          approval by a LegalFinder administrator. We may refuse, suspend, or revoke a role
-          request at our discretion, including after approval if we later find the request was
-          inaccurate.
+          You must provide accurate information when registering, and keep it up to date. When you
+          sign up, you request a role (client, advocate, police, or judiciary). Every account starts
+          as a client by default; privileged roles are only activated after review and approval by a
+          LegalFinder administrator. We may refuse, suspend, or revoke a role request at our
+          discretion, including after approval if we later find the request was inaccurate.
         </p>
         <p>
-          One person may hold only one account. You may not share, sell, or transfer your account
-          to anyone else.
+          One person may hold only one account. You may not share, sell, or transfer your account to
+          anyone else.
         </p>
       </>
     ),
@@ -112,12 +115,12 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <p>
-          Advocates who appear in the directory are independent legal professionals, not
-          employees or agents of LegalFinder. A "verified" badge means the advocate's roll status
-          was checked against available records at the time of listing — it is not a guarantee of
-          an advocate's competence, availability, or the outcome of any matter they handle.
-          LegalFinder is not a party to, and accepts no responsibility for, the professional
-          relationship between you and any advocate you engage through the Service.
+          Advocates who appear in the directory are independent legal professionals, not employees
+          or agents of LegalFinder. A "verified" badge means the advocate's roll status was checked
+          against available records at the time of listing — it is not a guarantee of an advocate's
+          competence, availability, or the outcome of any matter they handle. LegalFinder is not a
+          party to, and accepts no responsibility for, the professional relationship between you and
+          any advocate you engage through the Service.
         </p>
         <p>
           Ratings and reviews reflect the opinions of the clients who posted them and not the view
@@ -135,10 +138,10 @@ const SECTIONS: Section[] = [
         <p>
           Content on LegalFinder — including the e-library, legal news, safety guidance, court
           judgements, and responses from the AI assistant — is general information provided for
-          public education. It is not legal advice, is not a substitute for advice from a
-          qualified advocate who knows the specifics of your situation, and does not create an
-          attorney-client relationship between you and LegalFinder or any advocate, unless and
-          until that advocate expressly agrees to represent you.
+          public education. It is not legal advice, is not a substitute for advice from a qualified
+          advocate who knows the specifics of your situation, and does not create an attorney-client
+          relationship between you and LegalFinder or any advocate, unless and until that advocate
+          expressly agrees to represent you.
         </p>
         <p>
           The AI assistant generates responses automatically and may be incorrect, incomplete, or
@@ -161,16 +164,22 @@ const SECTIONS: Section[] = [
             content;
           </li>
           <li>
-            Use the Service to harass, threaten, defame, or unlawfully discriminate against
-            anyone;
+            Use the Service to harass, threaten, defame, or unlawfully discriminate against anyone;
           </li>
-          <li>Upload malware, or attempt to gain unauthorised access to the Service or other accounts;</li>
+          <li>
+            Upload malware, or attempt to gain unauthorised access to the Service or other accounts;
+          </li>
           <li>
             Scrape, systematically extract, or resell data from the directory or public pages
             without our written permission;
           </li>
-          <li>Use the Service for a purpose that is unlawful in Uganda or in your jurisdiction; or</li>
-          <li>Circumvent role-based access controls or attempt to access data you are not authorised to see.</li>
+          <li>
+            Use the Service for a purpose that is unlawful in Uganda or in your jurisdiction; or
+          </li>
+          <li>
+            Circumvent role-based access controls or attempt to access data you are not authorised
+            to see.
+          </li>
         </ul>
         <p>
           We may suspend or terminate access, remove content, and where appropriate involve law
@@ -185,11 +194,11 @@ const SECTIONS: Section[] = [
     body: (
       <p>
         Incident reports and wanted-person notices are submitted by users or posted by police
-        accounts for public-interest purposes. LegalFinder does not independently verify every
-        such notice before publication and does not guarantee its accuracy. Everyone is presumed
-        innocent unless and until proven guilty by a competent court. If you believe a notice
-        about you is inaccurate or should be removed, contact us using the details in Section 16
-        and we will review it.
+        accounts for public-interest purposes. LegalFinder does not independently verify every such
+        notice before publication and does not guarantee its accuracy. Everyone is presumed innocent
+        unless and until proven guilty by a competent court. If you believe a notice about you is
+        inaccurate or should be removed, contact us using the details in Section 16 and we will
+        review it.
       </p>
     ),
   },
@@ -200,15 +209,15 @@ const SECTIONS: Section[] = [
       <>
         <p>
           Consultation fees are set by individual advocates and shown to you before you pay.
-          Payments are processed by our third-party payment processor, Pesapal; LegalFinder does
-          not receive or store your full card or mobile-money credentials. Once a payment
-          processor confirms your transaction, the booking is created.
+          Payments are processed by our third-party payment processor, Pesapal; LegalFinder does not
+          receive or store your full card or mobile-money credentials. Once a payment processor
+          confirms your transaction, the booking is created.
         </p>
         <p>
           Refunds, rescheduling, and cancellation are subject to the individual advocate's own
-          policy communicated to you at or before booking, and to Pesapal's own processing terms.
-          If a payment fails to complete after funds were deducted, contact us with your
-          transaction reference so we can investigate.
+          policy communicated to you at or before booking, and to Pesapal's own processing terms. If
+          a payment fails to complete after funds were deducted, contact us with your transaction
+          reference so we can investigate.
         </p>
       </>
     ),
@@ -220,16 +229,15 @@ const SECTIONS: Section[] = [
       <>
         <p>
           You retain ownership of the messages, documents, reviews, and other content you submit
-          through the Service ("your content"). By submitting it, you grant LegalFinder a
-          worldwide, non-exclusive licence to host, store, reproduce, and display it as needed to
-          operate the Service — for example, to show your message to the advocate you are speaking
-          with, or your review on a public listing.
+          through the Service ("your content"). By submitting it, you grant LegalFinder a worldwide,
+          non-exclusive licence to host, store, reproduce, and display it as needed to operate the
+          Service — for example, to show your message to the advocate you are speaking with, or your
+          review on a public listing.
         </p>
         <p>
           You are solely responsible for your content and confirm you have the right to submit it.
-          Do not upload a document or message containing information you are not permitted to
-          share (for example, another person's confidential records without a lawful basis to do
-          so).
+          Do not upload a document or message containing information you are not permitted to share
+          (for example, another person's confidential records without a lawful basis to do so).
         </p>
       </>
     ),
@@ -241,7 +249,10 @@ const SECTIONS: Section[] = [
       <>
         <p>The Service relies on the following third-party providers to operate:</p>
         <ul className="list-disc space-y-1.5 pl-5">
-          <li>Clerk — account authentication and sign-in, including Google and other social sign-in options;</li>
+          <li>
+            Clerk — account authentication and sign-in, including Google and other social sign-in
+            options;
+          </li>
           <li>Supabase — the database that stores your account, case, and messaging data;</li>
           <li>Pesapal — payment processing for consultation fees;</li>
           <li>ImageKit — storage and delivery of images and documents you upload;</li>
@@ -249,8 +260,7 @@ const SECTIONS: Section[] = [
           <li>Vercel — hosting and aggregate, privacy-respecting usage analytics.</li>
         </ul>
         <p>
-          Your use of features backed by these providers is also subject to their own terms. See
-          our{" "}
+          Your use of features backed by these providers is also subject to their own terms. See our{" "}
           <Link to="/privacy-policy" className="text-brass hover:underline">
             Privacy Policy
           </Link>{" "}
@@ -265,10 +275,10 @@ const SECTIONS: Section[] = [
     body: (
       <p>
         The LegalFinder name, logo, and the Service's design, code, and compiled directory data
-        (excluding your own content and publicly sourced records such as court judgements) are
-        owned by LegalFinder or its licensors and protected by applicable intellectual property
-        law. You may not copy, modify, or create derivative works from the Service except as this
-        Service's normal functionality allows.
+        (excluding your own content and publicly sourced records such as court judgements) are owned
+        by LegalFinder or its licensors and protected by applicable intellectual property law. You
+        may not copy, modify, or create derivative works from the Service except as this Service's
+        normal functionality allows.
       </p>
     ),
   },
@@ -284,17 +294,16 @@ const SECTIONS: Section[] = [
             support@legalfinder.co
           </a>
           . An administrator can also delete an account directly, which permanently removes your
-          ability to sign in; records that form part of a case, audit, or legal file may be
-          retained as described in our{" "}
+          ability to sign in; records that form part of a case, audit, or legal file may be retained
+          as described in our{" "}
           <Link to="/privacy-policy" className="text-brass hover:underline">
             Privacy Policy
           </Link>
           .
         </p>
         <p>
-          We may suspend or terminate your account if we reasonably believe you have breached
-          these Terms, misused the Service, or created a risk to other users, advocates, or
-          LegalFinder.
+          We may suspend or terminate your account if we reasonably believe you have breached these
+          Terms, misused the Service, or created a risk to other users, advocates, or LegalFinder.
         </p>
       </>
     ),
@@ -307,15 +316,15 @@ const SECTIONS: Section[] = [
         <p>
           The Service is provided "as is" and "as available", without warranties of any kind,
           express or implied, including as to accuracy, availability, or fitness for a particular
-          purpose. We do not warrant that the Service will be uninterrupted, error-free, or free
-          of harmful components.
+          purpose. We do not warrant that the Service will be uninterrupted, error-free, or free of
+          harmful components.
         </p>
         <p>
           To the fullest extent permitted by law, LegalFinder will not be liable for any indirect,
           incidental, special, or consequential damages, or for any loss of data, revenue, or
           opportunity, arising from your use of the Service, an advocate's conduct or advice, or
-          reliance on any content published on the Service. Nothing in these Terms limits
-          liability that cannot lawfully be limited.
+          reliance on any content published on the Service. Nothing in these Terms limits liability
+          that cannot lawfully be limited.
         </p>
       </>
     ),
@@ -326,8 +335,8 @@ const SECTIONS: Section[] = [
     body: (
       <p>
         You agree to indemnify and hold LegalFinder harmless from any claim, loss, or expense
-        (including reasonable legal fees) arising from your breach of these Terms, your content,
-        or your misuse of the Service.
+        (including reasonable legal fees) arising from your breach of these Terms, your content, or
+        your misuse of the Service.
       </p>
     ),
   },
@@ -337,9 +346,9 @@ const SECTIONS: Section[] = [
     body: (
       <p>
         These Terms are governed by the laws of the Republic of Uganda. Any dispute arising from
-        these Terms or your use of the Service will be subject to the exclusive jurisdiction of
-        the courts of Uganda, without prejudice to any mandatory consumer-protection rights you
-        may have where you live.
+        these Terms or your use of the Service will be subject to the exclusive jurisdiction of the
+        courts of Uganda, without prejudice to any mandatory consumer-protection rights you may have
+        where you live.
       </p>
     ),
   },
@@ -348,10 +357,9 @@ const SECTIONS: Section[] = [
     title: "16. Changes to these Terms",
     body: (
       <p>
-        We may update these Terms from time to time. If we make material changes, we will update
-        the "Last updated" date below and, where appropriate, notify you through the Service.
-        Continuing to use the Service after changes take effect means you accept the updated
-        Terms.
+        We may update these Terms from time to time. If we make material changes, we will update the
+        "Last updated" date below and, where appropriate, notify you through the Service. Continuing
+        to use the Service after changes take effect means you accept the updated Terms.
       </p>
     ),
   },
