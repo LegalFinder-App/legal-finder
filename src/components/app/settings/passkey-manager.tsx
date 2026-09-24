@@ -17,7 +17,8 @@ export function PasskeyManager() {
     try {
       await user.createPasskey();
       toast.success("Passkey added", {
-        description: "You can now sign in on this device with Face ID, Touch ID, or your fingerprint.",
+        description:
+          "You can now sign in on this device with Face ID, Touch ID, or your fingerprint.",
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
@@ -89,7 +90,11 @@ export function PasskeyManager() {
         disabled={creating || !user}
         onClick={() => void handleCreate()}
       >
-        {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />}
+        {creating ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Fingerprint className="h-4 w-4" />
+        )}
         Add a passkey
       </Button>
     </div>

@@ -273,9 +273,9 @@ export function UsersPanel() {
                             Delete {profile.full_name || profile.email || "this user"}?
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            This permanently deletes their Clerk account and removes them from
-                            Users &amp; roles — they'll no longer be able to sign in. Their case,
-                            document and message history is kept for the audit trail.
+                            This permanently deletes their Clerk account and removes them from Users
+                            &amp; roles — they'll no longer be able to sign in. Their case, document
+                            and message history is kept for the audit trail.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

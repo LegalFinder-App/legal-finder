@@ -486,11 +486,19 @@ function AuthPage() {
                     />
                     <Label htmlFor="legal-accepted" className="text-xs font-normal leading-relaxed">
                       I agree to LegalFinder's{" "}
-                      <Link to="/terms-of-service" className="text-brass hover:underline" target="_blank">
+                      <Link
+                        to="/terms-of-service"
+                        className="text-brass hover:underline"
+                        target="_blank"
+                      >
                         Terms of Service
                       </Link>{" "}
                       and{" "}
-                      <Link to="/privacy-policy" className="text-brass hover:underline" target="_blank">
+                      <Link
+                        to="/privacy-policy"
+                        className="text-brass hover:underline"
+                        target="_blank"
+                      >
                         Privacy Policy
                       </Link>
                       .

@@ -59,7 +59,11 @@ export function ImageUploadField({ rhfField }: { rhfField: ControllerRenderProps
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
         >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
           {value ? "Replace image" : "Upload image"}
         </Button>
       </div>
