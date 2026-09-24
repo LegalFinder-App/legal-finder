@@ -42,10 +42,6 @@ jobs:
           VITE_APP_URL: ${{ vars.VITE_APP_URL }}
         run: npx cap sync ios
 
-      - name: Install CocoaPods dependencies
-        working-directory: platforms/mobile/ios/App
-        run: pod install
-
       # Unsigned build for CI health-checking only — proves the project compiles. Replace with a
       # real `xcodebuild archive` + `xcodebuild -exportArchive` (using the secrets listed above)
       # once you're ready to produce an actual App Store Connect submission.
@@ -53,7 +49,7 @@ jobs:
         working-directory: platforms/mobile/ios/App
         run: |
           xcodebuild build \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme App \
             -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO

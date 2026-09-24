@@ -7,20 +7,17 @@ macOS runners) if you don't have one.
 
 ## On a Mac, one-time setup
 
-```
-brew install cocoapods   # if not already installed
-cd platforms/mobile/ios/App
-pod install
-```
+Install Xcode from the Mac App Store, then `npm install` at the repo root. Native dependencies
+come through Swift Package Manager (`App/CapApp-SPM/Package.swift`, managed by the Capacitor CLI) —
+there's no Podfile, so no `pod install`; Xcode resolves the packages on first open.
 
 ## Build & run
 
 ```
 npm run mobile:sync        # from the repo root, after any capacitor.config.ts or icon change
-npm run mobile:ios:open    # opens ios/App/App.xcworkspace in Xcode
+npm run mobile:ios:open    # opens ios/App/App.xcodeproj in Xcode
 ```
-**Open `App.xcworkspace`, not `App.xcodeproj`** — CocoaPods dependencies only resolve through the
-workspace. From Xcode: pick a simulator or connected device, hit Run.
+From Xcode: pick a simulator or connected device, hit Run.
 
 ## App Store submission
 
