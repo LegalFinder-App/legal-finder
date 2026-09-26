@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
@@ -15,6 +15,27 @@ import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-justice.jpg";
 
 type Mode = "signin" | "signup";
+
+type CodeStrategy = "totp" | "phone_code" | "email_code" | "backup_code";
+
+const CODE_STEP_COPY: Record<CodeStrategy, { title: string; description: string }> = {
+  totp: {
+    title: "Two-step verification",
+    description: "Enter the 6-digit code from your authenticator app.",
+  },
+  phone_code: {
+    title: "Two-step verification",
+    description: "Enter the code we just texted you.",
+  },
+  email_code: {
+    title: "Verify this device",
+    description: "Enter the code we just emailed you to confirm it's really you.",
+  },
+  backup_code: {
+    title: "Use a backup code",
+    description: "Enter one of the backup codes you saved when you set up two-step verification.",
+  },
+};
 
 type AuthSearch = {
   mode?: Mode;
@@ -66,6 +87,11 @@ function AuthPage() {
   // Set once signUp.create() reports the account needs email verification before it can
   // activate — Clerk's default for password sign-up. Switches the form to a code-entry step.
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
+  // Which Clerk verifier the code step calls for sign-in. MFA-enrolled accounts come back from the
+  // first factor as needs_second_factor and mostly use an authenticator app (totp), which the
+  // old phone-vs-email guess never handled.
+  const [codeStrategy, setCodeStrategy] = useState<CodeStrategy>("email_code");
+  const autoSecondFactorStarted = useRef(false);
 
   // useAuth() reports a pending session (one still owing Clerk a task, e.g. MFA enrollment) as
   // signed out, so the redirect effect below never fires for it. Clerk's own listener does see
@@ -148,35 +174,59 @@ function AuthPage() {
     }
   };
 
-  // Shared by password and passkey sign-in — both land here once Clerk has verified the first
-  // factor, and both need the same "new device needs a trust code" handling from that point on.
-  // Returns true when this reached "complete" and handed off to the isSignedIn redirect effect,
-  // false when it switched to a code-entry step instead (caller should re-enable its form).
+  const availableFactors = (signIn.supportedSecondFactors ?? []).map((f) => f.strategy) as string[];
+
+  // Switches the form to the code step using the first strategy in `preference` this account
+  // actually supports, sending the SMS/email first when that strategy needs one.
+  const startCodeStep = async (preference: CodeStrategy[]) => {
+    const strategy = preference.find((s) => availableFactors.includes(s)) ?? preference[0];
+    if (strategy === "phone_code") {
+      const { error } = await signIn.mfa.sendPhoneCode();
+      if (error) throw error;
+    } else if (strategy === "email_code") {
+      const { error } = await signIn.mfa.sendEmailCode();
+      if (error) throw error;
+    }
+    setCodeStrategy(strategy);
+    setVerificationCode("");
+  };
+
+  // Shared by password, passkey and (via the effect below) OAuth sign-in — every path lands here
+  // once Clerk has verified the first factor. Returns true when this reached "complete" and
+  // handed off to the isSignedIn redirect effect, false when it switched to a code-entry step
+  // instead (caller should re-enable its form).
   const handleSignInOutcome = async () => {
     if (signIn.status === "complete") {
       const { error: finalizeError } = await signIn.finalize();
       if (finalizeError) throw finalizeError;
       toast.success("Signed in");
       return true;
+    } else if (signIn.status === "needs_second_factor") {
+      await startCodeStep(["totp", "phone_code", "backup_code"]);
+      return false;
     } else if (signIn.status === "needs_client_trust") {
-      // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — send a
-      // one-time code to confirm it's really this user, same UI as the signup verify step.
-      const usesPhone = signIn.supportedSecondFactors?.some((f) => f.strategy === "phone_code");
-      const { error: codeError } = usesPhone
-        ? await signIn.mfa.sendPhoneCode()
-        : await signIn.mfa.sendEmailCode();
-      if (codeError) throw codeError;
-      setVerificationCode("");
-      toast.message("Verify this device", {
-        description: usesPhone
-          ? "Enter the code we just texted you."
-          : "Enter the code we just emailed you.",
-      });
+      // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — confirm it's
+      // really this user with a one-time code before the session activates.
+      await startCodeStep(["phone_code", "email_code"]);
       return false;
     } else {
       throw new Error("Additional verification is required for this account.");
     }
   };
+
+  // OAuth (Google/Apple/LinkedIn) for an MFA-enrolled account returns here from /sso-callback
+  // with the sign-in still waiting on its second factor — nothing submitted on this page, so
+  // nothing else would ever open the code step.
+  useEffect(() => {
+    if (signIn.status !== "needs_second_factor" || autoSecondFactorStarted.current) return;
+    autoSecondFactorStarted.current = true;
+    setMode("signin");
+    startCodeStep(["totp", "phone_code", "backup_code"]).catch((err) =>
+      toast.error(err instanceof Error ? err.message : "Couldn't start verification"),
+    );
+    // startCodeStep is recreated each render; keying on the status is what matters here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signIn.status]);
 
   const signInWithPasskey = async () => {
     setBusy(true);
@@ -224,10 +274,14 @@ function AuthPage() {
               : "Your account is active. Privileged roles require administrator approval.",
         });
       } else {
-        const usesPhone = signIn.supportedSecondFactors?.some((f) => f.strategy === "phone_code");
-        const { error } = usesPhone
-          ? await signIn.mfa.verifyPhoneCode({ code })
-          : await signIn.mfa.verifyEmailCode({ code });
+        const { error } =
+          codeStrategy === "totp"
+            ? await signIn.mfa.verifyTOTP({ code })
+            : codeStrategy === "backup_code"
+              ? await signIn.mfa.verifyBackupCode({ code })
+              : codeStrategy === "phone_code"
+                ? await signIn.mfa.verifyPhoneCode({ code })
+                : await signIn.mfa.verifyEmailCode({ code });
         if (error) throw error;
         if (signIn.status !== "complete") {
           throw new Error("That code didn't work — check it and try again.");
@@ -338,7 +392,7 @@ function AuthPage() {
           <h1 className="mt-8 font-display text-3xl font-semibold lg:mt-0">
             {verificationCode !== null
               ? mode === "signin"
-                ? "Verify this device"
+                ? CODE_STEP_COPY[codeStrategy].title
                 : "Verify your email"
               : mode === "signin"
                 ? "Welcome back"
@@ -347,7 +401,7 @@ function AuthPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             {verificationCode !== null
               ? mode === "signin"
-                ? "Enter the code we just sent you to confirm it's really you."
+                ? CODE_STEP_COPY[codeStrategy].description
                 : `Enter the code we sent to ${email}.`
               : mode === "signin"
                 ? "Sign in to reach your workspace."
@@ -364,16 +418,41 @@ function AuthPage() {
                   onChange={(e) => setVerificationCode(e.target.value)}
                   required
                   autoFocus
-                  inputMode="numeric"
+                  // Backup codes are alphanumeric and longer than the 6-digit one-time codes.
+                  inputMode={codeStrategy === "backup_code" ? "text" : "numeric"}
                   autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="123456"
+                  maxLength={codeStrategy === "backup_code" ? 16 : 6}
+                  placeholder={codeStrategy === "backup_code" ? "Backup code" : "123456"}
                 />
               </div>
               <Button type="submit" variant="brass" size="lg" className="w-full" disabled={busy}>
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 Verify and continue
               </Button>
+              {mode === "signin" &&
+                (["totp", "phone_code", "backup_code"] as CodeStrategy[])
+                  .filter((s) => s !== codeStrategy && availableFactors.includes(s))
+                  .map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        startCodeStep([s]).catch((err) =>
+                          toast.error(
+                            err instanceof Error ? err.message : "Couldn't switch method",
+                          ),
+                        )
+                      }
+                      className="w-full text-center text-xs text-brass hover:underline"
+                    >
+                      {s === "totp"
+                        ? "Use your authenticator app instead"
+                        : s === "phone_code"
+                          ? "Text me a code instead"
+                          : "Use a backup code instead"}
+                    </button>
+                  ))}
               <button
                 type="button"
                 onClick={() => setVerificationCode(null)}

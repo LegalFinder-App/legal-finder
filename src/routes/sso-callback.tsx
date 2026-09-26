@@ -10,6 +10,8 @@ export const Route = createFileRoute("/sso-callback")({
     <AuthenticateWithRedirectCallback
       signInFallbackRedirectUrl="/auth"
       signUpFallbackRedirectUrl="/auth"
+      // An MFA-enrolled account still owes its code after OAuth; /auth opens that code step.
+      secondFactorUrl="/auth"
     />
   ),
 });
