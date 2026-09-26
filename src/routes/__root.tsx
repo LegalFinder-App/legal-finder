@@ -129,7 +129,12 @@ function RootShell({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
-        <ClerkProvider>{children}</ClerkProvider>
+        {/* The production Clerk instance requires MFA, so every new session starts "pending" on a
+            setup-mfa task and Clerk treats it as signed out until that's done. Without a task URL
+            Clerk has nowhere to send the user, and sign-in silently strands them on /auth. */}
+        <ClerkProvider taskUrls={{ "setup-mfa": "/session-tasks/setup-mfa" }}>
+          {children}
+        </ClerkProvider>
         <Scripts />
       </body>
     </html>

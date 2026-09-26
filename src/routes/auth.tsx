@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
+import { useAuth, useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { toast } from "@/lib/toast";
 import { Apple, Eye, EyeOff, Fingerprint, Linkedin, Loader2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
@@ -51,6 +51,7 @@ function AuthPage() {
   const { mode: initialMode } = Route.useSearch();
   const navigate = useNavigate();
   const { isLoaded: authLoaded, isSignedIn, userId } = useAuth();
+  const clerk = useClerk();
   const { signIn } = useSignIn();
   const { signUp } = useSignUp();
   const queryClient = useQueryClient();
@@ -65,6 +66,19 @@ function AuthPage() {
   // Set once signUp.create() reports the account needs email verification before it can
   // activate — Clerk's default for password sign-up. Switches the form to a code-entry step.
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
+
+  // useAuth() reports a pending session (one still owing Clerk a task, e.g. MFA enrollment) as
+  // signed out, so the redirect effect below never fires for it. Clerk's own listener does see
+  // pending sessions — without this, a user stuck mid-task lands back on a blank sign-in form.
+  useEffect(() => {
+    const forwardPendingTask = (session: typeof clerk.session) => {
+      if (session?.status === "pending" && session.currentTask?.key === "setup-mfa") {
+        navigate({ to: "/session-tasks/setup-mfa", replace: true });
+      }
+    };
+    forwardPendingTask(clerk.session);
+    return clerk.addListener(({ session }) => forwardPendingTask(session));
+  }, [clerk, navigate]);
 
   useEffect(() => {
     if (!authLoaded || !isSignedIn || !userId) return;
