@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { TaskSetupMFA } from "@clerk/tanstack-react-start";
+import { useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { TaskSetupMFA, useClerk } from "@clerk/tanstack-react-start";
 import { Logo } from "@/components/brand/logo";
 
 // Clerk routes here (via ClerkProvider's taskUrls in __root.tsx) when a freshly signed-in session
@@ -14,6 +15,20 @@ export const Route = createFileRoute("/session-tasks/setup-mfa")({
 });
 
 function SetupMfaTask() {
+  const clerk = useClerk();
+  const navigate = useNavigate();
+
+  // TaskSetupMFA redirects itself when MFA is finished through its own UI, but a session can also
+  // become active another way (reload after enrolling, enrolling in another tab) and the component
+  // then just sits there. Move on whenever the session is no longer pending.
+  useEffect(() => {
+    const continueIfActive = (session: typeof clerk.session) => {
+      if (session?.status === "active") navigate({ to: "/auth", replace: true });
+    };
+    continueIfActive(clerk.session);
+    return clerk.addListener(({ session }) => continueIfActive(session));
+  }, [clerk, navigate]);
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-background px-4 py-12">
       <Link to="/" className="mb-8">

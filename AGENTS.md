@@ -65,6 +65,14 @@ scripts/          one-off Node scripts (migrations, icon generation, gradle wrap
   `loadUserRoles`/`requireRoles` both read the same `userRolesQuery` cache key
   (`["roles", userId]`) — keep it that way so an admin-panel role change invalidates everywhere at
   once (`src/components/app/admin/users-panel.tsx`).
+- **Required MFA / session tasks**: the production Clerk instance requires MFA, so every new
+  session starts `pending` on a `setup-mfa` task, and Clerk treats pending sessions as **signed
+  out** (`useAuth().isSignedIn === false`, server `auth()` unauthenticated). The
+  `/session-tasks/setup-mfa` route (mapped via `ClerkProvider taskUrls` in `__root.tsx`) handles
+  it. If another task type is ever enabled in Clerk (e.g. `reset-password`,
+  `choose-organization`), add a route + `taskUrls` entry for it, or sign-in silently strands users
+  on `/auth` again. App Store / Play reviewers also hit this, so any reviewer demo account needs an
+  MFA answer.
 - **OAuth**: `signIn.sso({ strategy, redirectUrl, redirectCallbackUrl })` in `src/routes/auth.tsx`.
   Provider credentials for Google/Apple/LinkedIn are configured in the **Clerk Dashboard** (Social
   Connections), not as app env vars — Vercel env vars never reach Clerk's own OAuth exchange.
