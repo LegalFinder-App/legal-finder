@@ -76,6 +76,17 @@ type PushSubscriptionRow = {
   updated_at: string;
 };
 
+// Native app (Expo) push tokens — 20260930120000_mobile_push_notifications.sql.
+type DevicePushTokenRow = {
+  id: string;
+  user_id: string;
+  token: string;
+  platform: "ios" | "android";
+  device_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AppDatabase = Omit<BaseDatabase, "public"> & {
   public: Omit<BaseDatabase["public"], "Tables"> & {
     Tables: Omit<BaseDatabase["public"]["Tables"], "cases" | "lawyers"> & {
@@ -245,6 +256,28 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           platform?: string;
           enabled?: boolean;
           last_seen_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      device_push_tokens: {
+        Row: DevicePushTokenRow;
+        Insert: {
+          id?: string;
+          user_id: string;
+          token: string;
+          platform: "ios" | "android";
+          device_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          token?: string;
+          platform?: "ios" | "android";
+          device_name?: string | null;
           created_at?: string;
           updated_at?: string;
         };
