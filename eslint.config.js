@@ -17,6 +17,8 @@ export default tseslint.config(
       "platforms/mobile/ios",
       "platforms/mobile/www",
       "platforms/desktop/release",
+      // The native app has its own React Native lint config (apps/mobile/eslint.config.js).
+      "apps/mobile",
     ],
   },
   {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
 import type { AppDatabase } from "@/integrations/supabase/app-database";
 
-const initiateSchema = z.object({ paymentId: z.string().uuid() });
+export const initiateSchema = z.object({ paymentId: z.string().uuid() });
 
 type PaymentRow = AppDatabase["public"]["Tables"]["payments"]["Row"];
 
@@ -37,69 +37,19 @@ export function assertAmountMatchesConsultationFee(
 
 /**
  * Registers the Pesapal order for an already-created (pending) payment row and returns the
- * hosted-page redirect URL. Pesapal SDK modules are dynamically imported — route/*.functions.ts
- * files are dual-purpose (client stub + server handler) and must not load server-only deps
- * at module scope.
+ * hosted-page redirect URL. The checkout itself lives in payments.server.ts (dynamically imported —
+ * functions files are dual-purpose and must not load server-only deps at module scope), shared with
+ * the mobile app's /api/mobile/payments/initiate route.
  */
 export const initiatePesapalPayment = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
   .validator(initiateSchema)
   .handler(async ({ context, data }) => {
-    const { data: payment, error } = await context.supabase
-      .from("payments")
-      .select("*")
-      .eq("id", data.paymentId)
-      .maybeSingle();
-
-    if (error) throw new Error(error.message);
-    assertPaymentInitiatable(payment, context.userId);
-
-    if (payment.lawyer_id) {
-      const { data: lawyerRow, error: lawyerError } = await context.supabase
-        .from("lawyers")
-        .select("consultation_fee")
-        .eq("user_id", payment.lawyer_id)
-        .maybeSingle();
-      if (lawyerError) throw new Error(lawyerError.message);
-      assertAmountMatchesConsultationFee(Number(payment.amount), lawyerRow?.consultation_fee);
-    }
-
-    const appUrl = (process.env.VITE_APP_URL || "https://legalfinder.co").replace(/\/$/, "");
-    const callbackUrl = `${appUrl}/api/pesapal/callback`;
-    const ipnUrl = `${appUrl}/api/pesapal/ipn`;
-
-    const { getIpnId, submitOrder } = await import("@/lib/pesapal.server");
-    const ipnId = await getIpnId(ipnUrl);
-
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("email")
-      .eq("id", context.userId)
-      .maybeSingle();
-
-    const order = await submitOrder({
-      merchantReference: payment.id,
-      amount: Number(payment.amount),
-      currency: payment.currency,
-      description: payment.description ?? "LegalFinder consultation fee",
-      callbackUrl,
-      ipnId,
-      billing: {
-        emailAddress: profile?.email ?? undefined,
-      },
+    const { startPesapalCheckout } = await import("@/lib/payments.server");
+    return startPesapalCheckout({
+      supabase: context.supabase,
+      userId: context.userId,
+      paymentId: data.paymentId,
+      callbackPath: "/api/pesapal/callback",
     });
-
-    // Written via the service role: clients may only INSERT their own payment row, not update it —
-    // status/order-tracking fields are server-controlled from here on.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error: updateError } = await supabaseAdmin
-      .from("payments")
-      .update({
-        pesapal_order_tracking_id: order.orderTrackingId,
-        pesapal_merchant_reference: order.merchantReference,
-      })
-      .eq("id", payment.id);
-    if (updateError) throw new Error(updateError.message);
-
-    return { redirectUrl: order.redirectUrl };
   });

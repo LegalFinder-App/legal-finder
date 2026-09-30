@@ -50,7 +50,10 @@ import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_a
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
 import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
 import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
+import { Route as ApiMobileAssistantRouteImport } from './routes/api.mobile.assistant'
+import { Route as ApiMobileSessionRouteImport } from './routes/api.mobile.session'
 import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
+import { Route as ApiPesapalCallbackMobileRouteImport } from './routes/api.pesapal.callback-mobile'
 import { Route as ApiPesapalIpnRouteImport } from './routes/api.pesapal.ipn'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin/content/index'
 import { Route as AuthenticatedAdminContentAdviceRouteImport } from './routes/_authenticated/admin/content/advice'
@@ -61,6 +64,11 @@ import { Route as AuthenticatedAdminContentQuotesRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminContentSecurityTipsRouteImport } from './routes/_authenticated/admin/content/security-tips'
 import { Route as AuthenticatedAdminContentStationsRouteImport } from './routes/_authenticated/admin/content/stations'
 import { Route as AuthenticatedAdminContentWantedRouteImport } from './routes/_authenticated/admin/content/wanted'
+import { Route as ApiMobileAccountDeleteRouteImport } from './routes/api.mobile.account.delete'
+import { Route as ApiMobilePaymentsInitiateRouteImport } from './routes/api.mobile.payments.initiate'
+import { Route as ApiMobilePushRegisterRouteImport } from './routes/api.mobile.push.register'
+import { Route as ApiMobilePushUnregisterRouteImport } from './routes/api.mobile.push.unregister'
+import { Route as ApiMobileUploadsImageAuthRouteImport } from './routes/api.mobile.uploads.image-auth'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -271,11 +279,27 @@ const ApiFlutterwaveWebhookRoute = ApiFlutterwaveWebhookRouteImport.update({
   path: '/api/flutterwave/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileAssistantRoute = ApiMobileAssistantRouteImport.update({
+  id: '/api/mobile/assistant',
+  path: '/api/mobile/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileSessionRoute = ApiMobileSessionRouteImport.update({
+  id: '/api/mobile/session',
+  path: '/api/mobile/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPesapalCallbackRoute = ApiPesapalCallbackRouteImport.update({
   id: '/api/pesapal/callback',
   path: '/api/pesapal/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPesapalCallbackMobileRoute =
+  ApiPesapalCallbackMobileRouteImport.update({
+    id: '/api/pesapal/callback-mobile',
+    path: '/api/pesapal/callback-mobile',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPesapalIpnRoute = ApiPesapalIpnRouteImport.update({
   id: '/api/pesapal/ipn',
   path: '/api/pesapal/ipn',
@@ -335,6 +359,33 @@ const AuthenticatedAdminContentWantedRoute =
     path: '/wanted',
     getParentRoute: () => AuthenticatedAdminContentRouteRoute,
   } as any)
+const ApiMobileAccountDeleteRoute = ApiMobileAccountDeleteRouteImport.update({
+  id: '/api/mobile/account/delete',
+  path: '/api/mobile/account/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobilePaymentsInitiateRoute =
+  ApiMobilePaymentsInitiateRouteImport.update({
+    id: '/api/mobile/payments/initiate',
+    path: '/api/mobile/payments/initiate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiMobilePushRegisterRoute = ApiMobilePushRegisterRouteImport.update({
+  id: '/api/mobile/push/register',
+  path: '/api/mobile/push/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobilePushUnregisterRoute = ApiMobilePushUnregisterRouteImport.update({
+  id: '/api/mobile/push/unregister',
+  path: '/api/mobile/push/unregister',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileUploadsImageAuthRoute =
+  ApiMobileUploadsImageAuthRouteImport.update({
+    id: '/api/mobile/uploads/image-auth',
+    path: '/api/mobile/uploads/image-auth',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -376,7 +427,10 @@ export interface FileRoutesByFullPath {
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
+  '/api/mobile/assistant': typeof ApiMobileAssistantRoute
+  '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
+  '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
@@ -387,6 +441,11 @@ export interface FileRoutesByFullPath {
   '/admin/content/security-tips': typeof AuthenticatedAdminContentSecurityTipsRoute
   '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
+  '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/payments/initiate': typeof ApiMobilePaymentsInitiateRoute
+  '/api/mobile/push/register': typeof ApiMobilePushRegisterRoute
+  '/api/mobile/push/unregister': typeof ApiMobilePushUnregisterRoute
+  '/api/mobile/uploads/image-auth': typeof ApiMobileUploadsImageAuthRoute
   '/admin/content/': typeof AuthenticatedAdminContentIndexRoute
 }
 export interface FileRoutesByTo {
@@ -427,7 +486,10 @@ export interface FileRoutesByTo {
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
+  '/api/mobile/assistant': typeof ApiMobileAssistantRoute
+  '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
+  '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
@@ -438,6 +500,11 @@ export interface FileRoutesByTo {
   '/admin/content/security-tips': typeof AuthenticatedAdminContentSecurityTipsRoute
   '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
+  '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/payments/initiate': typeof ApiMobilePaymentsInitiateRoute
+  '/api/mobile/push/register': typeof ApiMobilePushRegisterRoute
+  '/api/mobile/push/unregister': typeof ApiMobilePushUnregisterRoute
+  '/api/mobile/uploads/image-auth': typeof ApiMobileUploadsImageAuthRoute
   '/admin/content': typeof AuthenticatedAdminContentIndexRoute
 }
 export interface FileRoutesById {
@@ -482,7 +549,10 @@ export interface FileRoutesById {
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
+  '/api/mobile/assistant': typeof ApiMobileAssistantRoute
+  '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
+  '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
@@ -493,6 +563,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/content/security-tips': typeof AuthenticatedAdminContentSecurityTipsRoute
   '/_authenticated/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/_authenticated/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
+  '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/payments/initiate': typeof ApiMobilePaymentsInitiateRoute
+  '/api/mobile/push/register': typeof ApiMobilePushRegisterRoute
+  '/api/mobile/push/unregister': typeof ApiMobilePushUnregisterRoute
+  '/api/mobile/uploads/image-auth': typeof ApiMobileUploadsImageAuthRoute
   '/_authenticated/admin/content/': typeof AuthenticatedAdminContentIndexRoute
 }
 export interface FileRouteTypes {
@@ -537,7 +612,10 @@ export interface FileRouteTypes {
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
     | '/api/flutterwave/webhook'
+    | '/api/mobile/assistant'
+    | '/api/mobile/session'
     | '/api/pesapal/callback'
+    | '/api/pesapal/callback-mobile'
     | '/api/pesapal/ipn'
     | '/admin/'
     | '/admin/content/advice'
@@ -548,6 +626,11 @@ export interface FileRouteTypes {
     | '/admin/content/security-tips'
     | '/admin/content/stations'
     | '/admin/content/wanted'
+    | '/api/mobile/account/delete'
+    | '/api/mobile/payments/initiate'
+    | '/api/mobile/push/register'
+    | '/api/mobile/push/unregister'
+    | '/api/mobile/uploads/image-auth'
     | '/admin/content/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -588,7 +671,10 @@ export interface FileRouteTypes {
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
     | '/api/flutterwave/webhook'
+    | '/api/mobile/assistant'
+    | '/api/mobile/session'
     | '/api/pesapal/callback'
+    | '/api/pesapal/callback-mobile'
     | '/api/pesapal/ipn'
     | '/admin'
     | '/admin/content/advice'
@@ -599,6 +685,11 @@ export interface FileRouteTypes {
     | '/admin/content/security-tips'
     | '/admin/content/stations'
     | '/admin/content/wanted'
+    | '/api/mobile/account/delete'
+    | '/api/mobile/payments/initiate'
+    | '/api/mobile/push/register'
+    | '/api/mobile/push/unregister'
+    | '/api/mobile/uploads/image-auth'
     | '/admin/content'
   id:
     | '__root__'
@@ -642,7 +733,10 @@ export interface FileRouteTypes {
     | '/_authenticated/cases/$caseId'
     | '/api/cron/compliance-check'
     | '/api/flutterwave/webhook'
+    | '/api/mobile/assistant'
+    | '/api/mobile/session'
     | '/api/pesapal/callback'
+    | '/api/pesapal/callback-mobile'
     | '/api/pesapal/ipn'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/content/advice'
@@ -653,6 +747,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content/security-tips'
     | '/_authenticated/admin/content/stations'
     | '/_authenticated/admin/content/wanted'
+    | '/api/mobile/account/delete'
+    | '/api/mobile/payments/initiate'
+    | '/api/mobile/push/register'
+    | '/api/mobile/push/unregister'
+    | '/api/mobile/uploads/image-auth'
     | '/_authenticated/admin/content/'
   fileRoutesById: FileRoutesById
 }
@@ -681,8 +780,16 @@ export interface RootRouteChildren {
   NewsIndexRoute: typeof NewsIndexRoute
   ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
+  ApiMobileAssistantRoute: typeof ApiMobileAssistantRoute
+  ApiMobileSessionRoute: typeof ApiMobileSessionRoute
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
+  ApiPesapalCallbackMobileRoute: typeof ApiPesapalCallbackMobileRoute
   ApiPesapalIpnRoute: typeof ApiPesapalIpnRoute
+  ApiMobileAccountDeleteRoute: typeof ApiMobileAccountDeleteRoute
+  ApiMobilePaymentsInitiateRoute: typeof ApiMobilePaymentsInitiateRoute
+  ApiMobilePushRegisterRoute: typeof ApiMobilePushRegisterRoute
+  ApiMobilePushUnregisterRoute: typeof ApiMobilePushUnregisterRoute
+  ApiMobileUploadsImageAuthRoute: typeof ApiMobileUploadsImageAuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -974,11 +1081,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFlutterwaveWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/assistant': {
+      id: '/api/mobile/assistant'
+      path: '/api/mobile/assistant'
+      fullPath: '/api/mobile/assistant'
+      preLoaderRoute: typeof ApiMobileAssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/session': {
+      id: '/api/mobile/session'
+      path: '/api/mobile/session'
+      fullPath: '/api/mobile/session'
+      preLoaderRoute: typeof ApiMobileSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pesapal/callback': {
       id: '/api/pesapal/callback'
       path: '/api/pesapal/callback'
       fullPath: '/api/pesapal/callback'
       preLoaderRoute: typeof ApiPesapalCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pesapal/callback-mobile': {
+      id: '/api/pesapal/callback-mobile'
+      path: '/api/pesapal/callback-mobile'
+      fullPath: '/api/pesapal/callback-mobile'
+      preLoaderRoute: typeof ApiPesapalCallbackMobileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/pesapal/ipn': {
@@ -1050,6 +1178,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/content/wanted'
       preLoaderRoute: typeof AuthenticatedAdminContentWantedRouteImport
       parentRoute: typeof AuthenticatedAdminContentRouteRoute
+    }
+    '/api/mobile/account/delete': {
+      id: '/api/mobile/account/delete'
+      path: '/api/mobile/account/delete'
+      fullPath: '/api/mobile/account/delete'
+      preLoaderRoute: typeof ApiMobileAccountDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/payments/initiate': {
+      id: '/api/mobile/payments/initiate'
+      path: '/api/mobile/payments/initiate'
+      fullPath: '/api/mobile/payments/initiate'
+      preLoaderRoute: typeof ApiMobilePaymentsInitiateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/push/register': {
+      id: '/api/mobile/push/register'
+      path: '/api/mobile/push/register'
+      fullPath: '/api/mobile/push/register'
+      preLoaderRoute: typeof ApiMobilePushRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/push/unregister': {
+      id: '/api/mobile/push/unregister'
+      path: '/api/mobile/push/unregister'
+      fullPath: '/api/mobile/push/unregister'
+      preLoaderRoute: typeof ApiMobilePushUnregisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/uploads/image-auth': {
+      id: '/api/mobile/uploads/image-auth'
+      path: '/api/mobile/uploads/image-auth'
+      fullPath: '/api/mobile/uploads/image-auth'
+      preLoaderRoute: typeof ApiMobileUploadsImageAuthRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1178,8 +1341,16 @@ const rootRouteChildren: RootRouteChildren = {
   NewsIndexRoute: NewsIndexRoute,
   ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
+  ApiMobileAssistantRoute: ApiMobileAssistantRoute,
+  ApiMobileSessionRoute: ApiMobileSessionRoute,
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
+  ApiPesapalCallbackMobileRoute: ApiPesapalCallbackMobileRoute,
   ApiPesapalIpnRoute: ApiPesapalIpnRoute,
+  ApiMobileAccountDeleteRoute: ApiMobileAccountDeleteRoute,
+  ApiMobilePaymentsInitiateRoute: ApiMobilePaymentsInitiateRoute,
+  ApiMobilePushRegisterRoute: ApiMobilePushRegisterRoute,
+  ApiMobilePushUnregisterRoute: ApiMobilePushUnregisterRoute,
+  ApiMobileUploadsImageAuthRoute: ApiMobileUploadsImageAuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
