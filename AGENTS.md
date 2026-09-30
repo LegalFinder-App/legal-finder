@@ -9,11 +9,13 @@ hearing tracking, court judgements search, police incident reporting/wanted noti
 plain-language legal e-library, and an AI legal assistant. Five roles share one codebase: client,
 advocate ("lawyer"), police, judiciary, and admin.
 
-It ships from **one shared web app** to four surfaces: browser/PWA, Android, iOS, and desktop
-(Windows/macOS/Linux). Mobile and desktop are thin "remote content" shells (Capacitor / Electron)
-that load the real deployed site — there is no separate mobile/desktop codebase to keep in sync.
-See `platforms/README.md` and `platforms/mobile/README.md` before touching anything under
-`platforms/`.
+It ships to browser/PWA, desktop (Electron shell loading the site — see `platforms/`) and a
+**native iOS/Android app in `apps/mobile/`** (Expo / React Native — read `apps/mobile/README.md`
+and `apps/mobile/AGENTS.md` first). The native app replaced the old Capacitor wrapper in
+`platforms/mobile/` (kept only for reference) and uses the same Supabase data/RLS, the same Clerk
+instance, and the web's `/api/mobile/*` routes for server-secret operations. When changing a
+query, a server function or the schema, check whether the mobile app needs the same change
+(`apps/mobile/src/lib/queries.ts`, `npm run sync-types` in `apps/mobile`).
 
 ## Tech stack
 
@@ -73,6 +75,10 @@ scripts/          one-off Node scripts (migrations, icon generation, gradle wrap
   `choose-organization`), add a route + `taskUrls` entry for it, or sign-in silently strands users
   on `/auth` again. App Store / Play reviewers also hit this, so any reviewer demo account needs an
   MFA answer.
+- **Mobile API**: `src/routes/api.mobile.*.tsx` authenticate with `authenticateClerkRequest()`
+  (`src/integrations/supabase/auth.server.ts`, shared with `requireClerkAuth`) and call the same
+  `*.server.ts` logic as the web's server functions. Keep server-only imports out of files the
+  client bundle can reach — TanStack Start's import protection fails the build otherwise.
 - **OAuth**: `signIn.sso({ strategy, redirectUrl, redirectCallbackUrl })` in `src/routes/auth.tsx`.
   Provider credentials for Google/Apple/LinkedIn are configured in the **Clerk Dashboard** (Social
   Connections), not as app env vars — Vercel env vars never reach Clerk's own OAuth exchange.
@@ -82,8 +88,8 @@ scripts/          one-off Node scripts (migrations, icon generation, gradle wrap
 - **Comments**: match the existing style — short, explain *why* (a constraint, a gotcha, a
   cross-file dependency), not *what*. Several files already model this well
   (`capacitor.config.ts`, `platform-matrix.tsx`, `queries.ts`).
-- **Commits**: end with `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` when an
-  Anthropic agent makes the change (see repo's recent commit history for tone/format).
+- **Commits**: end with a `Co-Authored-By: <model> <noreply@anthropic.com>` line naming the model
+  that made the change, when an Anthropic agent makes it (see recent history for tone/format).
 
 ## Database
 
@@ -147,10 +153,11 @@ the one command rather than fixing the system env var, e.g.
 | Platform | Status |
 |---|---|
 | Web | Builds clean, tests pass, deployed on Vercel |
-| Android | Signed release build verified; submitted for Play Console closed testing |
+| Android (native, `apps/mobile`) | Typecheck/lint/expo-doctor clean, JS bundle builds; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. Not yet run on a device from this environment (emulator won't boot here) |
+| Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
 | Windows desktop | Installer build verified |
 | macOS / Linux desktop | Not verified from this environment |
-| iOS | Not verified from this environment — needs a Mac or a working CI run |
+| iOS (native) | Same codebase as Android; needs a Mac or EAS cloud build — not built from this environment |
 
 Don't describe platform readiness in marketing/UI copy (e.g. the homepage `PlatformMatrix`
 component) more confidently than this table — it was previously overclaimed ("Production-ready
