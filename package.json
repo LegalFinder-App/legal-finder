@@ -25,12 +25,13 @@
     "mobile:android:bundle": "node scripts/run-gradle.mjs bundleRelease",
     "mobile:ios:open": "cd platforms/mobile && npx cap open ios",
     "mobile:ios:sync": "cd platforms/mobile && npx cap sync ios",
+    "desktop:web": "cd apps/mobile && npx expo export --platform web --output-dir dist/desktop",
     "desktop:dev": "electron platforms/desktop/electron/main.js",
-    "desktop:dist:win": "electron-builder --config platforms/desktop/electron-builder.yml --win",
-    "desktop:dist:linux": "electron-builder --config platforms/desktop/electron-builder.yml --linux",
-    "desktop:dist:mac": "electron-builder --config platforms/desktop/electron-builder.yml --mac",
-    "desktop:dist:win:eperm-fix": "electron-builder --config platforms/desktop/electron-builder.yml --win -c.electronDist=.electron-dist-win32-x64",
-    "desktop:dist:linux:eperm-fix": "electron-builder --config platforms/desktop/electron-builder.yml --linux -c.electronDist=.electron-dist-linux-x64"
+    "desktop:dist:win": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --win",
+    "desktop:dist:linux": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --linux",
+    "desktop:dist:mac": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --mac",
+    "desktop:dist:win:eperm-fix": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --win -c.electronDist=.electron-dist-win32-x64",
+    "desktop:dist:linux:eperm-fix": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --linux -c.electronDist=.electron-dist-linux-x64"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

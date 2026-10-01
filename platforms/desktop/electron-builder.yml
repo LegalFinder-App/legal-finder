@@ -1,8 +1,9 @@
-# Packaging config for the thin Electron desktop shell (see electron/main.js). The "app" being
-# packaged is just electron/main.js + preload.js — there's no local web build to bundle, since
-# the shell always loads the real deployed site (platforms/README.md explains why).
+# Packaging config for the LegalFinder desktop app (see electron/main.js). Two things go into each
+# installer: the shell (electron/main.js + preload.js) and the app itself — the web export of
+# apps/mobile, copied to resources/web, which the shell serves through app://. Nothing is loaded
+# from the website.
 #
-# Run from the repo root via the npm scripts in package.json:
+# Run from the repo root via the npm scripts in package.json — they export the app first:
 #   npm run desktop:dist:win
 #   npm run desktop:dist:linux
 #   npm run desktop:dist:mac      (only produces a real artifact on macOS — see platforms/desktop/macos/README.md)
@@ -12,8 +13,29 @@ directories:
   app: platforms/desktop/electron
   output: platforms/desktop/release
 
+# The shell is these three files and has no dependencies of its own. Without the exclusion,
+# electron-builder falls back to the repo root's package.json and packs the whole website's
+# node_modules (180 MB of server and web libraries) into the app.
 files:
-  - "**/*"
+  - main.js
+  - preload.js
+  - package.json
+  - "!**/node_modules/**"
+
+# The app's own code: `npm run desktop:web` (expo export --platform web) writes it here.
+extraResources:
+  - from: apps/mobile/dist/desktop
+    to: web
+
+# legalfinder:// links come back to the app after Google/Apple/LinkedIn sign-in and Pesapal
+# checkout (same scheme as the phone apps). This declares it for the macOS and Linux packages; on
+# Windows main.js registers it when the app first runs.
+protocols:
+  - name: LegalFinder
+    schemes:
+      - legalfinder
+
+artifactName: "LegalFinder-${version}-${os}-${arch}.${ext}"
 
 # Windows uses a pre-generated .ico (platforms/shared/icons/icon.ico, built by
 # `node -e "require('png-to-ico')..."` from source-icon.png — see platforms/shared/README.md)
