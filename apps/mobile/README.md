@@ -44,9 +44,22 @@ npx expo start --dev-client   # then iterate with fast refresh
 
 ```bash
 npx expo prebuild --platform android --clean
-cd android && ./gradlew bundleRelease     # set JAVA_HOME to a JDK 17+ root if needed
+cd android && ./gradlew bundleRelease
 # → android/app/build/outputs/bundle/release/app-release.aab
 ```
+
+On this Windows machine the shell environment needs two overrides for Gradle (the system
+`JAVA_HOME` points at a JDK's `bin/` folder, and `ANDROID_HOME` isn't set):
+
+```bash
+ANDROID_HOME="$LOCALAPPDATA/Android/Sdk" JAVA_HOME="C:/Program Files/Java/jdk-21" ./gradlew.bat bundleRelease
+```
+
+A clean release build takes 30–60 minutes here (four CPU architectures of native code); later
+builds are incremental. Native (CMake) intermediates go to `~/.cxx-lf/` instead of each module's
+`.cxx/` folder — `plugins/withShortNativeBuildPaths.js` does that because the repo's deep path
+pushed ninja past Windows' 260-character limit ("build.ninja still dirty after 100 tries"). If
+native build errors look stale after a dependency upgrade, delete `~/.cxx-lf/`.
 
 Release builds are signed by `plugins/withReleaseSigning.js` with the upload key in
 `../../platforms/mobile/android/keystore.properties` (gitignored — back it up). Bump
@@ -73,7 +86,7 @@ src/features/     screen building blocks (home, workspaces per role, admin, cont
 src/components/   design system (ui/) + shared components
 src/lib/          supabase, api, queries, session/roles, push, payments, documents, realtime
 src/theme/        "Chambers" tokens (hex conversions of the web's OKLCH palette) + theme provider
-plugins/          config plugins (release signing)
+plugins/          config plugins (release signing, short Windows native-build paths)
 ```
 
 ## Security notes

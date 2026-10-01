@@ -86,6 +86,7 @@ const config: ExpoConfig = {
     ["expo-document-picker", { iCloudContainerEnvironment: "Production" }],
     "@react-native-community/datetimepicker",
     "./plugins/withReleaseSigning",
+    "./plugins/withShortNativeBuildPaths",
   ],
   experiments: { typedRoutes: true },
   extra: {
