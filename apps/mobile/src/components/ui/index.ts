@@ -7,5 +7,6 @@ export { EmptyState, ErrorState, LoadingRows } from "./States";
 export { Screen, PageHeading, SectionTitle } from "./Screen";
 export { Chip, ChipRow, Segmented } from "./Chip";
 export { Sheet } from "./Sheet";
+export { KeyboardLift } from "./KeyboardLift";
 export { SelectField, DateTimeField, SwitchField } from "./Fields";
 export { Avatar, Stars, Divider, ListRow, Tag, StatTile } from "./Misc";

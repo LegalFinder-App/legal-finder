@@ -1,13 +1,6 @@
 import type { ReactNode } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { RefreshControl, StyleSheet, View, type ViewStyle } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Text } from "./Text";
@@ -21,7 +14,6 @@ interface ScreenProps {
   edges?: Edge[];
   contentStyle?: ViewStyle;
   footer?: ReactNode;
-  keyboard?: boolean;
 }
 
 export function Screen({
@@ -32,12 +24,14 @@ export function Screen({
   edges = ["left", "right"],
   contentStyle,
   footer,
-  keyboard = false,
 }: ScreenProps) {
   const { colors } = useTheme();
 
+  // Keyboard-aware on every screen: Android is edge-to-edge, so the OS no longer resizes the
+  // window for the keyboard, and a focused field low on the page would otherwise sit behind it.
   const body = scroll ? (
-    <ScrollView
+    <KeyboardAwareScrollView
+      bottomOffset={24}
       contentContainerStyle={[styles.content, contentStyle]}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
@@ -53,28 +47,15 @@ export function Screen({
       }
     >
       {children}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   ) : (
     <View style={[styles.flex, contentStyle]}>{children}</View>
   );
 
   return (
     <SafeAreaView edges={edges} style={[styles.flex, { backgroundColor: colors.background }]}>
-      {keyboard ? (
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-        >
-          {body}
-          {footer}
-        </KeyboardAvoidingView>
-      ) : (
-        <>
-          {body}
-          {footer}
-        </>
-      )}
+      {body}
+      {footer}
     </SafeAreaView>
   );
 }

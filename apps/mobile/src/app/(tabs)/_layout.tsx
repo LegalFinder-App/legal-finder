@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookOpen, Home, Menu, MessageSquare, Scale } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts } from "@/theme/tokens";
@@ -8,6 +8,10 @@ import { useUnreadCount } from "@/lib/realtime";
 export default function TabsLayout() {
   const { colors } = useTheme();
   const unread = useUnreadCount();
+  // Android is edge-to-edge, so the bar must clear the system navigation bar itself (3-button
+  // nav is ~48dp); a fixed padding put the tab labels underneath it.
+  const insets = useSafeAreaInsets();
+  const bottom = Math.max(insets.bottom, 10);
 
   return (
     <Tabs
@@ -22,9 +26,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
-          height: Platform.OS === "ios" ? 86 : 64,
+          height: 58 + bottom,
           paddingTop: 6,
-          paddingBottom: Platform.OS === "ios" ? 28 : 10,
+          paddingBottom: bottom,
         },
       }}
     >

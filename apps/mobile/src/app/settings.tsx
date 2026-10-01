@@ -179,7 +179,7 @@ function Settings() {
     );
 
   return (
-    <Screen keyboard>
+    <Screen>
       <PageHeading eyebrow="Account" title="Settings" />
 
       <Card>

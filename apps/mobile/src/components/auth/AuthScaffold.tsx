@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -15,6 +9,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { gradients } from "@/theme/tokens";
 import { Text } from "@/components/ui";
 import { Logo } from "@/components/Logo";
+import { ScreenStatusBar } from "@/components/ScreenStatusBar";
 
 /** Ink hero band with the logo, then the form on paper — the web auth page's two-panel look. */
 export function AuthScaffold({
@@ -32,53 +27,50 @@ export function AuthScaffold({
   const insets = useSafeAreaInsets();
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <KeyboardAwareScrollView
+      bottomOffset={24}
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView
-        style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
-        keyboardShouldPersistTaps="handled"
+      <ScreenStatusBar style="light" />
+      <LinearGradient
+        colors={[...(scheme === "dark" ? gradients.inkDark : gradients.inkLight)]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.hero, { paddingTop: insets.top + 20 }]}
       >
-        <LinearGradient
-          colors={[...(scheme === "dark" ? gradients.inkDark : gradients.inkLight)]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.hero, { paddingTop: insets.top + 20 }]}
-        >
-          <View style={styles.heroTop}>
-            <Logo onInk />
-            {dismissible && router.canGoBack() ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Close"
-                hitSlop={12}
-                onPress={() => router.back()}
-                style={styles.close}
-              >
-                <X size={20} color={colors.inkForeground} />
-              </Pressable>
-            ) : null}
-          </View>
-          <Text variant="small" tone="inkForeground" style={{ opacity: 0.7, marginTop: 14 }}>
-            The justice system, organised around the person who needs it.
-          </Text>
-        </LinearGradient>
-
-        <View style={styles.body}>
-          <Text variant="display" accessibilityRole="header">
-            {title}
-          </Text>
-          {subtitle ? (
-            <Text tone="muted" style={{ marginTop: 6 }}>
-              {subtitle}
-            </Text>
+        <View style={styles.heroTop}>
+          <Logo onInk />
+          {dismissible && router.canGoBack() ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              hitSlop={12}
+              onPress={() => router.back()}
+              style={styles.close}
+            >
+              <X size={20} color={colors.inkForeground} />
+            </Pressable>
           ) : null}
-          <View style={styles.form}>{children}</View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <Text variant="small" tone="inkForeground" style={{ opacity: 0.7, marginTop: 14 }}>
+          The justice system, organised around the person who needs it.
+        </Text>
+      </LinearGradient>
+
+      <View style={styles.body}>
+        <Text variant="display" accessibilityRole="header">
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text tone="muted" style={{ marginTop: 6 }}>
+            {subtitle}
+          </Text>
+        ) : null}
+        <View style={styles.form}>{children}</View>
+      </View>
+    </KeyboardAwareScrollView>
   );
 }
 

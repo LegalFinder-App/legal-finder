@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { AlertTriangle, ShieldAlert } from "lucide-react-native";
@@ -21,6 +22,7 @@ import { formatDate, formatUGX } from "@/lib/format";
 export default function WantedPersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const person = useQuery(wantedPersonQuery(id));
 
   if (person.isLoading) {
@@ -55,7 +57,8 @@ export default function WantedPersonScreen() {
         <View
           style={{
             padding: 16,
-            paddingBottom: 28,
+            // Clear the home indicator / Android navigation bar (the app is edge-to-edge).
+            paddingBottom: Math.max(insets.bottom + 12, 28),
             borderTopWidth: 1,
             borderTopColor: colors.border,
             backgroundColor: colors.card,

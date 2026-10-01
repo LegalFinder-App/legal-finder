@@ -39,3 +39,21 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## LegalFinder conventions
+
+- **Keyboard**: Android runs edge-to-edge, so the OS no longer resizes the window when the keyboard
+  opens — anything near the bottom ends up behind it. Forms go inside `Screen` (its scroll view is
+  keyboard-aware) or `AuthScaffold`; bottom-anchored inputs (chat composers, `Sheet`) are wrapped
+  in `KeyboardLift`. All of it is `react-native-keyboard-controller` under a root
+  `KeyboardProvider`; don't reintroduce React Native's `KeyboardAvoidingView` with iOS-only
+  `behavior`.
+- **Toasts**: import `toast` from `@/lib/toast` (adds haptics; same shape as the web wrapper), not
+  `sonner-native` directly.
+- **Data**: `src/lib/queries.ts` mirrors the web's queries against the same RLS policies.
+  Anything needing a server secret (payments, assistant, upload signing, push tokens, account
+  deletion) goes through the web's `/api/mobile/*` routes via `src/lib/api.ts`.
+- **Offline cache**: only public query roots (`PUBLIC_QUERY_ROOTS` in `src/lib/query-client.ts`)
+  are persisted to disk. Never add cases, messages, documents, payments or profiles to it.
+- **Releases**: bump `ANDROID_VERSION_CODE` / `IOS_BUILD_NUMBER` in `app.config.ts` for every
+  store upload; see `README.md` for the Windows build environment.

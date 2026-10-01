@@ -1,21 +1,13 @@
-import { useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import { SendHorizontal, Sparkles } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts } from "@/theme/tokens";
-import { Chip, EmptyState, Text } from "@/components/ui";
+import { Chip, EmptyState, KeyboardLift, Text } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { api } from "@/lib/api";
@@ -49,6 +41,14 @@ function Assistant() {
   const [thinking, setThinking] = useState(false);
   const listRef = useRef<FlatList<Turn>>(null);
 
+  // The keyboard shrinks the list from the bottom; keep the latest answer in view.
+  useEffect(() => {
+    const sub = KeyboardEvents.addListener("keyboardDidShow", () =>
+      listRef.current?.scrollToEnd({ animated: true }),
+    );
+    return () => sub.remove();
+  }, []);
+
   const ask = async (text: string) => {
     const content = text.trim();
     if (!content || thinking) return;
@@ -74,11 +74,7 @@ function Assistant() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
+    <KeyboardLift style={{ flex: 1, backgroundColor: colors.background }} gap={10}>
       <FlatList
         ref={listRef}
         data={turns}
@@ -189,7 +185,7 @@ function Assistant() {
           />
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardLift>
   );
 }
 

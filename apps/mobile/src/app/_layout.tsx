@@ -4,6 +4,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ClerkProvider, useAuth, useClerk } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { focusManager, onlineManager } from "@tanstack/react-query";
@@ -152,22 +153,24 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ClerkProvider publishableKey={env.clerkPublishableKey} tokenCache={tokenCache}>
-          <PersistQueryClientProvider
-            client={queryClient}
-            persistOptions={{
-              persister,
-              maxAge: 24 * 60 * 60_000,
-              dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
-            }}
-          >
-            <ThemeProvider>
-              <RootNavigator />
-            </ThemeProvider>
-          </PersistQueryClientProvider>
-        </ClerkProvider>
-      </SafeAreaProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <ClerkProvider publishableKey={env.clerkPublishableKey} tokenCache={tokenCache}>
+            <PersistQueryClientProvider
+              client={queryClient}
+              persistOptions={{
+                persister,
+                maxAge: 24 * 60 * 60_000,
+                dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+              }}
+            >
+              <ThemeProvider>
+                <RootNavigator />
+              </ThemeProvider>
+            </PersistQueryClientProvider>
+          </ClerkProvider>
+        </SafeAreaProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

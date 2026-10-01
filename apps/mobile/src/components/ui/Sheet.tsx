@@ -1,17 +1,10 @@
 import type { ReactNode } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { radius } from "@/theme/tokens";
+import { KeyboardLift } from "./KeyboardLift";
 import { Text } from "./Text";
 
 /** Bottom sheet dialog — the native stand-in for the web's <Dialog>. */
@@ -39,10 +32,7 @@ export function Sheet({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardLift style={styles.flex} gap={16}>
         <Pressable
           style={[styles.backdrop, { backgroundColor: colors.overlay }]}
           onPress={onClose}
@@ -85,7 +75,7 @@ export function Sheet({
             {children}
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

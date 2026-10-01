@@ -1,21 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCheck, SendHorizontal } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts } from "@/theme/tokens";
-import { EmptyState, ErrorState, LoadingRows, Text } from "@/components/ui";
+import { EmptyState, ErrorState, KeyboardLift, LoadingRows, Text } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useSession } from "@/lib/session";
 import { conversationsQuery, messagesQuery, type Message } from "@/lib/queries";
@@ -34,6 +27,14 @@ function Thread({ conversationId }: { conversationId: string }) {
   const [sending, setSending] = useState(false);
   const listRef = useRef<FlatList<Message>>(null);
   const conversation = conversations.data?.find((c) => c.id === conversationId);
+
+  // The keyboard shrinks the list from the bottom; keep the latest messages in view.
+  useEffect(() => {
+    const sub = KeyboardEvents.addListener("keyboardDidShow", () =>
+      listRef.current?.scrollToEnd({ animated: true }),
+    );
+    return () => sub.remove();
+  }, []);
 
   // Mark the other side's messages read on open (same as the web's messaging workspace).
   useEffect(() => {
@@ -99,11 +100,7 @@ function Thread({ conversationId }: { conversationId: string }) {
   const data = messages.data ?? [];
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
+    <KeyboardLift style={{ flex: 1, backgroundColor: colors.background }} gap={10}>
       <Stack.Screen options={{ title: conversation?.subject ?? "Conversation" }} />
       {messages.isLoading ? (
         <View style={{ padding: 20 }}>
@@ -212,7 +209,7 @@ function Thread({ conversationId }: { conversationId: string }) {
           />
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardLift>
   );
 }
 

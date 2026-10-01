@@ -71,7 +71,7 @@ export default function ReportScreen() {
   }
 
   return (
-    <Screen keyboard>
+    <Screen>
       <Stack.Screen options={{ title: "Report an incident" }} />
       <PageHeading
         eyebrow="Police services"

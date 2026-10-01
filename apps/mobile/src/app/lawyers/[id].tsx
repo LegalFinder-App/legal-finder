@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
@@ -257,6 +258,7 @@ function Fact({
 /** Sticky footer: message + book. Mirrors the web's StartConversationButton and BookingDialog. */
 function BookingBar({ lawyer }: { lawyer: Lawyer }) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useSession();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -384,7 +386,17 @@ function BookingBar({ lawyer }: { lawyer: Lawyer }) {
   };
 
   return (
-    <View style={[styles.bar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+    <View
+      style={[
+        styles.bar,
+        {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          // Clear the home indicator / Android navigation bar (the app is edge-to-edge).
+          paddingBottom: Math.max(insets.bottom + 12, 24),
+        },
+      ]}
+    >
       <Button
         title="Message"
         variant="outline"
@@ -545,7 +557,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     padding: 16,
-    paddingBottom: 24,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

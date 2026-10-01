@@ -18,6 +18,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { gradients } from "@/theme/tokens";
 import { Button, Card, LoadingRows, SectionTitle, Text } from "@/components/ui";
 import { Logo } from "@/components/Logo";
+import { ScreenStatusBar } from "@/components/ScreenStatusBar";
 import { LawyerCard } from "@/components/LawyerCard";
 import { adviceListQuery, publicLawyersQuery, quotesQuery } from "@/lib/queries";
 
@@ -81,6 +82,7 @@ export function DiscoverHome() {
       style={{ backgroundColor: colors.background }}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
+      <ScreenStatusBar style="light" />
       <LinearGradient
         colors={[...(scheme === "dark" ? gradients.inkDark : gradients.inkLight)]}
         start={{ x: 0, y: 0 }}
