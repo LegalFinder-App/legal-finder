@@ -18,6 +18,7 @@ import {
 import { openLink } from "@/components/Markdown";
 import { wantedPersonQuery } from "@/lib/queries";
 import { formatDate, formatUGX } from "@/lib/format";
+import { mediaUrl } from "@/lib/media";
 
 export default function WantedPersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -87,7 +88,7 @@ export default function WantedPersonScreen() {
       >
         {w.photo_url ? (
           <Image
-            source={{ uri: w.photo_url }}
+            source={{ uri: mediaUrl(w.photo_url) ?? undefined }}
             style={{ width: "100%", height: "100%" }}
             contentFit="cover"
             accessibilityLabel={`Photo of ${w.name}`}

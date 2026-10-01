@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AppState, StyleSheet, View } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
-import * as SecureStore from "expo-secure-store";
-import { useAuth } from "@clerk/expo";
+import * as SecureStore from "@/lib/secure-store";
+import { useAuth } from "@/lib/auth";
 import { Lock } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Button, Text } from "@/components/ui";
@@ -12,6 +12,9 @@ const LOCK_KEY = "lf.app-lock";
 // Re-lock only after the app has been in the background this long, so quickly checking another
 // app (e.g. copying an OTP) doesn't demand Face ID again.
 const RELOCK_AFTER_MS = 60_000;
+
+/** False in the desktop build (BiometricGate.web.tsx), where Settings hides the switch. */
+export const appLockAvailable = true;
 
 export async function isAppLockEnabled() {
   return (await SecureStore.getItemAsync(LOCK_KEY)) === "on";

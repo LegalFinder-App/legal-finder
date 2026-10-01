@@ -4,13 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { AlertTriangle, EyeOff } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { padToColumns, useWideLayout, wideContent } from "@/lib/layout";
 import { Card, EmptyState, ErrorState, LoadingRows, StatusPill, Text } from "@/components/ui";
 import { openLink } from "@/components/Markdown";
 import { appSettingsQuery, wantedQuery } from "@/lib/queries";
 import { formatUGX } from "@/lib/format";
+import { mediaUrl } from "@/lib/media";
 
 export default function WantedScreen() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
+  const columns = wide ? 4 : 2;
   const settings = useQuery(appSettingsQuery);
   const wanted = useQuery(wantedQuery);
 
@@ -32,10 +36,12 @@ export default function WantedScreen() {
       <Stack.Screen options={{ title: "Public notices" }} />
       <FlatList
         style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
-        data={wanted.isLoading || wanted.isError ? [] : (wanted.data ?? [])}
-        keyExtractor={(w) => w.id}
-        numColumns={2}
+        contentContainerStyle={[{ padding: 20, paddingBottom: 48 }, wide && wideContent]}
+        // Changing numColumns needs a fresh list, hence the key.
+        key={columns}
+        data={wanted.isLoading || wanted.isError ? [] : padToColumns(wanted.data ?? [], columns)}
+        keyExtractor={(w, index) => w?.id ?? `filler-${index}`}
+        numColumns={columns}
         columnWrapperStyle={{ gap: 12 }}
         refreshing={wanted.isRefetching}
         onRefresh={() => void wanted.refetch()}
@@ -56,59 +62,66 @@ export default function WantedScreen() {
             </Text>
           </View>
         }
-        renderItem={({ item: w }) => (
-          <Card
-            padded={false}
-            onPress={() => router.push(`/wanted/${w.id}`)}
-            accessibilityLabel={`Notice: ${w.name}`}
-            style={{ flex: 1, overflow: "hidden" }}
-          >
-            <View
-              style={{
-                aspectRatio: 4 / 5,
-                backgroundColor: colors.muted,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+        renderItem={({ item: w }) =>
+          !w ? (
+            <View style={{ flex: 1 }} />
+          ) : (
+            <Card
+              padded={false}
+              onPress={() => router.push(`/wanted/${w.id}`)}
+              accessibilityLabel={`Notice: ${w.name}`}
+              style={{ flex: 1, overflow: "hidden" }}
             >
-              {w.photo_url ? (
-                <Image
-                  source={{ uri: w.photo_url }}
-                  style={{ width: "100%", height: "100%" }}
-                  contentFit="cover"
-                  transition={150}
-                />
-              ) : (
-                <AlertTriangle size={28} color={colors.mutedForeground} />
-              )}
-            </View>
-            <View style={{ padding: 12, gap: 4 }}>
-              <Text variant="bodyStrong" numberOfLines={2}>
-                {w.name}
-              </Text>
-              {w.offence ? (
-                <Text variant="caption" tone="muted" numberOfLines={1}>
-                  {w.offence}
-                </Text>
-              ) : null}
               <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
+                  aspectRatio: 4 / 5,
+                  backgroundColor: colors.muted,
                   alignItems: "center",
-                  marginTop: 4,
+                  justifyContent: "center",
                 }}
               >
-                <StatusPill value={w.danger_level} />
-                {w.reward ? (
-                  <Text variant="caption" tone="brass">
-                    {formatUGX(Number(w.reward))}
+                {w.photo_url ? (
+                  <Image
+                    source={{ uri: mediaUrl(w.photo_url) ?? undefined }}
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="cover"
+                    transition={150}
+                  />
+                ) : (
+                  <AlertTriangle size={28} color={colors.mutedForeground} />
+                )}
+              </View>
+              <View style={{ padding: 12, gap: 4 }}>
+                <Text variant="bodyStrong" numberOfLines={2}>
+                  {w.name}
+                </Text>
+                {w.offence ? (
+                  <Text variant="caption" tone="muted" numberOfLines={1}>
+                    {w.offence}
                   </Text>
                 ) : null}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    // On a narrow card the reward drops under the pill instead of breaking mid-amount.
+                    flexWrap: "wrap",
+                    rowGap: 4,
+                    marginTop: 4,
+                  }}
+                >
+                  <StatusPill value={w.danger_level} />
+                  {w.reward ? (
+                    <Text variant="caption" tone="brass">
+                      {formatUGX(Number(w.reward))}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
-            </View>
-          </Card>
-        )}
+            </Card>
+          )
+        }
         ListEmptyComponent={
           wanted.isLoading ? (
             <LoadingRows rows={3} height={200} />

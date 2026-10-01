@@ -1,4 +1,4 @@
-import { useAuth, useUser } from "@clerk/expo";
+import { useAuth, useUser } from "./auth";
 import { useQuery } from "@tanstack/react-query";
 import { userRolesQuery } from "./queries";
 

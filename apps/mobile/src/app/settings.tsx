@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Alert, Pressable, Share, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { Stack, router } from "expo-router";
-import { useClerk, useUser } from "@clerk/expo";
+import { useClerk, useUser } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import Constants from "expo-constants";
@@ -21,7 +22,7 @@ import {
   Text,
 } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
-import { isAppLockEnabled, setAppLockEnabled } from "@/components/BiometricGate";
+import { appLockAvailable, isAppLockEnabled, setAppLockEnabled } from "@/components/BiometricGate";
 import { useSession } from "@/lib/session";
 import { updateProfilePhoto } from "@/lib/images";
 import {
@@ -33,6 +34,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { queryClient } from "@/lib/query-client";
+import { shareText } from "@/lib/share";
 import { errorMessage, toast } from "@/lib/toast";
 
 function Settings() {
@@ -121,9 +123,10 @@ function Settings() {
   const newBackupCodes = async () => {
     try {
       const backup = await clerkUser.createBackupCode();
-      await Share.share({
-        message: `LegalFinder backup codes (each works once):\n\n${backup.codes.join("\n")}`,
-      });
+      await shareText(
+        `LegalFinder backup codes (each works once):\n\n${backup.codes.join("\n")}`,
+        "New backup codes",
+      );
     } catch (error) {
       toast.error(errorMessage(error, "Couldn't create backup codes"));
     }
@@ -164,7 +167,7 @@ function Settings() {
   };
 
   const deleteAccount = () =>
-    Alert.alert(
+    showAlert(
       "Delete your account?",
       "This permanently deletes your sign-in account and profile, and you won't be able to sign back in. Case, payment and audit records that form part of a legal or financial file may be kept for as long as the law requires. This can't be undone.",
       [
@@ -261,12 +264,14 @@ function Settings() {
               style={{ alignSelf: "flex-start" }}
             />
           ) : null}
-          <SwitchField
-            label="App lock"
-            description="Require Face ID, Touch ID or fingerprint to open LegalFinder."
-            value={appLock}
-            onChange={(v) => void toggleLock(v)}
-          />
+          {appLockAvailable ? (
+            <SwitchField
+              label="App lock"
+              description="Require Face ID, Touch ID or fingerprint to open LegalFinder."
+              value={appLock}
+              onChange={(v) => void toggleLock(v)}
+            />
+          ) : null}
         </View>
       </Card>
 

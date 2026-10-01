@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCheck, SendHorizontal } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideColumn } from "@/lib/layout";
 import { fonts } from "@/theme/tokens";
 import { EmptyState, ErrorState, KeyboardLift, LoadingRows, Text } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -19,6 +20,7 @@ import { toast } from "@/lib/toast";
 function Thread({ conversationId }: { conversationId: string }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const wide = useWideLayout();
   const { user } = useSession();
   const qc = useQueryClient();
   const conversations = useQuery(conversationsQuery(user?.id));
@@ -101,113 +103,115 @@ function Thread({ conversationId }: { conversationId: string }) {
 
   return (
     <KeyboardLift style={{ flex: 1, backgroundColor: colors.background }} gap={10}>
-      <Stack.Screen options={{ title: conversation?.subject ?? "Conversation" }} />
-      {messages.isLoading ? (
-        <View style={{ padding: 20 }}>
-          <LoadingRows rows={5} height={60} />
-        </View>
-      ) : messages.isError ? (
-        <View style={{ padding: 20 }}>
-          <ErrorState
-            message={(messages.error as Error).message}
-            onRetry={() => void messages.refetch()}
-          />
-        </View>
-      ) : (
-        <FlatList
-          ref={listRef}
-          data={data}
-          keyExtractor={(m) => m.id}
-          contentContainerStyle={styles.list}
-          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: data.length > 0 })}
-          ListEmptyComponent={
-            <EmptyState
-              title="No messages yet"
-              description="Send the first secure message in this thread."
+      <View style={[{ flex: 1 }, wide && wideColumn]}>
+        <Stack.Screen options={{ title: conversation?.subject ?? "Conversation" }} />
+        {messages.isLoading ? (
+          <View style={{ padding: 20 }}>
+            <LoadingRows rows={5} height={60} />
+          </View>
+        ) : messages.isError ? (
+          <View style={{ padding: 20 }}>
+            <ErrorState
+              message={(messages.error as Error).message}
+              onRetry={() => void messages.refetch()}
             />
-          }
-          renderItem={({ item }) => {
-            const mine = item.sender_id === user?.id;
-            return (
-              <View style={[styles.bubbleWrap, { alignItems: mine ? "flex-end" : "flex-start" }]}>
-                {!mine ? (
-                  <Text variant="caption" tone="muted" style={{ marginBottom: 3, marginLeft: 6 }}>
-                    {item.sender_name}
-                  </Text>
-                ) : null}
-                <View
-                  style={[
-                    styles.bubble,
-                    mine
-                      ? { backgroundColor: colors.brass, borderBottomRightRadius: 4 }
-                      : {
-                          backgroundColor: colors.card,
-                          borderColor: colors.border,
-                          borderWidth: StyleSheet.hairlineWidth,
-                          borderBottomLeftRadius: 4,
-                        },
-                  ]}
-                >
-                  <Text
-                    style={{ color: mine ? colors.brassForeground : colors.foreground }}
-                    selectable
-                  >
-                    {item.body}
-                  </Text>
-                </View>
-                <View style={styles.meta}>
-                  <Text variant="caption" tone="muted">
-                    {formatDateTime(item.created_at)}
-                  </Text>
-                  {mine && item.read_at ? (
-                    <CheckCheck size={12} color={colors.brass} accessibilityLabel="Read" />
+          </View>
+        ) : (
+          <FlatList
+            ref={listRef}
+            data={data}
+            keyExtractor={(m) => m.id}
+            contentContainerStyle={styles.list}
+            onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: data.length > 0 })}
+            ListEmptyComponent={
+              <EmptyState
+                title="No messages yet"
+                description="Send the first secure message in this thread."
+              />
+            }
+            renderItem={({ item }) => {
+              const mine = item.sender_id === user?.id;
+              return (
+                <View style={[styles.bubbleWrap, { alignItems: mine ? "flex-end" : "flex-start" }]}>
+                  {!mine ? (
+                    <Text variant="caption" tone="muted" style={{ marginBottom: 3, marginLeft: 6 }}>
+                      {item.sender_name}
+                    </Text>
                   ) : null}
+                  <View
+                    style={[
+                      styles.bubble,
+                      mine
+                        ? { backgroundColor: colors.brass, borderBottomRightRadius: 4 }
+                        : {
+                            backgroundColor: colors.card,
+                            borderColor: colors.border,
+                            borderWidth: StyleSheet.hairlineWidth,
+                            borderBottomLeftRadius: 4,
+                          },
+                    ]}
+                  >
+                    <Text
+                      style={{ color: mine ? colors.brassForeground : colors.foreground }}
+                      selectable
+                    >
+                      {item.body}
+                    </Text>
+                  </View>
+                  <View style={styles.meta}>
+                    <Text variant="caption" tone="muted">
+                      {formatDateTime(item.created_at)}
+                    </Text>
+                    {mine && item.read_at ? (
+                      <CheckCheck size={12} color={colors.brass} accessibilityLabel="Read" />
+                    ) : null}
+                  </View>
                 </View>
-              </View>
-            );
-          }}
-        />
-      )}
+              );
+            }}
+          />
+        )}
 
-      <View
-        style={[
-          styles.composer,
-          {
-            borderTopColor: colors.border,
-            backgroundColor: colors.card,
-            paddingBottom: Math.max(insets.bottom, 10),
-          },
-        ]}
-      >
-        <TextInput
-          value={draft}
-          onChangeText={setDraft}
-          placeholder="Write a message…"
-          placeholderTextColor={colors.mutedForeground}
-          multiline
-          maxLength={4000}
-          accessibilityLabel="Message"
+        <View
           style={[
-            styles.input,
+            styles.composer,
             {
-              color: colors.foreground,
-              backgroundColor: colors.background,
-              borderColor: colors.border,
+              borderTopColor: colors.border,
+              backgroundColor: colors.card,
+              paddingBottom: Math.max(insets.bottom, 10),
             },
           ]}
-        />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Send message"
-          disabled={!draft.trim() || sending}
-          onPress={() => void send()}
-          style={[styles.send, { backgroundColor: draft.trim() ? colors.brass : colors.muted }]}
         >
-          <SendHorizontal
-            size={20}
-            color={draft.trim() ? colors.brassForeground : colors.mutedForeground}
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="Write a message…"
+            placeholderTextColor={colors.mutedForeground}
+            multiline
+            maxLength={4000}
+            accessibilityLabel="Message"
+            style={[
+              styles.input,
+              {
+                color: colors.foreground,
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
           />
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+            disabled={!draft.trim() || sending}
+            onPress={() => void send()}
+            style={[styles.send, { backgroundColor: draft.trim() ? colors.brass : colors.muted }]}
+          >
+            <SendHorizontal
+              size={20}
+              color={draft.trim() ? colors.brassForeground : colors.mutedForeground}
+            />
+          </Pressable>
+        </View>
       </View>
     </KeyboardLift>
   );

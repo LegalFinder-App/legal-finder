@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Users } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { padToColumns, useWideLayout, wideContent } from "@/lib/layout";
 import {
   ChipRow,
   EmptyState,
@@ -19,6 +20,7 @@ const ALL = "__all";
 
 export default function AdvocatesTab() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
   const [area, setArea] = useState<string>(ALL);
@@ -55,11 +57,17 @@ export default function AdvocatesTab() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
-        data={lawyers.isLoading || lawyers.isError ? [] : rows}
-        keyExtractor={(l) => l.id}
-        renderItem={({ item }) => <LawyerCard lawyer={item} />}
+        // Changing numColumns needs a fresh list, hence the key.
+        key={wide ? "grid" : "list"}
+        numColumns={wide ? 2 : 1}
+        columnWrapperStyle={wide ? { gap: 12 } : undefined}
+        data={lawyers.isLoading || lawyers.isError ? [] : padToColumns(rows, wide ? 2 : 1)}
+        keyExtractor={(l, index) => l?.id ?? `filler-${index}`}
+        renderItem={({ item }) =>
+          item ? <LawyerCard lawyer={item} fill={wide} /> : <View style={{ flex: 1 }} />
+        }
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, wide && wideContent]}
         keyboardShouldPersistTaps="handled"
         refreshing={lawyers.isRefetching}
         onRefresh={() => void lawyers.refetch()}
@@ -75,7 +83,6 @@ export default function AdvocatesTab() {
               autoCorrect={false}
               returnKeyType="search"
               accessibilityLabel="Search advocates by name"
-              style={{ paddingLeft: 0 }}
             />
             {areas.length > 0 ? (
               <ChipRow

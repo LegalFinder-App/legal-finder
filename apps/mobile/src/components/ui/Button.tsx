@@ -5,7 +5,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, radius } from "@/theme/tokens";
 import { Text } from "./Text";
 
-type Variant = "brass" | "primary" | "outline" | "ghost" | "destructive";
+type Variant = "brass" | "primary" | "outline" | "inkOutline" | "ghost" | "destructive";
 type Size = "sm" | "md" | "lg";
 
 export interface ButtonProps {
@@ -50,6 +50,12 @@ export function Button({
     brass: { bg: colors.brass, fg: colors.brassForeground, border: colors.brass },
     primary: { bg: colors.primary, fg: colors.primaryForeground, border: colors.primary },
     outline: { bg: "transparent", fg: colors.foreground, border: colors.border },
+    // For the ink hero, where the regular outline's dark text disappears into the navy.
+    inkOutline: {
+      bg: "transparent",
+      fg: colors.inkForeground,
+      border: "rgba(255,255,255,0.3)",
+    },
     ghost: { bg: "transparent", fg: colors.foreground, border: "transparent" },
     destructive: {
       bg: colors.destructive,

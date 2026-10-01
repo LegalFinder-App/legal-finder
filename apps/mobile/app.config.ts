@@ -46,6 +46,9 @@ const config: ExpoConfig = {
     ],
     predictiveBackGestureEnabled: false,
   },
+  // The desktop apps (Windows/macOS/Linux) package this web build inside an Electron shell —
+  // platforms/desktop. One index.html: the shell serves it for every route.
+  web: { bundler: "metro", output: "single" },
   plugins: [
     "expo-router",
     "@clerk/expo",

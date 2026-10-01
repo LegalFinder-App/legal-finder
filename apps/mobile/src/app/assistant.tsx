@@ -6,6 +6,7 @@ import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import { SendHorizontal, Sparkles } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideColumn } from "@/lib/layout";
 import { fonts } from "@/theme/tokens";
 import { Chip, EmptyState, KeyboardLift, Text } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
@@ -36,6 +37,7 @@ const SHORTCUTS: { path: string; label: string; href: string }[] = [
 function Assistant() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const wide = useWideLayout();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -75,115 +77,121 @@ function Assistant() {
 
   return (
     <KeyboardLift style={{ flex: 1, backgroundColor: colors.background }} gap={10}>
-      <FlatList
-        ref={listRef}
-        data={turns}
-        keyExtractor={(_, i) => String(i)}
-        contentContainerStyle={{ padding: 16, gap: 14, flexGrow: 1 }}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-        ListHeaderComponent={
-          <Text variant="caption" tone="muted" align="center" style={{ marginBottom: 6 }}>
-            General information only — not legal advice. For representation, book a verified
-            advocate.
-          </Text>
-        }
-        ListEmptyComponent={
-          <View style={{ gap: 16, marginTop: 12 }}>
-            <EmptyState
-              icon={<Sparkles size={22} color={colors.brass} />}
-              title="Ask anything about Ugandan law"
-              description="Get a plain-language answer and be pointed to the right advocate, office or guide."
-            />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {STARTERS.map((s) => (
-                <Chip key={s} label={s} onPress={() => void ask(s)} />
-              ))}
-            </View>
-          </View>
-        }
-        renderItem={({ item }) =>
-          item.role === "user" ? (
-            <View style={[styles.user, { backgroundColor: colors.brass }]}>
-              <Text style={{ color: colors.brassForeground }}>{item.content}</Text>
-            </View>
-          ) : (
-            <View
-              style={[
-                styles.assistant,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Markdown text={item.content} />
+      <View style={[{ flex: 1 }, wide && wideColumn]}>
+        <FlatList
+          ref={listRef}
+          data={turns}
+          keyExtractor={(_, i) => String(i)}
+          contentContainerStyle={{ padding: 16, gap: 14, flexGrow: 1 }}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          ListHeaderComponent={
+            <Text variant="caption" tone="muted" align="center" style={{ marginBottom: 6 }}>
+              General information only — not legal advice. For representation, book a verified
+              advocate.
+            </Text>
+          }
+          ListEmptyComponent={
+            <View style={{ gap: 16, marginTop: 12 }}>
+              <EmptyState
+                icon={<Sparkles size={22} color={colors.brass} />}
+                title="Ask anything about Ugandan law"
+                description="Get a plain-language answer and be pointed to the right advocate, office or guide."
+              />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {SHORTCUTS.filter((s) => item.content.includes(s.path)).map((s) => (
-                  <Chip key={s.path} label={s.label} onPress={() => router.push(s.href as never)} />
+                {STARTERS.map((s) => (
+                  <Chip key={s} label={s} onPress={() => void ask(s)} />
                 ))}
               </View>
             </View>
-          )
-        }
-        ListFooterComponent={
-          thinking ? (
-            <View
-              style={[
-                styles.assistant,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                },
-              ]}
-            >
-              <ActivityIndicator color={colors.brass} />
-              <Text tone="muted">Thinking…</Text>
-            </View>
-          ) : null
-        }
-      />
-      <View
-        style={[
-          styles.composer,
-          {
-            borderTopColor: colors.border,
-            backgroundColor: colors.card,
-            paddingBottom: Math.max(insets.bottom, 10),
-          },
-        ]}
-      >
-        <TextInput
-          value={draft}
-          onChangeText={setDraft}
-          placeholder="Ask a legal question…"
-          placeholderTextColor={colors.mutedForeground}
-          multiline
-          maxLength={4000}
-          accessibilityLabel="Question"
+          }
+          renderItem={({ item }) =>
+            item.role === "user" ? (
+              <View style={[styles.user, { backgroundColor: colors.brass }]}>
+                <Text style={{ color: colors.brassForeground }}>{item.content}</Text>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.assistant,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <Markdown text={item.content} />
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {SHORTCUTS.filter((s) => item.content.includes(s.path)).map((s) => (
+                    <Chip
+                      key={s.path}
+                      label={s.label}
+                      onPress={() => router.push(s.href as never)}
+                    />
+                  ))}
+                </View>
+              </View>
+            )
+          }
+          ListFooterComponent={
+            thinking ? (
+              <View
+                style={[
+                  styles.assistant,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                  },
+                ]}
+              >
+                <ActivityIndicator color={colors.brass} />
+                <Text tone="muted">Thinking…</Text>
+              </View>
+            ) : null
+          }
+        />
+        <View
           style={[
-            styles.input,
+            styles.composer,
             {
-              color: colors.foreground,
-              backgroundColor: colors.background,
-              borderColor: colors.border,
+              borderTopColor: colors.border,
+              backgroundColor: colors.card,
+              paddingBottom: Math.max(insets.bottom, 10),
             },
           ]}
-        />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ask"
-          disabled={!draft.trim() || thinking}
-          onPress={() => void ask(draft)}
-          style={[
-            styles.send,
-            { backgroundColor: draft.trim() && !thinking ? colors.brass : colors.muted },
-          ]}
         >
-          <SendHorizontal
-            size={20}
-            color={draft.trim() && !thinking ? colors.brassForeground : colors.mutedForeground}
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="Ask a legal question…"
+            placeholderTextColor={colors.mutedForeground}
+            multiline
+            maxLength={4000}
+            accessibilityLabel="Question"
+            style={[
+              styles.input,
+              {
+                color: colors.foreground,
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
           />
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ask"
+            disabled={!draft.trim() || thinking}
+            onPress={() => void ask(draft)}
+            style={[
+              styles.send,
+              { backgroundColor: draft.trim() && !thinking ? colors.brass : colors.muted },
+            ]}
+          >
+            <SendHorizontal
+              size={20}
+              color={draft.trim() && !thinking ? colors.brassForeground : colors.mutedForeground}
+            />
+          </Pressable>
+        </View>
       </View>
     </KeyboardLift>
   );

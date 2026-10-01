@@ -1,19 +1,17 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
-import * as WebBrowser from "expo-web-browser";
-import * as AuthSession from "expo-auth-session";
-import { useSSO } from "@clerk/expo";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 // Lucide v1 dropped brand logos, so the Apple/LinkedIn marks come from Expo's bundled icon fonts.
-import { AntDesign } from "@expo/vector-icons";
+// Imported by file so only this one font ships, not every icon set in the package.
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Button, Text } from "@/components/ui";
+import {
+  cancelSocialSignIn,
+  useSocialSignIn,
+  type SocialStrategy as Strategy,
+} from "@/lib/social-sign-in";
 import { errorMessage, toast } from "@/lib/toast";
-
-// Completes the in-app browser session when Clerk redirects back to legalfinder://sso-callback.
-WebBrowser.maybeCompleteAuthSession();
-
-type Strategy = "oauth_google" | "oauth_apple" | "oauth_linkedin_oidc";
 
 function GoogleMark() {
   return (
@@ -36,11 +34,8 @@ function GoogleMark() {
 }
 
 /**
- * Google / Apple / LinkedIn through Clerk's hosted OAuth in the system auth session
- * (ASWebAuthenticationSession / Custom Tabs). Google blocks its sign-in page inside embedded
- * WebViews, which is why this could never work in the old Capacitor wrapper.
- *
- * Calls onSecondFactor when the account has MFA enrolled — the caller shows the code step.
+ * Google / Apple / LinkedIn (see lib/social-sign-in). Calls onSecondFactor when the account has
+ * MFA enrolled — the caller shows the code step.
  */
 export function SocialButtons({
   onSecondFactor,
@@ -50,24 +45,16 @@ export function SocialButtons({
   onDone: () => void;
 }) {
   const { colors } = useTheme();
-  const { startSSOFlow } = useSSO();
+  const startSocialSignIn = useSocialSignIn();
   const [busy, setBusy] = useState<Strategy | null>(null);
 
   const start = async (strategy: Strategy) => {
     setBusy(strategy);
     try {
-      const redirectUrl = AuthSession.makeRedirectUri({
-        scheme: "legalfinder",
-        path: "sso-callback",
-      });
-      const { createdSessionId, setActive, signIn } = await startSSOFlow({ strategy, redirectUrl });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-        onDone();
-      } else if (signIn?.status === "needs_second_factor") {
-        onSecondFactor();
-      }
-      // Otherwise the user closed the browser sheet — nothing to report.
+      const result = await startSocialSignIn(strategy);
+      if (result === "signed-in") onDone();
+      else if (result === "needs-second-factor") onSecondFactor();
+      // "cancelled": the user closed the browser — nothing to report.
     } catch (error) {
       toast.error(errorMessage(error, "Sign-in didn't complete"));
     } finally {
@@ -111,6 +98,18 @@ export function SocialButtons({
         onPress={() => void start("oauth_linkedin_oidc")}
         fullWidth
       />
+      {busy && cancelSocialSignIn ? (
+        <View style={styles.waiting}>
+          <Text variant="small" tone="muted">
+            Finish signing in in your browser, then come back here.
+          </Text>
+          <Pressable accessibilityRole="button" onPress={cancelSocialSignIn} hitSlop={8}>
+            <Text variant="small" tone="brass">
+              Cancel
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -119,4 +118,5 @@ const styles = StyleSheet.create({
   wrap: { gap: 10 },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 6 },
   line: { flex: 1, height: StyleSheet.hairlineWidth },
+  waiting: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 },
 });

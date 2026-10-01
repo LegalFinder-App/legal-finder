@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { ChevronRight, Star } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, radius } from "@/theme/tokens";
+import { mediaUrl } from "@/lib/media";
 import { Text } from "./Text";
 
 export function Avatar({
@@ -24,10 +25,11 @@ export function Avatar({
       .map((part) => part[0]?.toUpperCase())
       .join("") || "LF";
 
-  if (uri) {
+  const source = mediaUrl(uri);
+  if (source) {
     return (
       <Image
-        source={{ uri }}
+        source={{ uri: source }}
         style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.muted }}
         contentFit="cover"
         transition={150}

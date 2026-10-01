@@ -18,6 +18,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { gradients } from "@/theme/tokens";
 import { Button, Card, LoadingRows, SectionTitle, Text } from "@/components/ui";
 import { Logo } from "@/components/Logo";
+import { useWideLayout } from "@/lib/layout";
 import { ScreenStatusBar } from "@/components/ScreenStatusBar";
 import { LawyerCard } from "@/components/LawyerCard";
 import { adviceListQuery, publicLawyersQuery, quotesQuery } from "@/lib/queries";
@@ -72,6 +73,7 @@ const PILLARS: Pillar[] = [
 export function DiscoverHome() {
   const { colors, scheme } = useTheme();
   const insets = useSafeAreaInsets();
+  const wide = useWideLayout();
   const lawyers = useQuery(publicLawyersQuery());
   const advice = useQuery(adviceListQuery);
   const quotes = useQuery(quotesQuery);
@@ -87,10 +89,11 @@ export function DiscoverHome() {
         colors={[...(scheme === "dark" ? gradients.inkDark : gradients.inkLight)]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.hero, { paddingTop: insets.top + 16 }]}
+        style={[styles.hero, wide ? styles.wideHero : { paddingTop: insets.top + 16 }]}
       >
-        <Logo onInk />
-        <Text variant="eyebrow" tone="brass" style={{ marginTop: 28 }}>
+        {/* The desktop sidebar already carries the logo. */}
+        {wide ? null : <Logo onInk />}
+        <Text variant="eyebrow" tone="brass" style={{ marginTop: wide ? 0 : 28 }}>
           Justice, within reach
         </Text>
         <Text variant="display" tone="inkForeground" style={{ marginTop: 8 }}>
@@ -110,14 +113,13 @@ export function DiscoverHome() {
           />
           <Button
             title="Sign in"
-            variant="outline"
+            variant="inkOutline"
             onPress={() => router.push("/(auth)/sign-in")}
-            style={{ borderColor: "rgba(255,255,255,0.25)" }}
           />
         </View>
       </LinearGradient>
 
-      <View style={styles.section}>
+      <View style={[styles.section, wide && styles.wideSection]}>
         <Text variant="eyebrow" tone="brass">
           What you can do
         </Text>
@@ -133,6 +135,7 @@ export function DiscoverHome() {
               onPress={() => router.push(href as never)}
               style={({ pressed }) => [
                 styles.pillar,
+                wide && styles.widePillar,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
@@ -152,7 +155,7 @@ export function DiscoverHome() {
         </View>
       </View>
 
-      <View style={styles.section}>
+      <View style={[styles.section, wide && styles.wideSection]}>
         <SectionTitle
           title="Advocates accepting clients"
           action={
@@ -178,7 +181,7 @@ export function DiscoverHome() {
         )}
       </View>
 
-      <View style={styles.section}>
+      <View style={[styles.section, wide && styles.wideSection]}>
         <SectionTitle
           title="Plain-language guides"
           action={
@@ -211,7 +214,14 @@ export function DiscoverHome() {
       </View>
 
       {quote ? (
-        <View style={[styles.section, styles.quote, { borderLeftColor: colors.brass }]}>
+        <View
+          style={[
+            styles.section,
+            styles.quote,
+            wide && styles.wideQuote,
+            { borderLeftColor: colors.brass },
+          ]}
+        >
           <Text variant="h3" style={{ fontStyle: "italic" }}>
             “{quote.text}”
           </Text>
@@ -239,4 +249,9 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   quote: { borderLeftWidth: 3, paddingLeft: 16, marginHorizontal: 20, paddingHorizontal: 0 },
+  // Wide desktop window: sections keep a comfortable measure instead of running edge to edge.
+  wideHero: { paddingHorizontal: 48, paddingTop: 56, paddingBottom: 56 },
+  wideSection: { paddingHorizontal: 48, maxWidth: 1120 },
+  widePillar: { width: "31%" },
+  wideQuote: { marginHorizontal: 48, maxWidth: 1024 },
 });

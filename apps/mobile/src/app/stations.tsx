@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Mail, MapPin, Navigation, Phone } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import {
   Button,
   Card,
@@ -27,6 +28,7 @@ function directionsUrl(lat: number, lng: number, label: string) {
 
 export default function StationsScreen() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const stations = useQuery(stationsQuery);
   const [q, setQ] = useState("");
   const [district, setDistrict] = useState(ALL);
@@ -49,7 +51,7 @@ export default function StationsScreen() {
       <Stack.Screen options={{ title: "Police stations" }} />
       <FlatList
         style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+        contentContainerStyle={[{ padding: 20, paddingBottom: 48 }, wide && wideContent]}
         data={stations.isLoading || stations.isError ? [] : rows}
         keyExtractor={(s) => s.id}
         keyboardShouldPersistTaps="handled"

@@ -1,42 +1,14 @@
 import { useState } from "react";
 import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { Calendar, Check, ChevronDown } from "lucide-react-native";
+import { Check, ChevronDown } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/theme/ThemeProvider";
-import { fonts, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { FieldBox, FieldLabel } from "./FieldParts";
 import { Text } from "./Text";
 import { Sheet } from "./Sheet";
 
-function FieldLabel({ label }: { label: string }) {
-  return (
-    <Text variant="small" style={{ fontFamily: fonts.sansMedium, marginBottom: 6 }}>
-      {label}
-    </Text>
-  );
-}
-
-function FieldBox({
-  onPress,
-  children,
-  accessibilityLabel,
-}: {
-  onPress: () => void;
-  children: React.ReactNode;
-  accessibilityLabel: string;
-}) {
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      onPress={onPress}
-      style={[styles.box, { borderColor: colors.input, backgroundColor: colors.card }]}
-    >
-      {children}
-    </Pressable>
-  );
-}
+export { DateTimeField } from "./DateTimeField";
 
 export function SelectField<T extends string>({
   label,
@@ -98,105 +70,9 @@ export function SelectField<T extends string>({
   );
 }
 
-/** Date or date+time picker. Android shows the date then the time dialog in sequence. */
-export function DateTimeField({
-  label,
-  value,
-  onChange,
-  mode = "datetime",
-  minimumDate,
-}: {
-  label: string;
-  value: Date | null;
-  onChange: (value: Date) => void;
-  mode?: "date" | "datetime";
-  minimumDate?: Date;
-}) {
-  const { colors, scheme } = useTheme();
-  const [step, setStep] = useState<"closed" | "date" | "time">("closed");
-  const [draft, setDraft] = useState<Date>(value ?? new Date());
-
-  const display = value
-    ? mode === "date"
-      ? value.toLocaleDateString(undefined, { dateStyle: "medium" })
-      : value.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
-    : "Choose…";
-
-  const handle = (event: DateTimePickerEvent, picked?: Date) => {
-    if (event.type === "dismissed" || !picked) {
-      setStep("closed");
-      return;
-    }
-    if (Platform.OS === "android") {
-      if (step === "date" && mode === "datetime") {
-        setDraft(picked);
-        setStep("time");
-        return;
-      }
-      const merged =
-        step === "time"
-          ? new Date(
-              draft.getFullYear(),
-              draft.getMonth(),
-              draft.getDate(),
-              picked.getHours(),
-              picked.getMinutes(),
-            )
-          : picked;
-      setStep("closed");
-      onChange(merged);
-      return;
-    }
-    setDraft(picked);
-  };
-
-  return (
-    <View>
-      <FieldLabel label={label} />
-      <FieldBox onPress={() => setStep("date")} accessibilityLabel={`${label}: ${display}`}>
-        <Calendar size={16} color={colors.mutedForeground} />
-        <Text style={{ flex: 1, color: value ? colors.foreground : colors.mutedForeground }}>
-          {display}
-        </Text>
-      </FieldBox>
-
-      {Platform.OS === "android" && step !== "closed" ? (
-        <DateTimePicker
-          value={draft}
-          mode={step === "time" ? "time" : "date"}
-          minimumDate={step === "date" ? minimumDate : undefined}
-          onChange={handle}
-        />
-      ) : null}
-
-      {Platform.OS === "ios" ? (
-        <Sheet visible={step !== "closed"} onClose={() => setStep("closed")} title={label}>
-          <DateTimePicker
-            value={draft}
-            mode={mode}
-            display="inline"
-            minimumDate={minimumDate}
-            themeVariant={scheme}
-            accentColor={colors.brass}
-            onChange={handle}
-          />
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              onChange(draft);
-              setStep("closed");
-            }}
-            style={[styles.done, { backgroundColor: colors.brass }]}
-          >
-            <Text style={{ color: colors.brassForeground, fontFamily: fonts.sansSemiBold }}>
-              Done
-            </Text>
-          </Pressable>
-        </Sheet>
-      ) : null}
-    </View>
-  );
-}
+// react-native-web's Switch paints the "on" thumb teal unless given its own (web-only) props.
+const webSwitchProps: object | null =
+  Platform.OS === "web" ? { activeThumbColor: "#ffffff", thumbColor: "#ffffff" } : null;
 
 export function SwitchField({
   label,
@@ -229,21 +105,13 @@ export function SwitchField({
         }}
         trackColor={{ true: colors.brass, false: colors.border }}
         thumbColor={Platform.OS === "android" ? colors.card : undefined}
+        {...webSwitchProps}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  box: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    minHeight: 48,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
   option: {
     borderWidth: 1,
     borderRadius: radius.lg,
@@ -251,6 +119,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  done: { height: 48, borderRadius: radius.lg, alignItems: "center", justifyContent: "center" },
   switchRow: { flexDirection: "row", alignItems: "center", gap: 12 },
 });

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, CreditCard, ShieldAlert, Users } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -189,7 +190,7 @@ function UsersAndRoles() {
       qc.invalidateQueries({ queryKey: ["roles", userId] });
     };
     if (role === "admin" && !has) {
-      Alert.alert(
+      showAlert(
         "Grant administrator access?",
         "Administrators can see and change everything on the platform.",
         [

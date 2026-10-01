@@ -6,7 +6,16 @@ import { Avatar, Card, Stars, Tag, Text } from "@/components/ui";
 import { formatUGX } from "@/lib/format";
 import type { Lawyer } from "@/lib/queries";
 
-export function LawyerCard({ lawyer, compact = false }: { lawyer: Lawyer; compact?: boolean }) {
+export function LawyerCard({
+  lawyer,
+  compact = false,
+  fill = false,
+}: {
+  lawyer: Lawyer;
+  compact?: boolean;
+  /** Stretch to the grid cell (equal-height cards in a multi-column list). */
+  fill?: boolean;
+}) {
   const { colors } = useTheme();
   const location = [lawyer.city, lawyer.county].filter(Boolean).join(", ");
 
@@ -14,7 +23,7 @@ export function LawyerCard({ lawyer, compact = false }: { lawyer: Lawyer; compac
     <Card
       onPress={() => router.push(`/lawyers/${lawyer.id}`)}
       accessibilityLabel={`${lawyer.full_name}, ${lawyer.headline ?? "advocate"}`}
-      style={compact ? { width: 260 } : undefined}
+      style={compact ? { width: 260 } : fill ? { flex: 1 } : undefined}
     >
       <View style={styles.top}>
         <Avatar name={lawyer.full_name} uri={lawyer.photo_url} size={52} />

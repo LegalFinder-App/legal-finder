@@ -3,6 +3,7 @@ import { Stack, router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import { Button, EmptyState, ErrorState, LoadingRows } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { NotificationItem } from "@/features/shared/Items";
@@ -22,6 +23,7 @@ function routeFor(link: string | null): string | null {
 
 function Notifications() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const { user } = useSession();
   const qc = useQueryClient();
   const notes = useQuery(notificationsQuery(user?.id));
@@ -43,7 +45,7 @@ function Notifications() {
   return (
     <FlatList
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+      contentContainerStyle={[{ padding: 20, paddingBottom: 48 }, wide && wideContent]}
       data={notes.isLoading || notes.isError ? [] : (notes.data ?? [])}
       keyExtractor={(n) => n.id}
       refreshing={notes.isRefetching}

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ActionSheetIOS, Alert, Platform, View } from "react-native";
+import { ActionSheetIOS, Platform, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileText, Upload } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -53,7 +54,7 @@ export function DocumentList({
         },
       );
     } else {
-      Alert.alert(doc.name, undefined, [
+      showAlert(doc.name, undefined, [
         { text: "Open", onPress: () => void run(openDocument) },
         { text: "Share or save", onPress: () => void run(shareDocument) },
         { text: "Cancel", style: "cancel" },

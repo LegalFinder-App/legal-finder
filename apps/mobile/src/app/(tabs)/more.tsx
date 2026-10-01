@@ -1,6 +1,5 @@
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { useClerk } from "@clerk/expo";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
@@ -24,8 +23,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { Avatar, Button, Card, Divider, ListRow, Screen, Text } from "@/components/ui";
 import { ROLE_LABELS, useSession } from "@/lib/session";
 import { appSettingsQuery } from "@/lib/queries";
-import { queryClient } from "@/lib/query-client";
-import { unregisterPushDevice } from "@/lib/push";
+import { useSignOut } from "@/lib/sign-out";
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -42,26 +40,11 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 export default function MoreTab() {
   const { colors } = useTheme();
-  const clerk = useClerk();
   const { user, isSignedIn, roles, primaryRole } = useSession();
   const settings = useQuery(appSettingsQuery);
   const icon = (I: typeof Bell) => <I size={18} color={colors.brass} />;
 
-  const signOut = () =>
-    Alert.alert("Sign out?", "You'll need to sign in again to see your matters and messages.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign out",
-        style: "destructive",
-        onPress: async () => {
-          await unregisterPushDevice();
-          await clerk.signOut();
-          // Private data must not outlive the session on a shared phone.
-          queryClient.clear();
-          router.replace("/(tabs)");
-        },
-      },
-    ]);
+  const signOut = useSignOut();
 
   return (
     <Screen>

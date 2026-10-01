@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showAlert } from "@/lib/alert";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
 import { uploadImage } from "@/lib/images";
+import { mediaUrl } from "@/lib/media";
 import { errorMessage, toast } from "@/lib/toast";
 import type { ContentConfig, ContentField } from "./configs";
 
@@ -90,7 +92,7 @@ function ImageField({
       </Text>
       {value ? (
         <Image
-          source={{ uri: value }}
+          source={{ uri: mediaUrl(value) ?? undefined }}
           style={{ width: "100%", aspectRatio: 16 / 9, borderRadius: 10 }}
           contentFit="cover"
         />
@@ -212,7 +214,7 @@ export function ContentManager({ config }: { config: ContentConfig }) {
   };
 
   const remove = (row: RowData) =>
-    Alert.alert("Delete this entry?", config.titleOf(row), [
+    showAlert("Delete this entry?", config.titleOf(row), [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",

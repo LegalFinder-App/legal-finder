@@ -4,6 +4,7 @@ import { Stack, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import { Button, EmptyState, ErrorState, LoadingRows, Segmented, Text } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { AppointmentItem } from "@/features/shared/Items";
@@ -13,6 +14,7 @@ import { appointmentsQuery } from "@/lib/queries";
 
 function Appointments() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const { user, primaryRole } = useSession();
   const appts = useQuery(appointmentsQuery(user?.id));
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
@@ -39,7 +41,7 @@ function Appointments() {
   return (
     <SectionList
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+      contentContainerStyle={[{ padding: 20, paddingBottom: 48 }, wide && wideContent]}
       sections={appts.isLoading || appts.isError ? [] : sections}
       keyExtractor={(a) => a.id}
       stickySectionHeadersEnabled={false}

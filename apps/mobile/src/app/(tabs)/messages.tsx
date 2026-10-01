@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { MessageSquare } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import { Avatar, Card, EmptyState, ErrorState, LoadingRows, Text } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useSession } from "@/lib/session";
@@ -11,6 +12,7 @@ import { formatRelative } from "@/lib/format";
 
 function ConversationList() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const { user } = useSession();
   const conversations = useQuery(conversationsQuery(user?.id));
 
@@ -19,7 +21,7 @@ function ConversationList() {
       style={{ backgroundColor: colors.background }}
       data={conversations.data ?? []}
       keyExtractor={(c) => c.id}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, wide && wideContent]}
       refreshing={conversations.isRefetching}
       onRefresh={() => void conversations.refetch()}
       ItemSeparatorComponent={() => <View style={{ height: 10 }} />}

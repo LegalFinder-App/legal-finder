@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookOpen, Home, Menu, MessageSquare, Scale } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts } from "@/theme/tokens";
+import { useWideLayout } from "@/lib/layout";
 import { useUnreadCount } from "@/lib/realtime";
 
 export default function TabsLayout() {
@@ -12,6 +13,8 @@ export default function TabsLayout() {
   // nav is ~48dp); a fixed padding put the tab labels underneath it.
   const insets = useSafeAreaInsets();
   const bottom = Math.max(insets.bottom, 10);
+  // On a wide desktop window the sidebar (DesktopShell) is the navigation.
+  const wide = useWideLayout();
 
   return (
     <Tabs
@@ -23,13 +26,15 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.brass,
         tabBarInactiveTintColor: colors.mutedForeground,
         tabBarLabelStyle: { fontFamily: fonts.sansMedium, fontSize: 11 },
-        tabBarStyle: {
-          backgroundColor: colors.card,
-          borderTopColor: colors.border,
-          height: 58 + bottom,
-          paddingTop: 6,
-          paddingBottom: bottom,
-        },
+        tabBarStyle: wide
+          ? { display: "none" }
+          : {
+              backgroundColor: colors.card,
+              borderTopColor: colors.border,
+              height: 58 + bottom,
+              paddingTop: 6,
+              paddingBottom: bottom,
+            },
       }}
     >
       <Tabs.Screen

@@ -1,7 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
 import * as WebBrowser from "expo-web-browser";
-import * as Sharing from "expo-sharing";
-import { File, Paths } from "expo-file-system";
+import { readFileBytes, saveOrShareFile } from "./files";
 import { supabase } from "./supabase";
 import type { DocumentRow } from "./queries";
 
@@ -25,7 +24,7 @@ export async function pickAndUploadDocument(
   const asset = picked.assets[0];
   if (asset.size && asset.size > MAX_BYTES) throw new Error("That file is larger than 25 MB.");
 
-  const bytes = await new File(asset.uri).arrayBuffer();
+  const bytes = await readFileBytes(asset.uri);
   const safeName = asset.name.replace(/[^\w.-]+/g, "_");
   const storagePath = `${userId}/${Date.now()}-${safeName}`;
 
@@ -70,12 +69,5 @@ export async function openDocument(doc: DocumentRow) {
 }
 
 export async function shareDocument(doc: DocumentRow) {
-  if (!(await Sharing.isAvailableAsync())) return openDocument(doc);
-  const target = new File(Paths.cache, doc.name.replace(/[^\w.-]+/g, "_"));
-  if (target.exists) target.delete();
-  const downloaded = await File.downloadFileAsync(await signedUrl(doc), target);
-  await Sharing.shareAsync(downloaded.uri, {
-    mimeType: doc.mime_type ?? undefined,
-    dialogTitle: doc.name,
-  });
+  await saveOrShareFile(await signedUrl(doc), doc.name, doc.mime_type);
 }

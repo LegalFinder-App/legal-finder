@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollText } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import { ChipRow, EmptyState, ErrorState, LoadingRows, Text } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { MatterItem } from "@/features/shared/Items";
@@ -14,6 +15,7 @@ type Filter = "all" | "open" | "hearing" | "closed";
 
 function Cases() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const { user } = useSession();
   const cases = useQuery(myCasesQuery(user?.id));
   const [filter, setFilter] = useState<Filter>("all");
@@ -22,7 +24,7 @@ function Cases() {
   return (
     <FlatList
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+      contentContainerStyle={[{ padding: 20, paddingBottom: 48 }, wide && wideContent]}
       data={cases.isLoading || cases.isError ? [] : rows}
       keyExtractor={(c) => c.id}
       refreshing={cases.isRefetching}

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/expo";
+import { useAuth } from "./auth";
 import { supabase } from "./supabase";
 import { toast } from "./toast";
 

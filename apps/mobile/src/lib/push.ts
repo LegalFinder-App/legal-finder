@@ -3,9 +3,9 @@ import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
-import { useAuth } from "@clerk/expo";
+import { useAuth } from "./auth";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "./secure-store";
 import { api } from "./api";
 
 const TOKEN_KEY = "lf.push-token";

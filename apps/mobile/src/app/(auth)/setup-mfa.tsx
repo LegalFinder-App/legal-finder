@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Linking, Pressable, Share, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Linking, Platform, Pressable, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { useClerk } from "@clerk/expo";
+import { useClerk } from "@/lib/auth";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import { Copy, ExternalLink, ShieldCheck } from "lucide-react-native";
@@ -9,6 +9,7 @@ import { Button, Card, Input, Text } from "@/components/ui";
 import { AuthScaffold } from "@/components/auth/AuthScaffold";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts } from "@/theme/tokens";
+import { shareText } from "@/lib/share";
 import { errorMessage, toast } from "@/lib/toast";
 
 type Step = "intro" | "enroll" | "backup";
@@ -26,11 +27,15 @@ export default function SetupMfaScreen() {
   const [code, setCode] = useState("");
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  // Verifying the code here is what makes the session active — Clerk reports that before the
+  // backup codes have even been fetched, so it must not count as "already active elsewhere".
+  const verifiedHere = useRef(false);
 
   // If the session is already active (e.g. MFA finished on another device), there's nothing to do.
   useEffect(() => {
     const leaveIfActive = () => {
-      if (clerk.session?.status === "active" && step !== "backup") router.replace("/(tabs)");
+      if (clerk.session?.status === "active" && step !== "backup" && !verifiedHere.current)
+        router.replace("/(tabs)");
     };
     leaveIfActive();
     return clerk.addListener(leaveIfActive);
@@ -55,6 +60,7 @@ export default function SetupMfaScreen() {
   const verify = async () => {
     if (!clerk.user) return;
     setBusy(true);
+    verifiedHere.current = true;
     try {
       await clerk.user.verifyTOTP({ code: code.trim() });
       const backup = await clerk.user.createBackupCode().catch(() => null);
@@ -62,6 +68,7 @@ export default function SetupMfaScreen() {
       setStep("backup");
       toast.success("Two-step verification is on");
     } catch (error) {
+      verifiedHere.current = false;
       toast.error(errorMessage(error, "That code didn't work — try the latest one"));
     } finally {
       setBusy(false);
@@ -122,20 +129,29 @@ export default function SetupMfaScreen() {
   if (step === "enroll" && totp) {
     return (
       <AuthScaffold dismissible={false} title="Add LegalFinder to your authenticator">
-        <Button
-          title="Open authenticator app"
-          variant="primary"
-          icon={<ExternalLink size={16} color={colors.primaryForeground} />}
-          onPress={() =>
-            Linking.openURL(totp.uri).catch(() =>
-              toast.error("No authenticator app found on this phone."),
-            )
-          }
-          fullWidth
-        />
-        <Text variant="small" tone="muted" align="center">
-          Or scan this code from another device:
-        </Text>
+        {/* A computer has no authenticator app to hand the key to — there the QR code is the way in. */}
+        {Platform.OS === "web" ? (
+          <Text variant="small" tone="muted" align="center">
+            Scan this code with the authenticator app on your phone:
+          </Text>
+        ) : (
+          <>
+            <Button
+              title="Open authenticator app"
+              variant="primary"
+              icon={<ExternalLink size={16} color={colors.primaryForeground} />}
+              onPress={() =>
+                Linking.openURL(totp.uri).catch(() =>
+                  toast.error("No authenticator app found on this phone."),
+                )
+              }
+              fullWidth
+            />
+            <Text variant="small" tone="muted" align="center">
+              Or scan this code from another device:
+            </Text>
+          </>
+        )}
         <View style={[styles.qr, { backgroundColor: "#ffffff" }]}>
           <QRCode value={totp.uri} size={180} />
         </View>
@@ -200,9 +216,10 @@ export default function SetupMfaScreen() {
             title="Share or save codes"
             variant="outline"
             onPress={() =>
-              void Share.share({
-                message: `LegalFinder backup codes:\n\n${backupCodes.join("\n")}`,
-              })
+              void shareText(
+                `LegalFinder backup codes:\n\n${backupCodes.join("\n")}`,
+                "Your backup codes",
+              )
             }
             fullWidth
           />

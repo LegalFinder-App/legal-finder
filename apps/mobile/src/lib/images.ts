@@ -1,5 +1,6 @@
 import type { ImagePickerAsset } from "expo-image-picker";
 import { api } from "./api";
+import { formFile } from "./files";
 import { supabase } from "./supabase";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -25,8 +26,7 @@ export async function uploadImage(
   const auth = await api.imageUploadAuth(extension, purpose);
 
   const form = new FormData();
-  // React Native's FormData accepts a { uri, name, type } file descriptor.
-  form.append("file", { uri: asset.uri, name: auth.fileName, type: mime } as unknown as Blob);
+  form.append("file", await formFile(asset.uri, auth.fileName, mime));
   form.append("fileName", auth.fileName);
   form.append("folder", auth.folder);
   form.append("token", auth.token);

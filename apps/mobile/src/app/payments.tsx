@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreditCard } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import {
   Button,
   Card,
@@ -22,6 +23,7 @@ import { errorMessage, toast } from "@/lib/toast";
 
 function Payments() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const { user } = useSession();
   const qc = useQueryClient();
   const payments = useQuery(paymentsQuery);
@@ -48,7 +50,7 @@ function Payments() {
   return (
     <FlatList
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+      contentContainerStyle={[{ padding: 20, paddingBottom: 48 }, wide && wideContent]}
       data={payments.isLoading || payments.isError ? [] : (payments.data ?? [])}
       keyExtractor={(p) => p.id}
       refreshing={payments.isRefetching}

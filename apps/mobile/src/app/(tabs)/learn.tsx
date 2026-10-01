@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, ExternalLink, FileDown, Gavel, Library, Newspaper } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import {
   Button,
   Card,
@@ -50,6 +51,7 @@ const INTRO: Record<Section, string> = {
 
 export default function LearnTab() {
   const { colors } = useTheme();
+  const wide = useWideLayout();
   const params = useLocalSearchParams<{ section?: string }>();
   const fromParams = SECTIONS.find((s) => s.value === params.section)?.value;
   const [section, setSection] = useState<Section>(fromParams ?? "guides");
@@ -121,7 +123,7 @@ export default function LearnTab() {
   return (
     <FlatList
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, wide && wideContent]}
       data={active.isLoading || active.isError ? [] : filtered}
       keyExtractor={(i) => i.id}
       keyboardShouldPersistTaps="handled"

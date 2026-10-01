@@ -1,4 +1,4 @@
-import { Share, View } from "react-native";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { Image } from "expo-image";
 import { Share2 } from "lucide-react-native";
@@ -6,6 +6,8 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { Button, EmptyState, ErrorState, LoadingRows, Screen, Tag, Text } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
 import { env } from "@/lib/env";
+import { mediaUrl } from "@/lib/media";
+import { shareText } from "@/lib/share";
 
 type ArticleData = {
   title: string;
@@ -71,14 +73,16 @@ export function Article({
               size="sm"
               accessibilityLabel="Share article"
               icon={<Share2 size={18} color={colors.foreground} />}
-              onPress={() => void Share.share({ message: `${a.title} — ${env.apiUrl}${webPath}` })}
+              onPress={() =>
+                void shareText(`${a.title} — ${env.apiUrl}${webPath}`, "Share this article")
+              }
             />
           ),
         }}
       />
       {a.image_url ? (
         <Image
-          source={{ uri: a.image_url }}
+          source={{ uri: mediaUrl(a.image_url) ?? undefined }}
           style={{ width: "100%", aspectRatio: 16 / 9, borderRadius: 12 }}
           contentFit="cover"
           transition={200}

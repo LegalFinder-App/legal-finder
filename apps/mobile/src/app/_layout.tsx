@@ -5,29 +5,33 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { ClerkProvider, useAuth, useClerk } from "@clerk/expo";
-import { tokenCache } from "@clerk/expo/token-cache";
+import { AlertHost } from "@/lib/alert";
+import { AuthProvider, useAuth, useClerk } from "@/lib/auth";
 import { focusManager, onlineManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import NetInfo from "@react-native-community/netinfo";
 import { AppState, Platform } from "react-native";
 import { Toaster } from "sonner-native";
-import { useFonts, Fraunces_600SemiBold, Fraunces_700Bold } from "@expo-google-fonts/fraunces";
-import {
-  PublicSans_400Regular,
-  PublicSans_500Medium,
-  PublicSans_600SemiBold,
-  PublicSans_700Bold,
-} from "@expo-google-fonts/public-sans";
-import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono";
+import { useFonts } from "expo-font";
+// One file per weight, by path: importing from a font package's index would bundle every weight
+// and italic it ships (dozens of unused font files in the app).
+import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
+import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
+import { PublicSans_400Regular } from "@expo-google-fonts/public-sans/400Regular";
+import { PublicSans_500Medium } from "@expo-google-fonts/public-sans/500Medium";
+import { PublicSans_600SemiBold } from "@expo-google-fonts/public-sans/600SemiBold";
+import { PublicSans_700Bold } from "@expo-google-fonts/public-sans/700Bold";
+import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Medium";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
-import { env } from "@/lib/env";
 import { persister, queryClient, shouldPersistQuery } from "@/lib/query-client";
 import { registerTokenGetter } from "@/lib/auth-token";
+import { useDesktopDeepLinks } from "@/lib/desktop-links";
+import "@/lib/desktop-styles";
 import { api } from "@/lib/api";
 import { usePushRegistration } from "@/lib/push";
 import { useRealtimeSync } from "@/lib/realtime";
 import { BiometricGate } from "@/components/BiometricGate";
+import { DesktopShell } from "@/components/DesktopShell";
 
 // Expo Router wraps the whole app in this; without it a render error closes a release build.
 export { RootErrorBoundary as ErrorBoundary } from "@/components/RootErrorBoundary";
@@ -68,6 +72,7 @@ function AuthBridge() {
 
   usePushRegistration();
   useRealtimeSync();
+  useDesktopDeepLinks();
   return null;
 }
 
@@ -127,20 +132,23 @@ function RootNavigator() {
       <AuthBridge />
       <SessionTaskRouter />
       <BiometricGate>
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.background },
-            headerTintColor: colors.foreground,
-            headerTitleStyle: { fontFamily: "Fraunces_600SemiBold", fontSize: 18 },
-            headerShadowVisible: false,
-            headerBackButtonDisplayMode: "minimal",
-            contentStyle: { backgroundColor: colors.background },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
-        </Stack>
+        <DesktopShell>
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.foreground,
+              headerTitleStyle: { fontFamily: "Fraunces_600SemiBold", fontSize: 18 },
+              headerShadowVisible: false,
+              headerBackButtonDisplayMode: "minimal",
+              contentStyle: { backgroundColor: colors.background },
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
+          </Stack>
+        </DesktopShell>
       </BiometricGate>
+      <AlertHost />
       <Toaster
         position="top-center"
         theme={scheme}
@@ -158,7 +166,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <SafeAreaProvider>
-          <ClerkProvider publishableKey={env.clerkPublishableKey} tokenCache={tokenCache}>
+          <AuthProvider>
             <PersistQueryClientProvider
               client={queryClient}
               persistOptions={{
@@ -171,7 +179,7 @@ export default function RootLayout() {
                 <RootNavigator />
               </ThemeProvider>
             </PersistQueryClientProvider>
-          </ClerkProvider>
+          </AuthProvider>
         </SafeAreaProvider>
       </KeyboardProvider>
     </GestureHandlerRootView>

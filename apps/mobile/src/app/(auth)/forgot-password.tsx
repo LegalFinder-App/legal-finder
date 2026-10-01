@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable } from "react-native";
 import { router } from "expo-router";
-import { useSignIn } from "@clerk/expo";
+import { useSignIn } from "@/lib/auth";
 import { Button, Input, Text } from "@/components/ui";
 import { AuthScaffold } from "@/components/auth/AuthScaffold";
 import { errorMessage, toast } from "@/lib/toast";

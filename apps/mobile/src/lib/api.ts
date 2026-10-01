@@ -1,5 +1,6 @@
 import { env } from "./env";
 import { getAuthToken } from "./auth-token";
+import { bridgedFetch } from "./bridged-fetch";
 
 export class ApiError extends Error {
   constructor(
@@ -14,6 +15,7 @@ export class ApiError extends Error {
  * Calls the web app's /api/mobile/* endpoints — the native counterparts of its server functions
  * (payments, AI assistant, uploads, account deletion). The Clerk session token goes in the
  * Authorization header; the server verifies it the same way it verifies a browser session.
+ * (bridgedFetch is plain fetch on phones; the desktop app routes it through its shell.)
  */
 export async function apiPost<T>(path: string, body: unknown = {}): Promise<T> {
   const token = await getAuthToken();
@@ -21,7 +23,7 @@ export async function apiPost<T>(path: string, body: unknown = {}): Promise<T> {
 
   let response: Response;
   try {
-    response = await fetch(`${env.apiUrl}${path}`, {
+    response = await bridgedFetch(`${env.apiUrl}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

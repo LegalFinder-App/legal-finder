@@ -3,6 +3,7 @@ import { RefreshControl, StyleSheet, View, type ViewStyle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/ThemeProvider";
+import { useWideLayout, wideContent } from "@/lib/layout";
 import { Text } from "./Text";
 
 interface ScreenProps {
@@ -26,13 +27,14 @@ export function Screen({
   footer,
 }: ScreenProps) {
   const { colors } = useTheme();
+  const wide = useWideLayout();
 
   // Keyboard-aware on every screen: Android is edge-to-edge, so the OS no longer resizes the
   // window for the keyboard, and a focused field low on the page would otherwise sit behind it.
   const body = scroll ? (
     <KeyboardAwareScrollView
       bottomOffset={24}
-      contentContainerStyle={[styles.content, contentStyle]}
+      contentContainerStyle={[styles.content, wide && wideContent, contentStyle]}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       refreshControl={
