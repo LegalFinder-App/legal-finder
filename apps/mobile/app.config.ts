@@ -87,6 +87,7 @@ const config: ExpoConfig = {
     "@react-native-community/datetimepicker",
     "./plugins/withReleaseSigning",
     "./plugins/withShortNativeBuildPaths",
+    "./plugins/withOptionalGoogleServices",
   ],
   experiments: { typedRoutes: true },
   extra: {

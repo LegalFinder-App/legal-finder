@@ -25,7 +25,7 @@ import { Avatar, Button, Card, Divider, ListRow, Screen, Text } from "@/componen
 import { ROLE_LABELS, useSession } from "@/lib/session";
 import { appSettingsQuery } from "@/lib/queries";
 import { queryClient } from "@/lib/query-client";
-import { disablePushNotifications } from "@/lib/push";
+import { unregisterPushDevice } from "@/lib/push";
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -54,7 +54,7 @@ export default function MoreTab() {
         text: "Sign out",
         style: "destructive",
         onPress: async () => {
-          await disablePushNotifications();
+          await unregisterPushDevice();
           await clerk.signOut();
           // Private data must not outlive the session on a shared phone.
           queryClient.clear();

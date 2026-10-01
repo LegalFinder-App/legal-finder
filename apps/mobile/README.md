@@ -68,15 +68,33 @@ Release builds are signed by `plugins/withReleaseSigning.js` with the upload key
 ### iOS / cloud builds
 
 Use EAS (no Mac needed): `npx eas-cli@latest init`, then `eas build -p ios` / `eas submit`.
-Put the EAS project id in `EAS_PROJECT_ID` (it also enables push notifications).
+Put the EAS project id in `EAS_PROJECT_ID` (it is also one of the things push needs — below).
+
+### Push notifications (optional)
+
+Until steps 1 and 2 are done the app hides its push controls (`pushAvailable()` in
+`src/lib/push.ts`); the in-app notifications list keeps working. Steps 1–3 are build-time settings,
+so rebuild (`expo prebuild --clean`, then the release build) after changing any of them.
+
+1. **Expo project** — `npx eas-cli@latest init` in `apps/mobile`, then set `EAS_PROJECT_ID` in
+   `.env`. Expo push tokens are issued per project.
+2. **Android (FCM)** — in the Firebase console create a project, add an Android app with the
+   package `com.legalfinder.app`, and save its `google-services.json` in `apps/mobile/`
+   (`plugins/withOptionalGoogleServices.js` picks it up; it holds no secret keys, so it can be
+   committed).
+   Then upload that Firebase project's **FCM V1 service account key** to Expo: expo.dev → the
+   project → Credentials → Android, or `npx eas-cli@latest credentials`.
+3. **iOS (APNs)** — `eas build -p ios` / `eas credentials` creates and stores the APNs key.
+4. **Database** — apply `supabase/migrations/20260930120000_mobile_push_notifications.sql`
+   (`npm run db:migrate` from the repo root). It stores device tokens and forwards each new
+   notification and message to Expo's push service.
 
 ## One-time dashboard configuration
 
 - **Clerk → Native applications**: enable the Native API, and add `legalfinder://sso-callback`
   to the allowed redirect URLs (needed for Google/Apple/LinkedIn sign-in in the app).
 - **Clerk → Social connections**: production credentials for Google/Apple/LinkedIn (same as web).
-- **Database**: apply `supabase/migrations/20260930120000_mobile_push_notifications.sql`
-  (`npm run db:migrate` from the repo root) — push notifications need it.
+- **Push notifications**: see "Push notifications" above (Expo project, Firebase, migration).
 
 ## Structure
 
@@ -86,7 +104,8 @@ src/features/     screen building blocks (home, workspaces per role, admin, cont
 src/components/   design system (ui/) + shared components
 src/lib/          supabase, api, queries, session/roles, push, payments, documents, realtime
 src/theme/        "Chambers" tokens (hex conversions of the web's OKLCH palette) + theme provider
-plugins/          config plugins (release signing, short Windows native-build paths)
+plugins/          config plugins (release signing, short Windows native-build paths, optional
+                  Firebase config for Android push)
 ```
 
 ## Security notes

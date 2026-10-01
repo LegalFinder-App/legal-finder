@@ -9,6 +9,9 @@ import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
 
 const TOKEN_KEY = "lf.push-token";
+// Set when the user switches push off in Settings. The OS permission stays granted after that, so
+// without this flag the next launch would quietly re-register the device.
+const OPT_OUT_KEY = "lf.push-opt-out";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -44,29 +47,56 @@ async function currentToken(): Promise<string | null> {
   return data;
 }
 
+/**
+ * False on simulators and in builds where push isn't wired up yet (see README), so screens hide
+ * their push controls instead of offering a switch that can't work.
+ */
+export function pushAvailable(): boolean {
+  if (!Device.isDevice || !projectId()) return false;
+  // Android delivers through Firebase, which only exists in builds made with google-services.json.
+  return Platform.OS !== "android" || Boolean(Constants.expoConfig?.android?.googleServicesFile);
+}
+
+/** "off" = permission not granted yet; "opted-out" = switched off in Settings (don't nag). */
+export type PushStatus = "unavailable" | "on" | "off" | "opted-out";
+
+export async function pushStatus(): Promise<PushStatus> {
+  if (!pushAvailable()) return "unavailable";
+  if (await SecureStore.getItemAsync(OPT_OUT_KEY)) return "opted-out";
+  return (await Notifications.getPermissionsAsync()).granted ? "on" : "off";
+}
+
+async function registerDevice(): Promise<boolean> {
+  const token = await currentToken();
+  if (!token) return false;
+  await api.registerPushToken(token, Platform.OS, Device.deviceName ?? null);
+  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  return true;
+}
+
 /** Asks for permission (from an explicit user action) and registers this device. */
 export async function enablePushNotifications(): Promise<"granted" | "denied" | "unavailable"> {
-  if (!Device.isDevice || !projectId()) return "unavailable";
+  if (!pushAvailable()) return "unavailable";
   const existing = await Notifications.getPermissionsAsync();
   const status = existing.granted ? existing : await Notifications.requestPermissionsAsync();
   if (!status.granted) return "denied";
-  const token = await currentToken();
-  if (!token) return "unavailable";
-  await api.registerPushToken(token, Platform.OS, Device.deviceName ?? null);
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  if (!(await registerDevice())) return "unavailable";
+  await SecureStore.deleteItemAsync(OPT_OUT_KEY);
   return "granted";
 }
 
-export async function disablePushNotifications() {
+/** Sign-out: stop this account's pushes reaching the device, without changing the preference. */
+export async function unregisterPushDevice() {
   const token = await SecureStore.getItemAsync(TOKEN_KEY);
-  if (token) {
-    await api.unregisterPushToken(token).catch(() => undefined);
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-  }
+  if (!token) return;
+  await api.unregisterPushToken(token).catch(() => undefined);
+  await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
-export async function pushPermissionGranted(): Promise<boolean> {
-  return (await Notifications.getPermissionsAsync()).granted;
+/** The Settings switch: unregister and remember the choice across launches and sign-ins. */
+export async function disablePushNotifications() {
+  await SecureStore.setItemAsync(OPT_OUT_KEY, "1");
+  await unregisterPushDevice();
 }
 
 /** Only turns a web URL/path from a notification into an in-app route — never an external site. */
@@ -87,7 +117,7 @@ function routeFromLink(link: unknown): string | null {
 }
 
 /**
- * Re-registers the token on sign-in when permission was already granted (tokens can rotate), and
+ * Re-registers the token on sign-in when push is on for this device (tokens can rotate), and
  * routes notification taps to the matching screen.
  */
 export function usePushRegistration() {
@@ -96,11 +126,7 @@ export function usePushRegistration() {
   useEffect(() => {
     if (!isSignedIn) return;
     (async () => {
-      if (!(await pushPermissionGranted())) return;
-      const token = await currentToken();
-      if (!token) return;
-      await api.registerPushToken(token, Platform.OS, Device.deviceName ?? null);
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      if ((await pushStatus()) === "on") await registerDevice();
     })().catch(() => undefined);
   }, [isSignedIn]);
 

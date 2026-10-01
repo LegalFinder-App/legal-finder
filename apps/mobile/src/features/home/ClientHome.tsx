@@ -35,7 +35,7 @@ import {
   myCasesQuery,
   notificationsQuery,
 } from "@/lib/queries";
-import { enablePushNotifications, pushPermissionGranted } from "@/lib/push";
+import { enablePushNotifications, pushStatus } from "@/lib/push";
 import { toast } from "@/lib/toast";
 
 type Action = {
@@ -68,7 +68,7 @@ export function ClientHome() {
       notificationsQuery(user?.id),
     ],
   });
-  const pushGranted = useQuery({ queryKey: ["push-permission"], queryFn: pushPermissionGranted });
+  const push = useQuery({ queryKey: ["push-status"], queryFn: pushStatus });
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = async () => {
@@ -161,7 +161,7 @@ export function ClientHome() {
         ))}
       </View>
 
-      {pushGranted.data === false ? (
+      {push.data === "off" ? (
         <Card>
           <Text variant="bodyStrong">Get notified instantly</Text>
           <Text variant="small" tone="muted" style={{ marginTop: 4 }}>
@@ -173,14 +173,21 @@ export function ClientHome() {
             size="sm"
             style={{ marginTop: 12, alignSelf: "flex-start" }}
             onPress={async () => {
-              const result = await enablePushNotifications();
-              if (result === "granted") toast.success("Notifications are on");
-              else if (result === "denied")
-                toast.error("Notifications are blocked", {
-                  description: "Enable them in your phone's Settings.",
+              try {
+                const result = await enablePushNotifications();
+                if (result === "granted") toast.success("Notifications are on");
+                else if (result === "denied")
+                  toast.error("Notifications are blocked", {
+                    description: "Enable them in your phone's Settings.",
+                  });
+                else toast.message("Notifications aren't available on this device yet");
+              } catch (error) {
+                console.warn("[push]", error);
+                toast.error("Couldn't turn on notifications", {
+                  description: "Please try again in a moment.",
                 });
-              else toast.message("Notifications aren't available on this device yet");
-              void pushGranted.refetch();
+              }
+              void push.refetch();
             }}
           />
         </Card>

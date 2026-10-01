@@ -27,7 +27,8 @@ import { updateProfilePhoto } from "@/lib/images";
 import {
   disablePushNotifications,
   enablePushNotifications,
-  pushPermissionGranted,
+  pushAvailable,
+  pushStatus,
 } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
@@ -53,7 +54,7 @@ function Settings() {
 
   useEffect(() => {
     void isAppLockEnabled().then(setAppLock);
-    void pushPermissionGranted().then(setPush);
+    void pushStatus().then((status) => setPush(status === "on"));
   }, []);
 
   if (!user || !clerkUser) return null;
@@ -135,26 +136,37 @@ function Settings() {
   };
 
   const togglePush = async (on: boolean) => {
-    if (on) {
-      const result = await enablePushNotifications();
-      if (result === "denied")
-        toast.error("Notifications are blocked", {
-          description: "Enable them for LegalFinder in your phone's Settings.",
-        });
-      if (result === "unavailable")
-        toast.message("Push notifications aren't available on this device yet");
-      setPush(result === "granted");
-    } else {
-      await disablePushNotifications();
-      setPush(false);
-      toast.message("You won't get push notifications on this device");
+    try {
+      if (on) {
+        const result = await enablePushNotifications();
+        if (result === "denied")
+          toast.error("Notifications are blocked", {
+            description: "Enable them for LegalFinder in your phone's Settings.",
+          });
+        if (result === "unavailable")
+          toast.message("Push notifications aren't available on this device yet");
+        setPush(result === "granted");
+      } else {
+        await disablePushNotifications();
+        setPush(false);
+        toast.message("You won't get push notifications on this device");
+      }
+    } catch (error) {
+      // Registration can fail (offline, push service unreachable) — say so rather than leaving
+      // the switch looking like it ignored the tap.
+      console.warn("[push]", error);
+      toast.error(on ? "Couldn't turn on notifications" : "Couldn't turn off notifications", {
+        description: "Please try again in a moment.",
+      });
+    } finally {
+      void queryClient.invalidateQueries({ queryKey: ["push-status"] });
     }
   };
 
   const deleteAccount = () =>
     Alert.alert(
       "Delete your account?",
-      "This permanently deletes your LegalFinder account, profile, messages and documents. It can't be undone.",
+      "This permanently deletes your sign-in account and profile, and you won't be able to sign back in. Case, payment and audit records that form part of a legal or financial file may be kept for as long as the law requires. This can't be undone.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -258,15 +270,19 @@ function Settings() {
         </View>
       </Card>
 
-      <SectionTitle title="Notifications" />
-      <Card>
-        <SwitchField
-          label="Push notifications"
-          description="Hearing reminders, messages and case updates on this device."
-          value={push}
-          onChange={(v) => void togglePush(v)}
-        />
-      </Card>
+      {pushAvailable() ? (
+        <>
+          <SectionTitle title="Notifications" />
+          <Card>
+            <SwitchField
+              label="Push notifications"
+              description="Hearing reminders, messages and case updates on this device."
+              value={push}
+              onChange={(v) => void togglePush(v)}
+            />
+          </Card>
+        </>
+      ) : null}
 
       <SectionTitle title="Appearance" />
       <Segmented<ThemePreference>
@@ -283,7 +299,8 @@ function Settings() {
       <Card style={{ borderColor: `${colors.destructive}66` }}>
         <Text variant="bodyStrong">Delete account</Text>
         <Text variant="small" tone="muted" style={{ marginTop: 4 }}>
-          Permanently removes your account and personal data from LegalFinder.
+          Permanently deletes your account and sign-in access. Some case and payment records may be
+          kept where the law requires.
         </Text>
         <Button
           title="Delete my account"

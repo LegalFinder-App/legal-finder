@@ -30,9 +30,11 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files (.env.example is the committed template)
+# local env files (.env.example is the committed template — re-included here because the
+# repo root's .gitignore ignores .env* wholesale)
 .env
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo
