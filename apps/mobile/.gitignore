@@ -6,6 +6,8 @@ node_modules/
 # Expo
 .expo/
 dist/
+# signed store builds copied out of android/ (see README "Releasing")
+release/
 web-build/
 expo-env.d.ts
 

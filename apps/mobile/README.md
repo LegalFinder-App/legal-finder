@@ -65,6 +65,10 @@ Release builds are signed by `plugins/withReleaseSigning.js` with the upload key
 `../../platforms/mobile/android/keystore.properties` (gitignored — back it up). Bump
 `ANDROID_VERSION_CODE` in `app.config.ts` for every Play upload.
 
+Copy the bundle to `release/LegalFinder-<version>-build<versionCode>.aab` (gitignored) before
+uploading: `android/` is wiped by the next `prebuild --clean`, and the old wrapper's output in
+`platforms/mobile/android/` is also called `app-release.aab` — don't upload that one.
+
 ### iOS / cloud builds
 
 Use EAS (no Mac needed): `npx eas-cli@latest init`, then `eas build -p ios` / `eas submit`.
