@@ -2,7 +2,7 @@
 
 **Cannot be built on Windows or Linux** — `electron-builder`'s dmg/pkg packaging (and all code
 signing/notarization) only runs on actual macOS. Use a Mac, or
-`.github/workflows/desktop-macos-build.yml` (GitHub's hosted macOS runners).
+`.github/workflows/desktop-build.yml` (GitHub's hosted macOS runners).
 
 ## On a Mac
 
@@ -24,5 +24,11 @@ Set these environment variables before building (electron-builder picks them up 
   the build for malware and issues a ticket Gatekeeper checks); `hardenedRuntime: true` is
   already set in `../electron-builder.yml`, required for notarization to succeed.
 
-The same variables, as GitHub repo secrets, are what `.github/workflows/desktop-macos-build.yml`
+The same variables, as GitHub repo secrets, are what `.github/workflows/desktop-build.yml`
 expects — see the comments in that file for the exact secret names.
+
+## Mac App Store
+
+Not set up. The build above is for direct download (a notarized dmg). The store needs a separate
+`mas` target, App Sandbox entitlements and a store provisioning profile — and the shell's
+`legalfinder://` handling and keychain storage would need re-testing inside the sandbox.

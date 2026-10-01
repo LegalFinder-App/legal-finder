@@ -21,6 +21,7 @@ unaffected. Fixes, in order of effort:
    powershell -Command "Expand-Archive -Path '<path to the zip above>' -DestinationPath '.electron-dist-win32-x64' -Force"
    npx electron-builder --config platforms/desktop/electron-builder.yml --win -c.electronDist=.electron-dist-win32-x64
    ```
+   (`npm run desktop:dist:win:eperm-fix` does the same after exporting the app.)
    Confirmed working — this got past the rename step successfully after four consecutive
    plain-retry failures. `.electron-dist-win32-x64/` is gitignored; regenerate it (or bump the
    version in the path) whenever you upgrade the `electron` dependency.
@@ -28,7 +29,7 @@ unaffected. Fixes, in order of effort:
    approve interactively — running it from an unattended script doesn't work, since UAC needs a
    real click): `Add-MpPreference -ExclusionPath 'C:\path\to\this\repo'`.
 
-Produces an NSIS installer at `platforms/desktop/release/` (e.g. `LegalFinder Setup 0.1.0.exe`).
+Produces an NSIS installer at `platforms/desktop/release/` (`LegalFinder-<version>-win-x64.exe`).
 Running the installer adds a desktop shortcut and Start Menu entry (see `nsis:` in
 `../electron-builder.yml` — `oneClick: false` shows the standard install-location picker instead
 of a silent one-click install).

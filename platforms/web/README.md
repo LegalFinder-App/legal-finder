@@ -1,8 +1,8 @@
 # Web
 
-This is the actual product — everything in `src/` — deployed as a TanStack Start app on Vercel.
-Every other platform folder (`../mobile`, `../desktop`) wraps this same deployment; none of them
-build or ship a separate copy of it.
+The website — everything in `src/` — deployed as a TanStack Start app on Vercel. It is also the
+backend for the apps (`/api/mobile/*`, payment callbacks, webhooks). The phone and desktop apps no
+longer wrap this deployment; they are built from `apps/mobile` (see `../README.md`).
 
 - **Deployment config**: `vercel.json` (security headers, framework detection) at the repo root.
 - **Build gate**: `scripts/verify-vercel-env.mjs` runs as the `prebuild` script and fails the
@@ -14,5 +14,5 @@ build or ship a separate copy of it.
   the same source every other platform's icons come from — see `../shared/README.md`).
 
 Nothing in this folder is new scaffolding — it's here so the platform matrix in `../README.md`
-has a home for "what does the web deliverable actually consist of," alongside the mobile and
-desktop wrappers.
+has a home for "what does the web deliverable actually consist of," alongside the desktop shell
+and the old mobile wrapper.

@@ -9,13 +9,15 @@ hearing tracking, court judgements search, police incident reporting/wanted noti
 plain-language legal e-library, and an AI legal assistant. Five roles share one codebase: client,
 advocate ("lawyer"), police, judiciary, and admin.
 
-It ships to browser/PWA, desktop (Electron shell loading the site — see `platforms/`) and a
-**native iOS/Android app in `apps/mobile/`** (Expo / React Native — read `apps/mobile/README.md`
-and `apps/mobile/AGENTS.md` first). The native app replaced the old Capacitor wrapper in
-`platforms/mobile/` (kept only for reference) and uses the same Supabase data/RLS, the same Clerk
-instance, and the web's `/api/mobile/*` routes for server-secret operations. When changing a
-query, a server function or the schema, check whether the mobile app needs the same change
-(`apps/mobile/src/lib/queries.ts`, `npm run sync-types` in `apps/mobile`).
+It ships from two client codebases. The **website** (`src/`) runs in the browser/PWA and is the
+backend for everything else. The **app** (`apps/mobile/`, Expo / React Native — read
+`apps/mobile/README.md` and `apps/mobile/AGENTS.md` first) is the native Android and iOS apps and,
+exported for the web and packaged by the Electron shell in `platforms/desktop/`, the Windows, macOS
+and Linux apps. None of the apps is a wrapper around the website any more (`platforms/README.md`).
+The app uses the same Supabase data/RLS, the same Clerk instance, and the web's `/api/mobile/*`
+routes for server-secret operations. When changing a query, a server function or the schema, check
+whether the app needs the same change (`apps/mobile/src/lib/queries.ts`, `npm run sync-types` in
+`apps/mobile`).
 
 ## Tech stack
 
@@ -32,7 +34,7 @@ query, a server function or the schema, check whether the mobile app needs the s
 - **Mobile**: Expo SDK 57 / React Native 0.86 with Expo Router, in `apps/mobile` (Android
   buildable locally; iOS needs a Mac or EAS). The superseded Capacitor wrapper is in
   `platforms/mobile`.
-- **Desktop**: Electron + electron-builder.
+- **Desktop**: Electron + electron-builder, packaging the app's web export — not the website.
 
 ## Repo structure
 
@@ -54,7 +56,7 @@ apps/
 platforms/
   mobile/         superseded Capacitor wrapper; still holds store-assets/ (Play Console graphics)
                   and android/keystore.properties (the upload key the native app also signs with)
-  desktop/        Electron shell + electron-builder config
+  desktop/        Electron shell (serves the app's export from disk) + electron-builder config
   shared/         icons and config shared across mobile/desktop
 scripts/          one-off Node scripts (migrations, icon generation, gradle wrapper, env checks)
 ```
@@ -148,8 +150,12 @@ npm run mobile:sync            # capacitor sync
 npm run mobile:android:bundle  # wrapper release AAB (platforms/mobile/android/keystore.properties —
                                 # the same upload key the native app signs with)
 
-npm run desktop:dist:win       # Windows NSIS installer (verified working)
-npm run desktop:dist:linux     # Linux AppImage/deb (untested locally)
+# Desktop app = Electron shell (platforms/desktop) around the app's web export. Details and the
+# dev-server/test switches: platforms/desktop/README.md
+npm run desktop:web            # export apps/mobile for the desktop shell → apps/mobile/dist/desktop
+npm run desktop:dev            # run the shell against that export
+npm run desktop:dist:win       # export + Windows NSIS installer (use :eperm-fix on this machine)
+npm run desktop:dist:linux     # export + Linux AppImage/deb (packages here, never run)
 npm run desktop:dist:mac       # only produces a real artifact when run on actual macOS
 ```
 
@@ -169,8 +175,8 @@ intermediates.
 | Web | Builds clean, tests pass, deployed on Vercel |
 | Android (native, `apps/mobile`) | Signed release AAB (versionCode 5) builds locally with the Play upload key; typecheck/lint/expo-doctor clean; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. **Not yet run on a device** from this environment (no working emulator here) — needs a real-phone pass |
 | Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
-| Windows desktop | Installer build verified |
-| macOS / Linux desktop | Not verified from this environment |
+| Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production. Unsigned (SmartScreen warns) |
+| macOS / Linux desktop | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run |
 | iOS (native) | Same codebase as Android; needs a Mac or EAS cloud build — not built from this environment |
 
 Don't describe platform readiness in marketing/UI copy (e.g. the homepage `PlatformMatrix`
@@ -184,6 +190,13 @@ structure" on every card regardless of actual state) and got walked back for exa
   an EAS project id plus, for Android, Firebase's `google-services.json` and an FCM key uploaded
   to Expo. Until then the app hides its push controls. Steps: `apps/mobile/README.md` ("Push
   notifications"). Web push is separate and unaffected.
+- **The app is a subset of the website.** Payout administration, document automation (PDF
+  templates) and the analytics dashboards exist only on the web, so the phone and desktop apps
+  don't replace the website for those tasks yet — don't describe them as feature-complete.
+- **Desktop distribution isn't finished**: installers are unsigned (SmartScreen / Gatekeeper
+  warn), there is no auto-update (a new installer per release), and the macOS and Linux builds
+  have never been run. Social sign-in and Pesapal checkout hand off to the browser and were tested
+  only up to that hand-off, not through a real provider round trip.
 - **Store submission content** (Play Console Data Safety form, content rating questionnaire,
   App Store privacy nutrition label, demo/reviewer account credentials for gated features) needs
   real business/legal input — don't invent answers here.

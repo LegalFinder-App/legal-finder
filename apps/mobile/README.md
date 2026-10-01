@@ -1,17 +1,22 @@
-# LegalFinder — native mobile app
+# LegalFinder — the app (Android, iOS, desktop)
 
-A true native iOS/Android app built with **Expo SDK 57** (React Native 0.86, Expo Router,
-TypeScript). It replaces the old Capacitor WebView wrapper in `platforms/mobile/`, and ships under
-the **same package / bundle id (`com.legalfinder.app`) and the same Android upload key**, so it
-installs as an update to the existing Play listing.
+The LegalFinder app, built with **Expo SDK 57** (React Native 0.86, Expo Router, TypeScript). One
+codebase ships as:
+
+- the **native Android and iOS apps** — replacing the old Capacitor WebView wrapper in
+  `platforms/mobile/`, under the **same package / bundle id (`com.legalfinder.app`) and the same
+  Android upload key**, so it installs as an update to the existing Play listing;
+- the **Windows, macOS and Linux apps** — the same screens exported for the web
+  (`expo export --platform web`) and packaged by the Electron shell in `platforms/desktop/`.
 
 It talks to the same backend as the website:
 
 - **Supabase** directly for data, with the same queries and RLS policies as the web
   (`src/lib/queries.ts` mirrors `../../src/lib/queries.ts`).
-- **Clerk** (`@clerk/expo`) for auth — email/password, sign-up with email codes, required MFA
-  (authenticator setup, TOTP/SMS/backup codes), password reset, and Google/Apple/LinkedIn through
-  the system browser (Google blocks sign-in inside WebViews).
+- **Clerk** for auth — email/password, sign-up with email codes, required MFA (authenticator
+  setup, TOTP/SMS/backup codes), password reset, and Google/Apple/LinkedIn through the system
+  browser (Google blocks sign-in inside WebViews). Phones use `@clerk/expo`; the desktop build runs
+  Clerk in the same token-based mode (`src/lib/auth-provider.web.tsx`).
 - **`/api/mobile/*`** on the web app for anything that needs a server secret: payments (Pesapal),
   the AI assistant, image-upload signing, push-token registration and account deletion. Those
   routes reuse the web's own server logic (`src/lib/*.server.ts`).
@@ -37,6 +42,31 @@ npx expo run:android          # builds + installs a dev build on a device/emulat
 npx expo run:ios              # macOS only
 npx expo start --dev-client   # then iterate with fast refresh
 ```
+
+The desktop app runs on any development machine with no device at all — see
+`../../platforms/desktop/README.md` ("Running it"). Because it runs the same screens, it is also
+the quickest way to see a change to shared code.
+
+## One codebase, three runtimes
+
+Most code is shared. Where a phone API doesn't exist on desktop (or the reverse), the difference
+lives in a pair of files — `thing.ts` for phones and `thing.web.ts` for the desktop build, with the
+same exports — never in `Platform.OS` checks scattered through screens:
+
+| Shared import            | Phones                              | Desktop (`.web`)                            |
+| ------------------------ | ----------------------------------- | ------------------------------------------- |
+| `lib/auth`               | `@clerk/expo`                       | `@clerk/react` + a token-mode Clerk instance |
+| `lib/secure-store`       | Keychain / Keystore                 | the shell's OS-keychain store               |
+| `lib/browser-session`    | in-app browser sheet                | system browser + `legalfinder://` return    |
+| `lib/social-sign-in`     | Clerk's `useSSO`                    | the same steps through the system browser   |
+| `lib/alert`, `lib/share` | native alert / share sheet          | in-app dialog / copy to clipboard           |
+| `lib/files`              | `expo-file-system`, share sheet     | blobs, Save dialog                          |
+| `lib/push`               | Expo push                           | not available (controls hidden)             |
+| `components/BiometricGate` | Face ID / fingerprint lock        | not available (control hidden)              |
+| `components/ui/DateTimeField` | native picker                  | the browser engine's date input             |
+
+Layout adapts through `useWideLayout()` (`lib/layout.ts`): on a wide desktop window
+`components/DesktopShell` shows a sidebar instead of the tab bar and content is centred.
 
 ## Releasing
 
@@ -71,8 +101,27 @@ uploading: `android/` is wiped by the next `prebuild --clean`, and the old wrapp
 
 ### iOS / cloud builds
 
-Use EAS (no Mac needed): `npx eas-cli@latest init`, then `eas build -p ios` / `eas submit`.
-Put the EAS project id in `EAS_PROJECT_ID` (it is also one of the things push needs — below).
+iOS can't be built on Windows. EAS Build compiles it on Expo's servers (no Mac needed);
+`eas.json` has the profiles. One-time setup, from a terminal in `apps/mobile` — the Apple login is
+interactive, so this part can't be scripted:
+
+1. `npx eas-cli@latest login`, then `npx eas-cli@latest init`. Put the project id it prints in
+   `EAS_PROJECT_ID` in `.env` (it is also one of the things push needs — below).
+2. Give the cloud build the public keys it can't read from your gitignored `.env`: add the four
+   `EXPO_PUBLIC_*` values as EAS environment variables for the **production** environment
+   (expo.dev → the project → Environment variables, or `eas env` — see
+   <https://docs.expo.dev/eas/environment-variables/>). Add `EAS_PROJECT_ID` there too.
+3. `npx eas-cli@latest build --platform ios --profile production`. It asks for your Apple
+   Developer login and creates (or reuses) the distribution certificate and provisioning profile.
+4. `npx eas-cli@latest submit --platform ios` uploads the build to App Store Connect / TestFlight.
+
+After that first build, `.github/workflows/mobile-eas-build.yml` can queue builds from GitHub
+(needs the `EXPO_TOKEN` repository secret). Versions come from `app.config.ts`
+(`appVersionSource: "local"`): bump `IOS_BUILD_NUMBER` for every upload. Apple's reviewers need a
+demo account that can pass two-step verification.
+
+The same profiles build Android in the cloud (`--platform android`) if this machine is short on
+disk; upload the existing upload keystore to EAS first (`eas credentials`) so Play accepts it.
 
 ### Push notifications (optional)
 
@@ -95,8 +144,9 @@ so rebuild (`expo prebuild --clean`, then the release build) after changing any 
 
 ## One-time dashboard configuration
 
-- **Clerk → Native applications**: enable the Native API, and add `legalfinder://sso-callback`
-  to the allowed redirect URLs (needed for Google/Apple/LinkedIn sign-in in the app).
+- **Clerk → Native applications**: the Native API must be enabled, and `legalfinder://sso-callback`
+  must be in the allow-list for mobile SSO redirects (needed for Google/Apple/LinkedIn sign-in in
+  the phone and desktop apps). Both are in place on the production instance as of 2026-10-01.
 - **Clerk → Social connections**: production credentials for Google/Apple/LinkedIn (same as web).
 - **Push notifications**: see "Push notifications" above (Expo project, Firebase, migration).
 
@@ -106,7 +156,8 @@ so rebuild (`expo prebuild --clean`, then the release build) after changing any 
 src/app/          Expo Router screens — (tabs) Home/Advocates/Messages/Learn/More, (auth) flows
 src/features/     screen building blocks (home, workspaces per role, admin, content editor)
 src/components/   design system (ui/) + shared components
-src/lib/          supabase, api, queries, session/roles, push, payments, documents, realtime
+src/lib/          supabase, api, queries, session/roles, push, payments, documents, realtime;
+                  *.web.ts files are the desktop counterparts (see "One codebase, three runtimes")
 src/theme/        "Chambers" tokens (hex conversions of the web's OKLCH palette) + theme provider
 plugins/          config plugins (release signing, short Windows native-build paths, optional
                   Firebase config for Android push)

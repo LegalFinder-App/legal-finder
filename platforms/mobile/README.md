@@ -1,8 +1,13 @@
-# Mobile (iOS + Android)
+# Mobile wrapper (superseded)
 
-LegalFinder ships to both app stores via [Capacitor](https://capacitorjs.com), wrapping the same
-web app that runs in a browser — there's no separate mobile codebase. See `../README.md` for why
-("remote content" mode: the app loads your real deployed site, not a bundled copy).
+> **This is the old Capacitor wrapper. It is no longer what ships.** The Android and iOS apps are
+> now the native app in `apps/mobile/` (see its README). This folder is kept for reference; the
+> only live things in it are `store-assets/` (Play Console graphics) and
+> `android/keystore.properties` (the Play upload key the native app also signs with). Don't build
+> or upload from here — its version codes are behind the Play listing.
+
+What follows describes the wrapper as it was: Capacitor wrapping the web app in "remote content"
+mode (the app loaded the deployed site rather than a bundled copy).
 
 ## One-time setup
 

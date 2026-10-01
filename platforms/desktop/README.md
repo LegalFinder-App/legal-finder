@@ -1,49 +1,91 @@
-# Desktop (Windows, Linux, macOS)
+# Desktop (Windows, macOS, Linux)
 
-LegalFinder ships as a desktop app via [Electron](https://www.electronjs.org). Like the mobile
-apps, this is a thin shell (`electron/main.js`) — one window pointed at the real deployed web
-app, not a separately bundled copy of the client. See `../README.md` for the full reasoning
-(same-origin cookies for Clerk, one backend to maintain, this app is fundamentally networked
-anyway so there's little to gain from an offline-capable bundle).
-
-Electron was chosen over Tauri specifically because Tauri renders through the OS's native
-webview — WKWebView (Safari's engine) on macOS — and this project already spent real effort
-debugging Clerk session-timing issues in a plain browser. Electron bundles one consistent
-Chromium on every OS, which avoids reintroducing that class of bug on desktop. Trade-off: a
-larger install size (~100–150MB baseline) than Tauri would produce.
-
-## One-time setup
-
-Before packaging a real build, open `electron/main.js` and replace `PRODUCTION_APP_URL` with
-your actual deployed URL. Unlike the mobile config (which reads `VITE_APP_URL` at sync time),
-Electron ships the JS file as-is — a packaged, distributed app has no `.env` file on the end
-user's machine to read from, so the URL has to be baked in as a literal constant. Setting
-`VITE_APP_URL` in your shell only affects `npm run desktop:dev` (local testing).
-
-Desktop icons need no separate generation step: `electron-builder.yml` points directly at
-`platforms/shared/icons/source-icon.png` (regenerate that file with `npm run icons:generate` if
-`public/legalfinder-logo.png` ever changes) and `electron-builder` converts that single
-1024×1024 PNG into the per-OS `.ico`/`.icns` formats automatically at build time.
-
-## Windows (buildable and runnable on this machine)
+The desktop app is an [Electron](https://www.electronjs.org) shell around the app's own code. That
+code is `apps/mobile` — the same screens as Android and iOS — exported for the web and copied into
+the installer. The shell serves it from disk through `app://legalfinder/`; it never loads the
+website. (`../README.md` has the reasoning.)
 
 ```
-npm run desktop:dev          # launch Electron pointed at VITE_APP_URL (or localhost:3000) for quick iteration
-npm run desktop:dist:win     # produces an NSIS installer at platforms/desktop/release/
+platforms/desktop/
+  electron/main.js      the shell: window, app:// file server, bridge, deep links
+  electron/preload.js   the bridge the page sees (window.legalfinderDesktop)
+  electron-builder.yml  packaging for all three OSes
+  windows/ macos/ linux/ per-OS build and signing notes
 ```
 
-## Linux (buildable here, not launchable/testable here)
+The app's side of the bridge is `apps/mobile/src/lib/desktop.ts`. Keep it and `preload.js` in step.
+
+## What the shell does for the app
+
+A page served from `app://` can't do three things for itself, so the shell does them — and
+`main.js` checks every call (only from the app's own page, only for the purposes below):
+
+- **Requests to two hosts.** Clerk's API and the website's `/api/mobile/*` routes don't send CORS
+  headers for an `app://` origin (phones don't need them). The page asks the shell to make those
+  requests; the shell refuses any other host.
+- **Keeping the session.** Clerk runs in its token-based "native" mode, as on phones. The token is
+  stored in `secure-store.json` in the app's data folder, encrypted with the OS keychain
+  (Electron `safeStorage`: DPAPI on Windows, Keychain on macOS, libsecret/kwallet on Linux — on a
+  Linux system with no keyring it is only obfuscated, the same limitation Chromium has).
+- **Leaving for the browser and coming back.** Google/Apple/LinkedIn sign-in and Pesapal checkout
+  open in the user's own browser and end on a `legalfinder://` link, which the OS hands back to the
+  app (single-instance; the scheme is registered by the installers and at first run).
+
+Everything else is ordinary web platform: Supabase and ImageKit are reached directly. The page
+runs sandboxed with context isolation, a strict content security policy, no permissions beyond
+clipboard and notifications, and no navigation away from the app — external links open in the
+browser.
+
+## Running it
 
 ```
-npm run desktop:dist:linux   # produces an AppImage and a .deb at platforms/desktop/release/
+npm run desktop:web     # export the app to apps/mobile/dist/desktop (needed before the next line)
+npm run desktop:dev     # run the shell against that export
 ```
-Electron ships prebuilt Linux binaries, so `electron-builder` can package this from Windows
-without needing a Linux machine — but there's no way to actually launch/verify the result here.
-Test it on a real Linux machine (or a VM) before distributing.
 
-## macOS (cannot be built here — see `macos/README.md`)
+For work on the app itself, serve it from the dev server instead of re-exporting each time (the
+window still runs under `app://legalfinder`, so sign-in and storage behave as in a real build):
 
-`electron-builder` can only produce a macOS dmg/pkg when actually running on macOS — there is no
-cross-build path from Windows or Linux, signing included. Use `.github/workflows/desktop-macos-build.yml`
-(GitHub's hosted macOS runners) or a real Mac. See `macos/README.md` for the exact steps and the
-notarization secrets needed for a signed, distributable build.
+```
+cd apps/mobile && npx expo start --port 8082
+LEGALFINDER_DEV_SERVER=http://localhost:8082 npm run desktop:dev
+```
+
+Don't run an export while that dev server is up — the two share a cache and the server can hang.
+
+Other switches, all ignored by packaged builds except the first:
+
+| Variable                           | Effect                                                               |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `LEGALFINDER_USER_DATA=<folder>`   | Use a separate data folder (a throwaway profile).                     |
+| `LEGALFINDER_TEST_MODE=1`          | Record browser opens and downloads instead of performing them.       |
+| `LEGALFINDER_REGISTER_PROTOCOL=1`  | Point this machine's `legalfinder://` links at the dev checkout.     |
+| `LEGALFINDER_CLERK_ORIGIN` / `LEGALFINDER_API_ORIGIN` | Allow a development Clerk instance / a preview deployment. |
+
+## Building installers
+
+```
+npm run desktop:dist:win     # NSIS installer      → release/LegalFinder-<version>-win-x64.exe
+npm run desktop:dist:linux   # AppImage and .deb   → release/
+npm run desktop:dist:mac     # dmg and zip — only on macOS
+```
+
+Each script exports the app first, then packages it. `.github/workflows/desktop-build.yml` builds
+all three on GitHub's runners (the only way to get a macOS build without a Mac). The version comes
+from `electron/package.json` — keep it in step with `apps/mobile/app.config.ts`.
+
+Installers are **unsigned** until certificates are configured: Windows SmartScreen and macOS
+Gatekeeper will warn. See `windows/README.md` and `macos/README.md`.
+
+## Releasing an update
+
+The app's code is inside the installer, so a change to `apps/mobile` reaches desktop users only
+through a new installer — there is no auto-update yet. Bump the version, rebuild, redistribute.
+
+## Verified / not verified
+
+Verified on Windows, against the production backend, by driving the real window: sign-in with
+password and authenticator code, two-step setup, session restored after restart, sign-out, the
+browser hand-off and return link, document upload and save, account deletion, and the packaged
+`LegalFinder.exe`. **Not** verified: macOS and Linux builds (never run), and a real Google/Apple/
+LinkedIn or Pesapal round trip (they need a person in a browser).

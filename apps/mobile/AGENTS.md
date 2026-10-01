@@ -42,6 +42,16 @@ Docs: https://docs.expo.dev/eas/index.md
 
 ## LegalFinder conventions
 
+- **Three runtimes**: this code runs on Android, on iOS and — exported for the web and packaged by
+  `platforms/desktop` — as the Windows/macOS/Linux app. Where a platform API differs, put the
+  difference in a `name.ts` / `name.web.ts` pair with identical exports (README: "One codebase,
+  three runtimes"), not in `Platform.OS` checks inside screens. Import Clerk only from `@/lib/auth`
+  — importing `@clerk/expo` or `@clerk/react` directly in a screen breaks the desktop build's auth
+  context. Before calling something done, run it in the desktop shell too
+  (`platforms/desktop/README.md`); it needs no device and exercises the shared screens.
+- **Stored image paths** may be website-relative (`/images/…`). Always pass them through
+  `mediaUrl()` (`src/lib/media.ts`); a bare relative path renders as a blank image in an app.
+
 - **Keyboard**: Android runs edge-to-edge, so the OS no longer resizes the window when the keyboard
   opens — anything near the bottom ends up behind it. Forms go inside `Screen` (its scroll view is
   keyboard-aware) or `AuthScaffold`; bottom-anchored inputs (chat composers, `Sheet`) are wrapped

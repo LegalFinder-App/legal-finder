@@ -66,6 +66,6 @@ mac:
     - zip
   icon: platforms/shared/icons/source-icon.png
   category: public.app-category.business
-  # Real notarization needs an Apple Developer account — see .github/workflows/desktop-macos-build.yml
+  # Real notarization needs an Apple Developer account — see .github/workflows/desktop-build.yml
   # and platforms/desktop/macos/README.md for the secrets/steps required.
   hardenedRuntime: true
