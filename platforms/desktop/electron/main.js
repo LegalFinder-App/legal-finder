@@ -550,7 +550,9 @@ app.whenReady().then(() => {
   // and showing notifications are the only things a page here may ask for.
   const ALLOWED_PERMISSIONS = new Set(["clipboard-sanitized-write", "notifications"]);
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
-    callback(webContents.getURL().startsWith(`${APP_ORIGIN}/`) && ALLOWED_PERMISSIONS.has(permission));
+    callback(
+      webContents.getURL().startsWith(`${APP_ORIGIN}/`) && ALLOWED_PERMISSIONS.has(permission),
+    );
   });
   session.defaultSession.setPermissionCheckHandler((_webContents, permission, requestingOrigin) => {
     return requestingOrigin.startsWith(APP_ORIGIN) && ALLOWED_PERMISSIONS.has(permission);
@@ -561,7 +563,9 @@ app.whenReady().then(() => {
   // it's opt-in there.
   if (app.isPackaged) app.setAsDefaultProtocolClient("legalfinder");
   else if (process.env.LEGALFINDER_REGISTER_PROTOCOL === "1" && process.argv[1]) {
-    app.setAsDefaultProtocolClient("legalfinder", process.execPath, [path.resolve(process.argv[1])]);
+    app.setAsDefaultProtocolClient("legalfinder", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
   }
 
   // Tests can't answer a Save dialog: downloads go straight to the temp folder and are recorded.
