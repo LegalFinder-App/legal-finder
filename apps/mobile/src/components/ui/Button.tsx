@@ -19,6 +19,8 @@ export interface ButtonProps {
   iconRight?: ReactNode;
   fullWidth?: boolean;
   style?: ViewStyle;
+  /** Required when `title` is empty (icon-only buttons); defaults to the title. */
+  accessibilityLabel?: string;
   accessibilityHint?: string;
   haptic?: boolean;
 }
@@ -37,6 +39,7 @@ export function Button({
   iconRight,
   fullWidth = false,
   style,
+  accessibilityLabel,
   accessibilityHint,
   haptic = true,
 }: ButtonProps) {
@@ -59,7 +62,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
@@ -86,12 +89,14 @@ export function Button({
       ) : (
         <View style={styles.row}>
           {icon}
-          <Text
-            style={{ color: tone.fg, fontFamily: fonts.sansSemiBold, fontSize: FONT[size] }}
-            numberOfLines={1}
-          >
-            {title}
-          </Text>
+          {title ? (
+            <Text
+              style={{ color: tone.fg, fontFamily: fonts.sansSemiBold, fontSize: FONT[size] }}
+              numberOfLines={1}
+            >
+              {title}
+            </Text>
+          ) : null}
           {iconRight}
         </View>
       )}

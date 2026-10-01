@@ -69,7 +69,7 @@ export function Article({
               title=""
               variant="ghost"
               size="sm"
-              accessibilityHint="Share this article"
+              accessibilityLabel="Share article"
               icon={<Share2 size={18} color={colors.foreground} />}
               onPress={() => void Share.share({ message: `${a.title} — ${env.apiUrl}${webPath}` })}
             />
