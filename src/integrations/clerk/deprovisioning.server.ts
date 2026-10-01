@@ -19,4 +19,12 @@ export async function deprovisionUser(userId: string): Promise<void> {
 
   const { error: profileError } = await supabaseAdmin.from("profiles").delete().eq("id", userId);
   if (profileError) throw new Error(profileError.message);
+
+  // Stop pushes to the deleted account's phones. Best-effort: the table only exists once the
+  // mobile push migration is applied, and a leftover token must never block the deletion.
+  const { error: tokensError } = await supabaseAdmin
+    .from("device_push_tokens")
+    .delete()
+    .eq("user_id", userId);
+  if (tokensError) console.warn("[deprovision] push tokens not removed:", tokensError.message);
 }
