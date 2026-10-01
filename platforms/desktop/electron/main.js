@@ -54,7 +54,14 @@ const DEV_SERVER = app.isPackaged ? null : process.env.LEGALFINDER_DEV_SERVER ||
 // that would go to the system browser is recorded instead (read back through globalThis.__lfTest).
 const TEST_MODE = !app.isPackaged && process.env.LEGALFINDER_TEST_MODE === "1";
 const recordedExternalOpens = [];
-if (TEST_MODE) globalThis.__lfTest = { externalOpens: recordedExternalOpens, handleDeepLink };
+const recordedDownloads = [];
+if (TEST_MODE) {
+  globalThis.__lfTest = {
+    externalOpens: recordedExternalOpens,
+    downloads: recordedDownloads,
+    handleDeepLink,
+  };
+}
 
 function openInBrowser(url) {
   if (TEST_MODE) {
@@ -105,6 +112,14 @@ const MIME_TYPES = {
   ".woff": "font/woff",
   ".woff2": "font/woff2",
 };
+
+// Shown if the app's own files can't be loaded (a damaged install) — better than an empty window.
+const LOAD_FAILED_PAGE = `data:text/html;charset=utf-8,${encodeURIComponent(
+  `<!doctype html><meta charset="utf-8"><title>LegalFinder</title>
+<body style="margin:0;height:100vh;display:grid;place-items:center;background:#0b182b;color:#f4f1eb;font-family:system-ui,sans-serif;text-align:center">
+<main style="max-width:420px;padding:24px"><h1 style="font-size:22px">LegalFinder couldn't start</h1>
+<p style="opacity:.75;line-height:1.5">Some of the app's files are missing or damaged. Reinstalling LegalFinder should fix it.</p></main>`,
+)}`;
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
@@ -206,7 +221,11 @@ function resolveAppFile(requestUrl) {
 async function serveApp(request) {
   if (DEV_SERVER) {
     const { pathname, search } = new URL(request.url);
-    return net.fetch(new URL(pathname + search, DEV_SERVER).toString());
+    try {
+      return await net.fetch(new URL(pathname + search, DEV_SERVER).toString());
+    } catch {
+      return new Response(`Dev server not reachable at ${DEV_SERVER}`, { status: 502 });
+    }
   }
   const file = resolveAppFile(request.url);
   if (!file) return new Response("Not found", { status: 404 });
@@ -470,7 +489,15 @@ function createWindow() {
     openExternally(url);
   });
 
-  void win.loadURL(`${APP_ORIGIN}/`);
+  // -3 is "aborted" (a navigation replaced by another), not a failure.
+  win.webContents.on("did-fail-load", (_event, code, _description, url, isMainFrame) => {
+    if (isMainFrame && code !== -3 && url.startsWith(`${APP_ORIGIN}/`)) {
+      void win.loadURL(LOAD_FAILED_PAGE);
+    }
+  });
+  win.loadURL(`${APP_ORIGIN}/`).catch(() => {
+    // did-fail-load above shows the error page; the rejection itself needs no handling.
+  });
 }
 
 function buildMenu() {
@@ -533,6 +560,15 @@ app.whenReady().then(() => {
   if (app.isPackaged) app.setAsDefaultProtocolClient("legalfinder");
   else if (process.env.LEGALFINDER_REGISTER_PROTOCOL === "1" && process.argv[1]) {
     app.setAsDefaultProtocolClient("legalfinder", process.execPath, [path.resolve(process.argv[1])]);
+  }
+
+  // Tests can't answer a Save dialog: downloads go straight to the temp folder and are recorded.
+  if (TEST_MODE) {
+    session.defaultSession.on("will-download", (_event, item) => {
+      const target = path.join(app.getPath("temp"), `lf-test-${Date.now()}-${item.getFilename()}`);
+      item.setSavePath(target);
+      item.once("done", (_e, state) => recordedDownloads.push({ target, state }));
+    });
   }
 
   launchDeepLink = launchDeepLink ?? findDeepLink(process.argv);

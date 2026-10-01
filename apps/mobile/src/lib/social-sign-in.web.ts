@@ -8,6 +8,11 @@ export type SocialSignInResult = "signed-in" | "needs-second-factor" | "cancelle
 // the OS hands that link to the desktop shell, and the shell passes it back here.
 const RETURN_URL = "legalfinder://sso-callback";
 
+// Set by the screen's Cancel link. The browser hand-off may not have started yet — the request
+// that prepares it can still be in flight — so the flow checks this flag before opening anything,
+// rather than relying only on cancelling a hand-off that doesn't exist yet.
+let cancelRequested = false;
+
 /**
  * Desktop counterpart of social-sign-in.ts — the same steps as @clerk/expo's useSSO, with the
  * system browser in place of the phone's in-app browser sheet.
@@ -20,7 +25,9 @@ export function useSocialSignIn() {
     if (!signInLoaded || !signUpLoaded) return "cancelled";
     if (!desktop) throw new Error("Social sign-in needs the LegalFinder desktop app.");
 
+    cancelRequested = false;
     await signIn.create({ strategy, redirectUrl: RETURN_URL });
+    if (cancelRequested) return "cancelled";
     const providerUrl = signIn.firstFactorVerification.externalVerificationRedirectURL;
     if (!providerUrl) throw new Error("Sign-in couldn't start. Please try again.");
 
@@ -48,5 +55,8 @@ export function useSocialSignIn() {
 
 /** The desktop app can't see the browser tab being closed, so the screen offers a Cancel. */
 export const cancelSocialSignIn: (() => void) | null = desktop
-  ? () => void desktop?.authSession.cancel()
+  ? () => {
+      cancelRequested = true;
+      void desktop?.authSession.cancel();
+    }
   : null;
