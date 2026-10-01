@@ -35,5 +35,8 @@ jobs:
           cache: npm
           cache-dependency-path: apps/mobile/package-lock.json
       - run: npm ci
+      # expo-env.d.ts and .expo/types (typed routes, the web-only Pressable states the desktop
+      # layout uses) are generated, not committed; a clean checkout doesn't typecheck without them.
+      - run: npx expo customize tsconfig.json
       - run: npm run typecheck
       - run: npm run lint
