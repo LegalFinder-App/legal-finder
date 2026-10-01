@@ -65,7 +65,11 @@ import { Route as AuthenticatedAdminContentSecurityTipsRouteImport } from './rou
 import { Route as AuthenticatedAdminContentStationsRouteImport } from './routes/_authenticated/admin/content/stations'
 import { Route as AuthenticatedAdminContentWantedRouteImport } from './routes/_authenticated/admin/content/wanted'
 import { Route as ApiMobileAccountDeleteRouteImport } from './routes/api.mobile.account.delete'
+import { Route as ApiMobileDocumentsDraftRouteImport } from './routes/api.mobile.documents.draft'
+import { Route as ApiMobileDocumentsGenerateRouteImport } from './routes/api.mobile.documents.generate'
+import { Route as ApiMobileDocumentsTemplatesRouteImport } from './routes/api.mobile.documents.templates'
 import { Route as ApiMobilePaymentsInitiateRouteImport } from './routes/api.mobile.payments.initiate'
+import { Route as ApiMobilePayoutsRetryRouteImport } from './routes/api.mobile.payouts.retry'
 import { Route as ApiMobilePushRegisterRouteImport } from './routes/api.mobile.push.register'
 import { Route as ApiMobilePushUnregisterRouteImport } from './routes/api.mobile.push.unregister'
 import { Route as ApiMobileUploadsImageAuthRouteImport } from './routes/api.mobile.uploads.image-auth'
@@ -364,12 +368,34 @@ const ApiMobileAccountDeleteRoute = ApiMobileAccountDeleteRouteImport.update({
   path: '/api/mobile/account/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileDocumentsDraftRoute = ApiMobileDocumentsDraftRouteImport.update({
+  id: '/api/mobile/documents/draft',
+  path: '/api/mobile/documents/draft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobileDocumentsGenerateRoute =
+  ApiMobileDocumentsGenerateRouteImport.update({
+    id: '/api/mobile/documents/generate',
+    path: '/api/mobile/documents/generate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiMobileDocumentsTemplatesRoute =
+  ApiMobileDocumentsTemplatesRouteImport.update({
+    id: '/api/mobile/documents/templates',
+    path: '/api/mobile/documents/templates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiMobilePaymentsInitiateRoute =
   ApiMobilePaymentsInitiateRouteImport.update({
     id: '/api/mobile/payments/initiate',
     path: '/api/mobile/payments/initiate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiMobilePayoutsRetryRoute = ApiMobilePayoutsRetryRouteImport.update({
+  id: '/api/mobile/payouts/retry',
+  path: '/api/mobile/payouts/retry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMobilePushRegisterRoute = ApiMobilePushRegisterRouteImport.update({
   id: '/api/mobile/push/register',
   path: '/api/mobile/push/register',
@@ -442,7 +468,11 @@ export interface FileRoutesByFullPath {
   '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
+  '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
+  '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
   '/api/mobile/payments/initiate': typeof ApiMobilePaymentsInitiateRoute
+  '/api/mobile/payouts/retry': typeof ApiMobilePayoutsRetryRoute
   '/api/mobile/push/register': typeof ApiMobilePushRegisterRoute
   '/api/mobile/push/unregister': typeof ApiMobilePushUnregisterRoute
   '/api/mobile/uploads/image-auth': typeof ApiMobileUploadsImageAuthRoute
@@ -501,7 +531,11 @@ export interface FileRoutesByTo {
   '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
+  '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
+  '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
   '/api/mobile/payments/initiate': typeof ApiMobilePaymentsInitiateRoute
+  '/api/mobile/payouts/retry': typeof ApiMobilePayoutsRetryRoute
   '/api/mobile/push/register': typeof ApiMobilePushRegisterRoute
   '/api/mobile/push/unregister': typeof ApiMobilePushUnregisterRoute
   '/api/mobile/uploads/image-auth': typeof ApiMobileUploadsImageAuthRoute
@@ -564,7 +598,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/_authenticated/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
+  '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
+  '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
   '/api/mobile/payments/initiate': typeof ApiMobilePaymentsInitiateRoute
+  '/api/mobile/payouts/retry': typeof ApiMobilePayoutsRetryRoute
   '/api/mobile/push/register': typeof ApiMobilePushRegisterRoute
   '/api/mobile/push/unregister': typeof ApiMobilePushUnregisterRoute
   '/api/mobile/uploads/image-auth': typeof ApiMobileUploadsImageAuthRoute
@@ -627,7 +665,11 @@ export interface FileRouteTypes {
     | '/admin/content/stations'
     | '/admin/content/wanted'
     | '/api/mobile/account/delete'
+    | '/api/mobile/documents/draft'
+    | '/api/mobile/documents/generate'
+    | '/api/mobile/documents/templates'
     | '/api/mobile/payments/initiate'
+    | '/api/mobile/payouts/retry'
     | '/api/mobile/push/register'
     | '/api/mobile/push/unregister'
     | '/api/mobile/uploads/image-auth'
@@ -686,7 +728,11 @@ export interface FileRouteTypes {
     | '/admin/content/stations'
     | '/admin/content/wanted'
     | '/api/mobile/account/delete'
+    | '/api/mobile/documents/draft'
+    | '/api/mobile/documents/generate'
+    | '/api/mobile/documents/templates'
     | '/api/mobile/payments/initiate'
+    | '/api/mobile/payouts/retry'
     | '/api/mobile/push/register'
     | '/api/mobile/push/unregister'
     | '/api/mobile/uploads/image-auth'
@@ -748,7 +794,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content/stations'
     | '/_authenticated/admin/content/wanted'
     | '/api/mobile/account/delete'
+    | '/api/mobile/documents/draft'
+    | '/api/mobile/documents/generate'
+    | '/api/mobile/documents/templates'
     | '/api/mobile/payments/initiate'
+    | '/api/mobile/payouts/retry'
     | '/api/mobile/push/register'
     | '/api/mobile/push/unregister'
     | '/api/mobile/uploads/image-auth'
@@ -786,7 +836,11 @@ export interface RootRouteChildren {
   ApiPesapalCallbackMobileRoute: typeof ApiPesapalCallbackMobileRoute
   ApiPesapalIpnRoute: typeof ApiPesapalIpnRoute
   ApiMobileAccountDeleteRoute: typeof ApiMobileAccountDeleteRoute
+  ApiMobileDocumentsDraftRoute: typeof ApiMobileDocumentsDraftRoute
+  ApiMobileDocumentsGenerateRoute: typeof ApiMobileDocumentsGenerateRoute
+  ApiMobileDocumentsTemplatesRoute: typeof ApiMobileDocumentsTemplatesRoute
   ApiMobilePaymentsInitiateRoute: typeof ApiMobilePaymentsInitiateRoute
+  ApiMobilePayoutsRetryRoute: typeof ApiMobilePayoutsRetryRoute
   ApiMobilePushRegisterRoute: typeof ApiMobilePushRegisterRoute
   ApiMobilePushUnregisterRoute: typeof ApiMobilePushUnregisterRoute
   ApiMobileUploadsImageAuthRoute: typeof ApiMobileUploadsImageAuthRoute
@@ -1186,11 +1240,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobileAccountDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/documents/draft': {
+      id: '/api/mobile/documents/draft'
+      path: '/api/mobile/documents/draft'
+      fullPath: '/api/mobile/documents/draft'
+      preLoaderRoute: typeof ApiMobileDocumentsDraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/documents/generate': {
+      id: '/api/mobile/documents/generate'
+      path: '/api/mobile/documents/generate'
+      fullPath: '/api/mobile/documents/generate'
+      preLoaderRoute: typeof ApiMobileDocumentsGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/documents/templates': {
+      id: '/api/mobile/documents/templates'
+      path: '/api/mobile/documents/templates'
+      fullPath: '/api/mobile/documents/templates'
+      preLoaderRoute: typeof ApiMobileDocumentsTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mobile/payments/initiate': {
       id: '/api/mobile/payments/initiate'
       path: '/api/mobile/payments/initiate'
       fullPath: '/api/mobile/payments/initiate'
       preLoaderRoute: typeof ApiMobilePaymentsInitiateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobile/payouts/retry': {
+      id: '/api/mobile/payouts/retry'
+      path: '/api/mobile/payouts/retry'
+      fullPath: '/api/mobile/payouts/retry'
+      preLoaderRoute: typeof ApiMobilePayoutsRetryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/mobile/push/register': {
@@ -1347,7 +1429,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPesapalCallbackMobileRoute: ApiPesapalCallbackMobileRoute,
   ApiPesapalIpnRoute: ApiPesapalIpnRoute,
   ApiMobileAccountDeleteRoute: ApiMobileAccountDeleteRoute,
+  ApiMobileDocumentsDraftRoute: ApiMobileDocumentsDraftRoute,
+  ApiMobileDocumentsGenerateRoute: ApiMobileDocumentsGenerateRoute,
+  ApiMobileDocumentsTemplatesRoute: ApiMobileDocumentsTemplatesRoute,
   ApiMobilePaymentsInitiateRoute: ApiMobilePaymentsInitiateRoute,
+  ApiMobilePayoutsRetryRoute: ApiMobilePayoutsRetryRoute,
   ApiMobilePushRegisterRoute: ApiMobilePushRegisterRoute,
   ApiMobilePushUnregisterRoute: ApiMobilePushUnregisterRoute,
   ApiMobileUploadsImageAuthRoute: ApiMobileUploadsImageAuthRoute,

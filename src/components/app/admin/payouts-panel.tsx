@@ -83,10 +83,18 @@ export function PayoutsPanel() {
                 {payment.payout_failure_reason && (
                   <p className="mt-1 text-xs text-destructive">{payment.payout_failure_reason}</p>
                 )}
-                {payment.payout_status === "pending" && !payment.payout_failure_reason && (
-                  <p className="mt-1 text-xs text-warning-foreground">
-                    Awaiting the advocate's payout setup
+                {/* Every advocate-linked payment starts with payout 'pending', paid or not. */}
+                {payment.status !== "completed" ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    The client hasn't paid this fee, so there is nothing to pay out yet.
                   </p>
+                ) : (
+                  payment.payout_status === "pending" &&
+                  !payment.payout_failure_reason && (
+                    <p className="mt-1 text-xs text-warning-foreground">
+                      Awaiting the advocate's payout setup
+                    </p>
+                  )
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -97,7 +105,8 @@ export function PayoutsPanel() {
                 >
                   {payment.payout_status}
                 </span>
-                {payment.payout_status !== "completed" &&
+                {payment.status === "completed" &&
+                  payment.payout_status !== "completed" &&
                   payment.payout_status !== "processing" && (
                     <Button
                       type="button"
