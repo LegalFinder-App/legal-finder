@@ -1,5 +1,6 @@
 {
   "name": "legalfinder-desktop",
+  "productName": "LegalFinder",
   "version": "2.0.0",
   "description": "LegalFinder desktop app — an Electron shell around the app exported from apps/mobile.",
   "author": "LegalFinder",

@@ -26,6 +26,7 @@ import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
 import { persister, queryClient, shouldPersistQuery } from "@/lib/query-client";
 import { registerTokenGetter } from "@/lib/auth-token";
 import { useDesktopDeepLinks } from "@/lib/desktop-links";
+import { useWideLayout } from "@/lib/layout";
 import "@/lib/desktop-styles";
 import { api } from "@/lib/api";
 import { usePushRegistration } from "@/lib/push";
@@ -108,6 +109,7 @@ function SessionTaskRouter() {
 
 function RootNavigator() {
   const { colors, scheme } = useTheme();
+  const wide = useWideLayout();
   const { isLoaded } = useAuth();
   const [fontsLoaded] = useFonts({
     Fraunces_600SemiBold,
@@ -155,6 +157,8 @@ function RootNavigator() {
         toastOptions={{
           titleStyle: { fontFamily: "PublicSans_600SemiBold" },
           descriptionStyle: { fontFamily: "PublicSans_400Regular" },
+          // A phone toast spans the screen; on a wide desktop window that would be a banner.
+          style: wide ? { width: 420, alignSelf: "center" } : undefined,
         }}
       />
     </>
