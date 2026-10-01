@@ -1,0 +1,106 @@
+name: Desktop — build installers
+
+# Builds the desktop app for Windows, macOS and Linux on GitHub's own runners — the only way to
+# get a macOS build without a Mac, and a Linux build that was actually produced on Linux. Each job
+# exports the app (apps/mobile, for the web) and packages it with the Electron shell
+# (platforms/desktop). Runs on demand or for a desktop-v* tag; macOS minutes are the expensive tier.
+#
+# Required repository VARIABLES (Settings → Secrets and variables → Actions → Variables). They are
+# the same public keys the phone apps and the website ship with — not secrets:
+#   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY, EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+#   EXPO_PUBLIC_API_URL   (optional — defaults to https://www.legalfinder.co)
+#
+# The installers are UNSIGNED until signing secrets are added (Windows SmartScreen and macOS
+# Gatekeeper will warn). To sign, add these repository SECRETS and uncomment the env lines below:
+#   macOS:   CSC_LINK (base64 .p12 "Developer ID Application" certificate), CSC_KEY_PASSWORD,
+#            APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID   — platforms/desktop/macos/README.md
+#   Windows: WIN_CSC_LINK (base64 .pfx), WIN_CSC_KEY_PASSWORD      — platforms/desktop/windows/README.md
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "desktop-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+            artifacts: |
+              platforms/desktop/release/*.exe
+          - os: macos-latest
+            target: --mac
+            artifacts: |
+              platforms/desktop/release/*.dmg
+              platforms/desktop/release/*.zip
+          - os: ubuntu-latest
+            target: --linux
+            artifacts: |
+              platforms/desktop/release/*.AppImage
+              platforms/desktop/release/*.deb
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/mobile/package-lock.json
+
+      # The app refuses to start without these, so a build without them would be a broken app.
+      - name: Check the public app keys are configured
+        shell: bash
+        env:
+          CLERK: ${{ vars.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$CLERK" ] || [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "::error::Set the EXPO_PUBLIC_* repository variables listed at the top of this workflow."
+            exit 1
+          fi
+
+      - name: Install the shell's tooling (Electron, electron-builder)
+        run: npm ci
+
+      - name: Install the app
+        working-directory: apps/mobile
+        run: npm ci
+
+      - name: Export the app
+        env:
+          EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL || 'https://www.legalfinder.co' }}
+        run: npm run desktop:web
+
+      - name: Package
+        env:
+          # Without a certificate electron-builder would otherwise look for one on macOS and fail.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Uncomment once the signing secrets above exist (and remove the line above for macOS):
+          # CSC_LINK: ${{ secrets.CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          # WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: npx electron-builder --config platforms/desktop/electron-builder.yml ${{ matrix.target }} --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legalfinder-desktop-${{ matrix.os }}
+          path: ${{ matrix.artifacts }}
+          if-no-files-found: error

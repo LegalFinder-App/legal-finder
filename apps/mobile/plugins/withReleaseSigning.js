@@ -7,6 +7,7 @@
 // Default location: ../../platforms/mobile/android/keystore.properties (override with
 // LEGALFINDER_KEYSTORE_PROPERTIES). If it's missing, release builds fall back to the debug key and
 // Play will reject the upload — which is the safe failure mode.
+/* global __dirname */
 const path = require("node:path");
 const { withAppBuildGradle } = require("expo/config-plugins");
 
@@ -20,7 +21,16 @@ module.exports = function withReleaseSigning(config) {
     const propsPath = path
       .resolve(
         process.env.LEGALFINDER_KEYSTORE_PROPERTIES ||
-          path.join(__dirname, "..", "..", "..", "platforms", "mobile", "android", "keystore.properties"),
+          path.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "platforms",
+            "mobile",
+            "android",
+            "keystore.properties",
+          ),
       )
       .replace(/\\/g, "/");
 
