@@ -29,6 +29,9 @@ import { usePushRegistration } from "@/lib/push";
 import { useRealtimeSync } from "@/lib/realtime";
 import { BiometricGate } from "@/components/BiometricGate";
 
+// Expo Router wraps the whole app in this; without it a render error closes a release build.
+export { RootErrorBoundary as ErrorBoundary } from "@/components/RootErrorBoundary";
+
 void SplashScreen.preventAutoHideAsync();
 
 // TanStack Query only knows about browser focus/online events; wire it to the native equivalents
