@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { View } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, MessageSquare, Plus } from "lucide-react-native";
+import { CalendarClock, FileSignature, MessageSquare, Plus } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import {
   Button,
@@ -217,6 +217,7 @@ function Updates({
 }
 
 function CaseDetail({ caseId }: { caseId: string }) {
+  const { colors } = useTheme();
   const { user } = useSession();
   const qc = useQueryClient();
   const matter = useQuery(caseQuery(caseId));
@@ -298,7 +299,19 @@ function CaseDetail({ caseId }: { caseId: string }) {
       <SectionTitle title="Deadlines" />
       <Deadlines caseId={caseId} userId={user?.id} />
 
-      <SectionTitle title="Documents" />
+      <SectionTitle
+        title="Documents"
+        action={
+          <Button
+            title="Generate"
+            accessibilityLabel="Generate a document"
+            variant="outline"
+            size="sm"
+            icon={<FileSignature size={14} color={colors.foreground} />}
+            onPress={() => router.push({ pathname: "/generate-document", params: { caseId } })}
+          />
+        }
+      />
       <DocumentList
         userId={user?.id}
         caseId={caseId}

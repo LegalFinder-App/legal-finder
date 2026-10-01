@@ -366,6 +366,15 @@ export const allProfilesQuery = queryOptions({
     ) as ProfileRow[],
 });
 
+// Admin analytics. RLS returns every case to an admin, and only their own to anyone else.
+export const allCasesQuery = queryOptions({
+  queryKey: ["admin-cases"],
+  queryFn: async () =>
+    unwrap(
+      await supabase.from("cases").select("*").order("created_at", { ascending: false }),
+    ) as CaseRow[],
+});
+
 export const allUserRolesQuery = queryOptions({
   queryKey: ["admin-user-roles"],
   queryFn: async () => unwrap(await supabase.from("user_roles").select("*")) as Row<"user_roles">[],

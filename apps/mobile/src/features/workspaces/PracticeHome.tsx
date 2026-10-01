@@ -30,6 +30,7 @@ import {
   Text,
 } from "@/components/ui";
 import { AppointmentItem, MatterItem } from "@/features/shared/Items";
+import { PracticeAnalytics } from "@/features/analytics/PracticeAnalytics";
 import { ContentManager } from "@/features/content/ContentManager";
 import { CONTENT } from "@/features/content/configs";
 import { useSession } from "@/lib/session";
@@ -46,10 +47,10 @@ import {
   type Lawyer,
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
-import { formatDate, formatUGX } from "@/lib/format";
+import { formatDate, formatUGX, formatUGXCompact } from "@/lib/format";
 import { toast } from "@/lib/toast";
 
-type Tab = "pipeline" | "schedule" | "clients" | "profile" | "compliance" | "guides";
+type Tab = "pipeline" | "schedule" | "clients" | "analytics" | "profile" | "compliance" | "guides";
 const STATUS_OPTIONS = ["open", "hearing", "closed"].map((s) => ({
   value: s,
   label: s[0].toUpperCase() + s.slice(1),
@@ -412,9 +413,12 @@ export function PracticeHome() {
   const payments = useQuery(paymentsQuery);
   const [tab, setTab] = useState<Tab>("pipeline");
   const rows = cases.data ?? [];
-  const earned = (payments.data ?? [])
-    .filter((p) => p.lawyer_id === user?.id && p.status === "completed")
-    .reduce((s, p) => s + Number(p.amount), 0);
+  // RLS also returns payments this advocate made as a client; only fees paid to them count.
+  const fees = useMemo(
+    () => (payments.data ?? []).filter((p) => p.lawyer_id === user?.id && p.status === "completed"),
+    [payments.data, user?.id],
+  );
+  const earned = fees.reduce((s, p) => s + Number(p.amount), 0);
 
   return (
     <Screen
@@ -450,7 +454,8 @@ export function PracticeHome() {
         />
         <StatTile
           label="Fees received"
-          value={formatUGX(earned)}
+          value={formatUGXCompact(earned)}
+          hint={formatUGX(earned)}
           icon={<CreditCard size={14} color={colors.brass} />}
         />
       </View>
@@ -461,6 +466,7 @@ export function PracticeHome() {
           { value: "pipeline", label: "Pipeline" },
           { value: "schedule", label: "Schedule" },
           { value: "clients", label: "Clients" },
+          { value: "analytics", label: "Analytics" },
           { value: "profile", label: "Profile" },
           { value: "compliance", label: "Compliance" },
           { value: "guides", label: "Guides" },
@@ -474,6 +480,13 @@ export function PracticeHome() {
         <Schedule appointments={appts.data ?? []} loading={appts.isLoading} />
       ) : null}
       {tab === "clients" ? <Clients cases={rows} /> : null}
+      {tab === "analytics" ? (
+        <PracticeAnalytics
+          cases={rows}
+          fees={fees}
+          loading={cases.isLoading || payments.isLoading}
+        />
+      ) : null}
       {tab === "profile" ? <ProfileEditor /> : null}
       {tab === "compliance" ? <Compliance /> : null}
       {tab === "guides" ? <ContentManager config={CONTENT.advice} /> : null}

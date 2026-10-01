@@ -4,10 +4,10 @@ import type { Colors } from "@/theme/tokens";
 import { fonts } from "@/theme/tokens";
 import { Text } from "./Text";
 
-type Tone = "success" | "muted" | "warning" | "destructive" | "neutral";
+export type StatusTone = "success" | "muted" | "warning" | "destructive" | "neutral";
 
 // Mirrors STATUS_TONE in the web app's src/components/common/bits.tsx.
-const STATUS_TONE: Record<string, Tone> = {
+const STATUS_TONE: Record<string, StatusTone> = {
   open: "success",
   active: "success",
   confirmed: "success",
@@ -29,7 +29,7 @@ const STATUS_TONE: Record<string, Tone> = {
   expired: "destructive",
 };
 
-function toneColors(tone: Tone, colors: Colors, dark: boolean) {
+function toneColors(tone: StatusTone, colors: Colors, dark: boolean) {
   switch (tone) {
     case "success":
       return { bg: `${colors.success}26`, fg: colors.success };
@@ -46,10 +46,11 @@ function toneColors(tone: Tone, colors: Colors, dark: boolean) {
   }
 }
 
-export function StatusPill({ value }: { value: string }) {
+/** `tone` overrides the default for a status word that means something else in context. */
+export function StatusPill({ value, tone }: { value: string; tone?: StatusTone }) {
   const { colors, scheme } = useTheme();
   const { bg, fg } = toneColors(
-    STATUS_TONE[value.toLowerCase()] ?? "neutral",
+    tone ?? STATUS_TONE[value.toLowerCase()] ?? "neutral",
     colors,
     scheme === "dark",
   );

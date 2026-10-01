@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { appLockAvailable, isAppLockEnabled, setAppLockEnabled } from "@/components/BiometricGate";
+import { PayoutDetailsCard } from "@/features/payouts/PayoutDetailsCard";
 import { useSession } from "@/lib/session";
 import { updateProfilePhoto } from "@/lib/images";
 import {
@@ -41,7 +42,7 @@ function Settings() {
   const { colors, preference, setPreference } = useTheme();
   const { user: clerkUser } = useUser();
   const clerk = useClerk();
-  const { user } = useSession();
+  const { user, primaryRole } = useSession();
   const qc = useQueryClient();
   const [name, setName] = useState(user?.fullName ?? "");
   const [savingName, setSavingName] = useState(false);
@@ -227,6 +228,13 @@ function Settings() {
           />
         </View>
       </Card>
+
+      {primaryRole === "lawyer" ? (
+        <>
+          <SectionTitle title="Payout details" />
+          <PayoutDetailsCard lawyerUserId={user.id} />
+        </>
+      ) : null}
 
       <SectionTitle title="Security" />
       <Card>

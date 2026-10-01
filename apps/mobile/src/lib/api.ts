@@ -1,6 +1,11 @@
+import type { PayoutStatus } from "@/types/app-database";
 import { env } from "./env";
 import { getAuthToken } from "./auth-token";
 import { bridgedFetch } from "./bridged-fetch";
+import type { DocumentRow } from "./queries";
+
+// TanStack Start's answer to a JSON request for a path it has no route for (status 500).
+const ROUTE_MISSING = "Only HTML requests are supported here";
 
 export class ApiError extends Error {
   constructor(
@@ -40,11 +45,17 @@ export async function apiPost<T>(path: string, body: unknown = {}): Promise<T> {
     (T & { error?: undefined }) | { error: string } | null;
 
   if (!response.ok) {
-    const message =
-      payload && "error" in payload && typeof payload.error === "string"
-        ? payload.error
-        : `Request failed (${response.status})`;
-    throw new ApiError(message, response.status);
+    const serverMessage =
+      payload && "error" in payload && typeof payload.error === "string" ? payload.error : null;
+    // An app release can reach users before the website's deployment does, and then the route
+    // simply isn't there: a bare 404, or (from a server older than api.mobile.$.tsx) the
+    // framework's own complaint about a non-HTML request. Neither means anything to a user.
+    const routeMissing =
+      serverMessage === ROUTE_MISSING || (response.status === 404 && !serverMessage);
+    const message = routeMissing
+      ? "This isn't available on the LegalFinder server yet. Please try again later."
+      : (serverMessage ?? `Request failed (${response.status})`);
+    throw new ApiError(message, routeMissing ? 404 : response.status);
   }
   return payload as T;
 }
@@ -71,4 +82,37 @@ export const api = {
   unregisterPushToken: (token: string) =>
     apiPost<{ ok: true }>("/api/mobile/push/unregister", { token }),
   deleteAccount: () => apiPost<{ ok: true }>("/api/mobile/account/delete"),
+  /** Admin only. Re-attempts an advocate's payout and reports where it stands afterwards. */
+  retryPayout: (paymentId: string) =>
+    apiPost<{ payoutStatus: PayoutStatus; failureReason: string | null }>(
+      "/api/mobile/payouts/retry",
+      { paymentId },
+    ),
+  documentTemplates: () =>
+    apiPost<{ templates: DocumentTemplate[] }>("/api/mobile/documents/templates"),
+  /** Renders the PDF on the server and files it in the caller's vault; returns the new row. */
+  generateDocument: (request: GenerateDocumentRequest) =>
+    apiPost<{ document: DocumentRow }>("/api/mobile/documents/generate", request),
+  draftDocument: (request: { documentType: string; instructions: string; existingText?: string }) =>
+    apiPost<{ draftText: string }>("/api/mobile/documents/draft", request),
 };
+
+// Mirrors src/lib/documents/templates/types.ts on the web, minus the PDF layout (server-side).
+export interface DocumentTemplateField {
+  name: string;
+  label: string;
+  type: "text" | "textarea" | "date" | "number";
+  placeholder?: string;
+  optional?: boolean;
+}
+
+export interface DocumentTemplate {
+  id: string;
+  title: string;
+  description: string;
+  fields: DocumentTemplateField[];
+}
+
+export type GenerateDocumentRequest =
+  | { kind: "template"; caseId?: string | null; templateId: string; values: Record<string, string> }
+  | { kind: "draft"; caseId?: string | null; title: string; bodyText: string };

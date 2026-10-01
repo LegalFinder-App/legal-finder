@@ -2,7 +2,14 @@ import { useMemo, useState } from "react";
 import { View } from "react-native";
 import { showAlert } from "@/lib/alert";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, CreditCard, ShieldAlert, Users } from "lucide-react-native";
+import {
+  BadgeCheck,
+  Briefcase,
+  CreditCard,
+  ShieldAlert,
+  ShieldCheck,
+  Users,
+} from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import {
   Avatar,
@@ -22,10 +29,13 @@ import {
   SwitchField,
   Text,
 } from "@/components/ui";
+import { AdminAnalytics } from "@/features/analytics/AdminAnalytics";
 import { ContentManager } from "@/features/content/ContentManager";
 import { CONTENT } from "@/features/content/configs";
+import { PayoutsPanel } from "@/features/payouts/PayoutsPanel";
 import { ROLE_LABELS, useSession, type AppRole } from "@/lib/session";
 import {
+  allCasesQuery,
   allProfilesQuery,
   allUserRolesQuery,
   appSettingsQuery,
@@ -36,48 +46,79 @@ import {
   type AppSettings,
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
-import { formatDateTime, formatUGX } from "@/lib/format";
+import { formatDateTime, formatUGX, formatUGXCompact } from "@/lib/format";
+import { useWideLayout } from "@/lib/layout";
 import { toast } from "@/lib/toast";
 
-type Tab = "overview" | "verify" | "users" | "content" | "platform" | "audit";
+type Tab = "overview" | "verify" | "users" | "payouts" | "content" | "platform" | "audit";
 const ALL_ROLES: AppRole[] = ["user", "lawyer", "police", "judiciary", "admin"];
 
 function Overview() {
   const { colors } = useTheme();
+  // Six tiles: two a row on a phone, three a row on a wide desktop window.
+  const tile = useWideLayout() ? { minWidth: 240 } : undefined;
   const profiles = useQuery(allProfilesQuery);
   const lawyers = useQuery(lawyersQuery());
+  const cases = useQuery(allCasesQuery);
   const reports = useQuery(incidentReportsQuery);
   const payments = useQuery(paymentsQuery);
-  const pending = (lawyers.data ?? []).filter((l) => !l.verified).length;
+  const verified = (lawyers.data ?? []).filter((l) => l.verified).length;
+  const pending = (lawyers.data?.length ?? 0) - verified;
   const volume = (payments.data ?? [])
     .filter((p) => p.status === "completed")
     .reduce((s, p) => s + Number(p.amount), 0);
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-      <StatTile
-        label="Users"
-        value={profiles.data?.length ?? "—"}
-        icon={<Users size={14} color={colors.brass} />}
-      />
-      <StatTile
-        label="Pending verifications"
-        value={pending}
-        icon={<BadgeCheck size={14} color={colors.brass} />}
-      />
-      <StatTile
-        label="Open reports"
-        value={
-          (reports.data ?? []).filter(
-            (r) => r.status === "submitted" || r.status === "investigating",
-          ).length
-        }
-        icon={<ShieldAlert size={14} color={colors.brass} />}
-      />
-      <StatTile
-        label="Payments volume"
-        value={formatUGX(volume)}
-        icon={<CreditCard size={14} color={colors.brass} />}
-      />
+    <View style={{ gap: 16 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+        <StatTile
+          label="Users"
+          value={profiles.data?.length ?? "—"}
+          hint="registered"
+          icon={<Users size={14} color={colors.brass} />}
+          style={tile}
+        />
+        <StatTile
+          label="Verified"
+          value={lawyers.data ? verified : "—"}
+          hint={lawyers.data ? `of ${lawyers.data.length} advocates` : undefined}
+          icon={<ShieldCheck size={14} color={colors.brass} />}
+          style={tile}
+        />
+        <StatTile
+          label="To verify"
+          value={lawyers.data ? pending : "—"}
+          hint="awaiting review"
+          icon={<BadgeCheck size={14} color={colors.brass} />}
+          style={tile}
+        />
+        <StatTile
+          label="Open matters"
+          value={cases.data ? cases.data.filter((c) => c.status === "open").length : "—"}
+          hint={cases.data ? `of ${cases.data.length} in all` : undefined}
+          icon={<Briefcase size={14} color={colors.brass} />}
+          style={tile}
+        />
+        <StatTile
+          label="Open reports"
+          value={
+            reports.data
+              ? reports.data.filter((r) => r.status === "submitted" || r.status === "investigating")
+                  .length
+              : "—"
+          }
+          hint="incidents"
+          icon={<ShieldAlert size={14} color={colors.brass} />}
+          style={tile}
+        />
+        <StatTile
+          label="Revenue"
+          value={payments.data ? formatUGXCompact(volume) : "—"}
+          hint={payments.data ? `${formatUGX(volume)} paid` : undefined}
+          icon={<CreditCard size={14} color={colors.brass} />}
+          style={tile}
+        />
+      </View>
+      <AdminAnalytics />
     </View>
   );
 }
@@ -379,7 +420,7 @@ export function AdminHome() {
       <PageHeading
         eyebrow="Administration"
         title="Platform"
-        description="Verify advocates, manage roles and content, and oversee activity."
+        description="Verify advocates, manage roles, payouts and content, and oversee activity."
       />
       <Segmented
         value={tab}
@@ -388,6 +429,7 @@ export function AdminHome() {
           { value: "overview", label: "Overview" },
           { value: "verify", label: "Verify" },
           { value: "users", label: "Users" },
+          { value: "payouts", label: "Payouts" },
           { value: "content", label: "Content" },
           { value: "platform", label: "Platform" },
           { value: "audit", label: "Audit" },
@@ -396,6 +438,7 @@ export function AdminHome() {
       {tab === "overview" ? <Overview /> : null}
       {tab === "verify" ? <Verifications /> : null}
       {tab === "users" ? <UsersAndRoles /> : null}
+      {tab === "payouts" ? <PayoutsPanel /> : null}
       {tab === "content" ? <ContentHub /> : null}
       {tab === "platform" ? <Platform /> : null}
       {tab === "audit" ? <Audit /> : null}

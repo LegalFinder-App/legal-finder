@@ -2,7 +2,7 @@ export { Text } from "./Text";
 export { Button } from "./Button";
 export { Card } from "./Card";
 export { Input } from "./Input";
-export { StatusPill } from "./StatusPill";
+export { StatusPill, type StatusTone } from "./StatusPill";
 export { EmptyState, ErrorState, LoadingRows } from "./States";
 export { Screen, PageHeading, SectionTitle } from "./Screen";
 export { Chip, ChipRow, Segmented } from "./Chip";

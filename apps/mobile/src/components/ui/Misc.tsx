@@ -146,15 +146,22 @@ export function Tag({ label }: { label: string }) {
 export function StatTile({
   label,
   value,
+  hint,
   icon,
+  style,
 }: {
+  /** Keep it to about a dozen characters: two tiles share a phone's width. */
   label: string;
   value: string | number;
+  hint?: string;
   icon?: ReactNode;
+  style?: ViewStyle;
 }) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.stat, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View
+      style={[styles.stat, { backgroundColor: colors.card, borderColor: colors.border }, style]}
+    >
       <View style={styles.statTop}>
         <Text variant="eyebrow" tone="muted" numberOfLines={1} style={{ flex: 1 }}>
           {label}
@@ -164,6 +171,11 @@ export function StatTile({
       <Text variant="h1" style={{ marginTop: 6 }}>
         {value}
       </Text>
+      {hint ? (
+        <Text variant="small" tone="muted" style={{ marginTop: 2 }}>
+          {hint}
+        </Text>
+      ) : null}
     </View>
   );
 }

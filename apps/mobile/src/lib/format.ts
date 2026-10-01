@@ -3,6 +3,21 @@ export function formatUGX(amount: number | null | undefined): string {
   return `UGX ${Number(amount).toLocaleString("en-UG", { maximumFractionDigits: 0 })}`;
 }
 
+/** 1200000 → "1.2M", 45000 → "45K" — for chart axes and stat tiles, which have little room. */
+export function compactNumber(value: number): string {
+  const abs = Math.abs(value);
+  const trim = (n: number) => String(Number(n.toFixed(1)));
+  if (abs >= 1_000_000_000) return `${trim(value / 1_000_000_000)}B`;
+  if (abs >= 1_000_000) return `${trim(value / 1_000_000)}M`;
+  if (abs >= 1_000) return `${trim(value / 1_000)}K`;
+  return String(Math.round(value));
+}
+
+/** "UGX 1.9M" — a full amount ("UGX 1,880,999") wraps in a stat tile on a phone. */
+export function formatUGXCompact(amount: number): string {
+  return `UGX ${compactNumber(amount)}`;
+}
+
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return "—";
   return new Date(value).toLocaleDateString(undefined, {
