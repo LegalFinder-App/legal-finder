@@ -451,6 +451,8 @@ function createWindow() {
       sandbox: true,
       webviewTag: false,
       devTools: !app.isPackaged || process.env.LEGALFINDER_DEVTOOLS === "1",
+      // Lets the page know it is under test (preload.js → testMode). Never set in a packaged app.
+      additionalArguments: TEST_MODE ? ["--legalfinder-test-mode"] : [],
     },
   });
   mainWindow = win;

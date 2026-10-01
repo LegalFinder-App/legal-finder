@@ -6,6 +6,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("legalfinderDesktop", {
   platform: process.platform,
+  // True only when a development (unpackaged) shell was started with LEGALFINDER_TEST_MODE=1.
+  testMode: process.argv.includes("--legalfinder-test-mode"),
   appVersion: () => ipcRenderer.invoke("lf:app-version"),
 
   // { url, method, headers: [name, value][], body: Uint8Array | null }

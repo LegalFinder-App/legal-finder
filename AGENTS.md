@@ -173,7 +173,7 @@ intermediates.
 | Platform | Status |
 |---|---|
 | Web | Builds clean, tests pass, deployed on Vercel |
-| Android (native, `apps/mobile`) | Signed release AAB (versionCode 5) builds locally with the Play upload key; typecheck/lint/expo-doctor clean; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. **Not yet run on a device** from this environment (no working emulator here) — needs a real-phone pass |
+| Android (native, `apps/mobile`) | Signed release AAB (versionCode 6) builds locally with the Play upload key; typecheck/lint/expo-doctor clean; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass |
 | Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
 | Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production. Unsigned (SmartScreen warns) |
 | macOS / Linux desktop | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run |

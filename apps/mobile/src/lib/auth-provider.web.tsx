@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Clerk } from "@clerk/clerk-js/no-rhc";
 import { InternalClerkProvider } from "@clerk/react/internal";
 import { bridgedFetch } from "./bridged-fetch";
+import { desktop } from "./desktop";
 import { env } from "./env";
 import * as SecureStore from "./secure-store";
 
@@ -49,8 +50,9 @@ function clerkInstance(): Clerk {
     if (jwt) await SecureStore.setItemAsync(CLIENT_JWT_KEY, jwt);
   });
   instance = clerk;
-  // Development builds only: lets the desktop end-to-end tests drive Clerk directly.
-  if (__DEV__) (globalThis as { __lfClerk?: Clerk }).__lfClerk = clerk;
+  // Development builds, or a development shell in test mode: lets the desktop end-to-end tests
+  // drive Clerk directly. An installed app never exposes this.
+  if (__DEV__ || desktop?.testMode) (globalThis as { __lfClerk?: Clerk }).__lfClerk = clerk;
   return clerk;
 }
 

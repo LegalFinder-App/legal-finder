@@ -6,6 +6,8 @@ export type BrowserSessionResult = { type: "success"; url: string } | { type: "c
 
 export interface DesktopBridge {
   platform: string;
+  /** A development shell running the end-to-end tests — never true in an installed app. */
+  testMode: boolean;
   appVersion(): Promise<string>;
   fetch(request: {
     url: string;
