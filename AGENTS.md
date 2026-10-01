@@ -29,7 +29,9 @@ query, a server function or the schema, check whether the mobile app needs the s
 - **Styling**: Tailwind CSS v4 + shadcn/ui (`src/components/ui/`) + a custom "Chambers" theme
   (ink navy `--ink` / brass `--brass` tokens in `src/styles.css`).
 - **Testing**: Vitest.
-- **Mobile**: Capacitor (Android buildable locally; iOS needs a Mac).
+- **Mobile**: Expo SDK 57 / React Native 0.86 with Expo Router, in `apps/mobile` (Android
+  buildable locally; iOS needs a Mac or EAS). The superseded Capacitor wrapper is in
+  `platforms/mobile`.
 - **Desktop**: Electron + electron-builder.
 
 ## Repo structure
@@ -47,8 +49,11 @@ src/
   integrations/   supabase client, clerk server-side provisioning/deprovisioning
 supabase/
   migrations/     timestamped SQL migrations — see "Database" below, never edit an applied one
+apps/
+  mobile/         native iOS/Android app (Expo) — own package.json, README.md and AGENTS.md
 platforms/
-  mobile/         Capacitor android/ + ios/ projects, store-assets/ (Play Console graphics)
+  mobile/         superseded Capacitor wrapper; still holds store-assets/ (Play Console graphics)
+                  and android/keystore.properties (the upload key the native app also signs with)
   desktop/        Electron shell + electron-builder config
   shared/         icons and config shared across mobile/desktop
 scripts/          one-off Node scripts (migrations, icon generation, gradle wrapper, env checks)
@@ -130,13 +135,18 @@ npm run lint                   # eslint (prettier formatting issues are real but
                                 # react-refresh warnings noted above are expected)
 npm run db:migrate             # apply pending Supabase migrations (see Database above)
 
-npm run mobile:sync            # capacitor sync — run after any capacitor.config.ts/icon change
-npm run mobile:android:build   # debug APK
-npm run mobile:android:bundle  # signed release AAB (needs platforms/mobile/android/keystore.properties,
-                                # gitignored — see platforms/mobile/android/keystore/README.md)
-npm run mobile:android:open    # open in Android Studio
-npm run mobile:ios:sync        # iOS not buildable on this machine — needs a Mac or
-                                # .github/workflows/mobile-ios-build.yml
+# Native app (apps/mobile) — what ships to the stores. Details: apps/mobile/README.md
+cd apps/mobile && npm run typecheck && npm run lint && npx expo-doctor
+cd apps/mobile && npx expo prebuild --platform android --clean   # regenerate android/ after
+                                # app.config.ts / plugin / native-dependency changes
+cd apps/mobile/android && ./gradlew.bat bundleRelease            # signed AAB; needs the
+                                # ANDROID_HOME/JAVA_HOME overrides and ~5 GB free disk (README)
+
+# Legacy Capacitor wrapper (platforms/mobile) — superseded by the native app, kept for reference.
+# Don't upload its builds: Play has moved on to the native app's version codes.
+npm run mobile:sync            # capacitor sync
+npm run mobile:android:bundle  # wrapper release AAB (platforms/mobile/android/keystore.properties —
+                                # the same upload key the native app signs with)
 
 npm run desktop:dist:win       # Windows NSIS installer (verified working)
 npm run desktop:dist:linux     # Linux AppImage/deb (untested locally)
@@ -145,15 +155,19 @@ npm run desktop:dist:mac       # only produces a real artifact when run on actua
 
 Windows-specific: if a Gradle build fails with `JAVA_HOME is set to an invalid directory`, the
 system `JAVA_HOME` here points at a JDK's `bin/` subfolder instead of its root — override it for
-the one command rather than fixing the system env var, e.g.
-`JAVA_HOME="C:\Program Files\Java\jdk-21" node scripts/run-gradle.mjs bundleRelease`.
+the one command rather than fixing the system env var (`ANDROID_HOME` isn't set either), e.g. from
+`apps/mobile/android`:
+`ANDROID_HOME="$LOCALAPPDATA/Android/Sdk" JAVA_HOME="C:/Program Files/Java/jdk-21" ./gradlew.bat bundleRelease`.
+Drive C: on this machine has run completely out of space mid-build before ("No space left on
+device" from the linker) — check free space first; a clean native build needs ~3 GB of
+intermediates.
 
 ## Platform status (verified in-session, update as this changes)
 
 | Platform | Status |
 |---|---|
 | Web | Builds clean, tests pass, deployed on Vercel |
-| Android (native, `apps/mobile`) | Typecheck/lint/expo-doctor clean, JS bundle builds; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. Not yet run on a device from this environment (emulator won't boot here) |
+| Android (native, `apps/mobile`) | Signed release AAB (versionCode 5) builds locally with the Play upload key; typecheck/lint/expo-doctor clean; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. **Not yet run on a device** from this environment (no working emulator here) — needs a real-phone pass |
 | Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
 | Windows desktop | Installer build verified |
 | macOS / Linux desktop | Not verified from this environment |
@@ -165,9 +179,11 @@ structure" on every card regardless of actual state) and got walked back for exa
 
 ## Known gaps (flag if asked, don't silently "fix" by fabricating)
 
-- **Push notifications** work on Android/web but not iOS — WKWebView inside a third-party native
-  shell doesn't support the Push API. Needs `@capacitor/push-notifications` + APNs/FCM wiring,
-  not implemented. See `platforms/mobile/README.md`.
+- **Push notifications in the native app** are built but not live (as of 2026-10-01): the push
+  migration (`20260930120000_mobile_push_notifications.sql`) hasn't been applied, and a build needs
+  an EAS project id plus, for Android, Firebase's `google-services.json` and an FCM key uploaded
+  to Expo. Until then the app hides its push controls. Steps: `apps/mobile/README.md` ("Push
+  notifications"). Web push is separate and unaffected.
 - **Store submission content** (Play Console Data Safety form, content rating questionnaire,
   App Store privacy nutrition label, demo/reviewer account credentials for gated features) needs
   real business/legal input — don't invent answers here.
