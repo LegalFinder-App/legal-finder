@@ -50,6 +50,7 @@ import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_a
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
 import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
 import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
+import { Route as ApiMobileSplatRouteImport } from './routes/api.mobile.$'
 import { Route as ApiMobileAssistantRouteImport } from './routes/api.mobile.assistant'
 import { Route as ApiMobileSessionRouteImport } from './routes/api.mobile.session'
 import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
@@ -283,6 +284,11 @@ const ApiFlutterwaveWebhookRoute = ApiFlutterwaveWebhookRouteImport.update({
   path: '/api/flutterwave/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileSplatRoute = ApiMobileSplatRouteImport.update({
+  id: '/api/mobile/$',
+  path: '/api/mobile/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMobileAssistantRoute = ApiMobileAssistantRouteImport.update({
   id: '/api/mobile/assistant',
   path: '/api/mobile/assistant',
@@ -453,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
+  '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
@@ -516,6 +523,7 @@ export interface FileRoutesByTo {
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
+  '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
@@ -583,6 +591,7 @@ export interface FileRoutesById {
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
+  '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
     | '/api/flutterwave/webhook'
+    | '/api/mobile/$'
     | '/api/mobile/assistant'
     | '/api/mobile/session'
     | '/api/pesapal/callback'
@@ -713,6 +723,7 @@ export interface FileRouteTypes {
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
     | '/api/flutterwave/webhook'
+    | '/api/mobile/$'
     | '/api/mobile/assistant'
     | '/api/mobile/session'
     | '/api/pesapal/callback'
@@ -779,6 +790,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cases/$caseId'
     | '/api/cron/compliance-check'
     | '/api/flutterwave/webhook'
+    | '/api/mobile/$'
     | '/api/mobile/assistant'
     | '/api/mobile/session'
     | '/api/pesapal/callback'
@@ -830,6 +842,7 @@ export interface RootRouteChildren {
   NewsIndexRoute: typeof NewsIndexRoute
   ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
+  ApiMobileSplatRoute: typeof ApiMobileSplatRoute
   ApiMobileAssistantRoute: typeof ApiMobileAssistantRoute
   ApiMobileSessionRoute: typeof ApiMobileSessionRoute
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
@@ -1135,6 +1148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFlutterwaveWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/$': {
+      id: '/api/mobile/$'
+      path: '/api/mobile/$'
+      fullPath: '/api/mobile/$'
+      preLoaderRoute: typeof ApiMobileSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mobile/assistant': {
       id: '/api/mobile/assistant'
       path: '/api/mobile/assistant'
@@ -1423,6 +1443,7 @@ const rootRouteChildren: RootRouteChildren = {
   NewsIndexRoute: NewsIndexRoute,
   ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
+  ApiMobileSplatRoute: ApiMobileSplatRoute,
   ApiMobileAssistantRoute: ApiMobileAssistantRoute,
   ApiMobileSessionRoute: ApiMobileSessionRoute,
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
