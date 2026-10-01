@@ -53,7 +53,8 @@ LEGALFINDER_DEV_SERVER=http://localhost:8082 npm run desktop:dev
 
 Don't run an export while that dev server is up — the two share a cache and the server can hang.
 
-Other switches, all ignored by packaged builds except the first:
+Other switches, all ignored by packaged builds (an installed app always talks to production)
+except the first:
 
 | Variable                           | Effect                                                               |
 | ---------------------------------- | -------------------------------------------------------------------- |
@@ -61,6 +62,19 @@ Other switches, all ignored by packaged builds except the first:
 | `LEGALFINDER_TEST_MODE=1`          | Record browser opens and downloads instead of performing them.       |
 | `LEGALFINDER_REGISTER_PROTOCOL=1`  | Point this machine's `legalfinder://` links at the dev checkout.     |
 | `LEGALFINDER_CLERK_ORIGIN` / `LEGALFINDER_API_ORIGIN` | Allow a development Clerk instance / a preview deployment. |
+
+To try server changes before they are deployed, run the built web server on this machine and point
+both halves at it — the app's export and the shell, which accepts plain http only for `localhost`.
+The server's address is fixed in the app when it is exported, and Metro caches it, so pass
+`--clear` when switching to the local server **and** when switching back; without it the export
+silently keeps the previous address.
+
+```
+npm run build && node --env-file=.env .output/server/index.mjs             # the web server, port 3000
+EXPO_PUBLIC_API_URL=http://localhost:3000 npm run desktop:web -- --clear
+LEGALFINDER_API_ORIGIN=http://localhost:3000 npm run desktop:dev
+npm run desktop:web -- --clear                                              # back to production
+```
 
 ## Building installers
 

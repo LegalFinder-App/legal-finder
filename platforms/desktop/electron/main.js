@@ -33,11 +33,13 @@ const DEEP_LINK_PREFIX = "legalfinder://";
 
 // The only requests the renderer may make through the fetch bridge. Neither host sends CORS
 // headers for app:// (phones don't need them), so a normal fetch from the page would be blocked.
-// The overrides exist for testing against a development Clerk instance or a preview deployment.
+// The overrides exist for testing against a development Clerk instance, a preview deployment or
+// a web server on this machine; an installed app always talks to production.
+const devOverride = (name, fallback) => (app.isPackaged ? fallback : process.env[name] || fallback);
 const BRIDGED_ROUTES = [
-  { origin: process.env.LEGALFINDER_CLERK_ORIGIN || "https://clerk.legalfinder.co", prefix: "/" },
+  { origin: devOverride("LEGALFINDER_CLERK_ORIGIN", "https://clerk.legalfinder.co"), prefix: "/" },
   {
-    origin: process.env.LEGALFINDER_API_ORIGIN || "https://www.legalfinder.co",
+    origin: devOverride("LEGALFINDER_API_ORIGIN", "https://www.legalfinder.co"),
     prefix: "/api/mobile/",
   },
 ];
@@ -257,13 +259,21 @@ function isBridgedUrl(url) {
   );
 }
 
+// Plain http is accepted only for a web server on this machine, and only by a development shell
+// (LEGALFINDER_API_ORIGIN=http://localhost:3000 — trying server changes before they are deployed).
+function isSecureEnough(url) {
+  if (url.protocol === "https:") return true;
+  const loopback = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  return !app.isPackaged && url.protocol === "http:" && loopback;
+}
+
 // Headers the page has no business choosing for a request made on its behalf.
 const BLOCKED_REQUEST_HEADERS = new Set(["host", "cookie", "origin", "referer", "content-length"]);
 
 async function bridgedFetch(event, request) {
   assertFromApp(event);
   const url = new URL(String(request?.url));
-  if (url.protocol !== "https:" || !isBridgedUrl(url)) throw new Error("Request not allowed");
+  if (!isSecureEnough(url) || !isBridgedUrl(url)) throw new Error("Request not allowed");
   const method = String(request.method || "GET").toUpperCase();
   const headers = new Headers();
   for (const [name, value] of request.headers ?? []) {
