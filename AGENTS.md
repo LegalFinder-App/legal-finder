@@ -185,7 +185,7 @@ intermediates.
 | Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
 | Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production; payout details, analytics, admin payouts and document generation verified the same way (the last two against a local production build of the server). Unsigned (SmartScreen warns) |
 | macOS / Linux desktop | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run |
-| iOS (native) | Same codebase as Android; needs a Mac or EAS cloud build — not built from this environment |
+| iOS (native) | Same codebase as Android; needs a Mac or EAS cloud build — never built. The EAS project exists (`@ochienodavid/legalfinder`); the first build still needs the `EXPO_PUBLIC_*` values pushed to EAS and an Apple Developer login |
 
 Don't describe platform readiness in marketing/UI copy (e.g. the homepage `PlatformMatrix`
 component) more confidently than this table — it was previously overclaimed ("Production-ready
@@ -193,11 +193,12 @@ structure" on every card regardless of actual state) and got walked back for exa
 
 ## Known gaps (flag if asked, don't silently "fix" by fabricating)
 
-- **Push notifications in the native app** are built but not live (as of 2026-10-01): the push
-  migration (`20260930120000_mobile_push_notifications.sql`) hasn't been applied, and a build needs
-  an EAS project id plus, for Android, Firebase's `google-services.json` and an FCM key uploaded
-  to Expo. Until then the app hides its push controls. Steps: `apps/mobile/README.md` ("Push
-  notifications"). Web push is separate and unaffected.
+- **Push notifications in the native app** are built but not live (as of 2026-10-02): the push
+  migration (`20260930120000_mobile_push_notifications.sql`) hasn't been applied, and Android
+  needs Firebase's `google-services.json` plus an FCM key uploaded to Expo. The EAS project now
+  exists (id in `apps/mobile/app.config.ts`), so the app's push controls are held back by
+  `PUSH_ENABLED` there instead — switch it on only once the rest is in place. Steps:
+  `apps/mobile/README.md` ("Push notifications"). Web push is separate and unaffected.
 - **Vercel is rejecting deployments** (first seen 2026-10-01 20:51 UTC, commit `8229352`): each
   push fails within seconds, before a build starts, so it is an account/project-level problem and
   not the code — `npm run build` passes locally and in CI. Until it is fixed in the Vercel

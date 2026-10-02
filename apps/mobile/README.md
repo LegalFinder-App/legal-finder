@@ -110,12 +110,15 @@ iOS can't be built on Windows. EAS Build compiles it on Expo's servers (no Mac n
 `eas.json` has the profiles. One-time setup, from a terminal in `apps/mobile` — the Apple login is
 interactive, so this part can't be scripted:
 
-1. `npx eas-cli@latest login`, then `npx eas-cli@latest init`. Put the project id it prints in
-   `EAS_PROJECT_ID` in `.env` (it is also one of the things push needs — below).
-2. Give the cloud build the public keys it can't read from your gitignored `.env`: add the four
-   `EXPO_PUBLIC_*` values as EAS environment variables for the **production** environment
-   (expo.dev → the project → Environment variables, or `eas env` — see
-   <https://docs.expo.dev/eas/environment-variables/>). Add `EAS_PROJECT_ID` there too.
+1. `npx eas-cli@latest login`. The Expo project already exists (`@ochienodavid/legalfinder`,
+   created with `eas init` on 2026-10-02); its id and owner are constants in `app.config.ts`.
+   `eas init` can't write to a `.ts` config, so on a new project it ends with "Cannot
+   automatically write to dynamic config" after creating the project — copy the id it prints
+   into `EAS_PROJECT_ID` there. `npx eas-cli@latest project:info` confirms the link.
+2. Give the cloud build the public keys it can't read from your gitignored `.env`:
+   `npx eas-cli@latest env:push production --path .env` uploads the four `EXPO_PUBLIC_*` values
+   as EAS environment variables (or add them at expo.dev → the project → Environment variables;
+   see <https://docs.expo.dev/eas/environment-variables/>). `eas env:list production` shows them.
 3. `npx eas-cli@latest build --platform ios --profile production`. It asks for your Apple
    Developer login and creates (or reuses) the distribution certificate and provisioning profile.
 4. `npx eas-cli@latest submit --platform ios` uploads the build to App Store Connect / TestFlight.
@@ -130,12 +133,14 @@ disk; upload the existing upload keystore to EAS first (`eas credentials`) so Pl
 
 ### Push notifications (optional)
 
-Until steps 1 and 2 are done the app hides its push controls (`pushAvailable()` in
-`src/lib/push.ts`); the in-app notifications list keeps working. Steps 1–3 are build-time settings,
-so rebuild (`expo prebuild --clean`, then the release build) after changing any of them.
+The app hides its push controls until `PUSH_ENABLED` in `app.config.ts` is `true` — and, on
+Android, until the build includes Firebase's config (`pushAvailable()` in `src/lib/push.ts`); the
+in-app notifications list keeps working. The flag exists because every build now carries the EAS
+project id, and with only that the switch would appear on iOS and fail when tapped. Steps 1, 2 and
+5 are build-time settings, so rebuild (`expo prebuild --clean`, then the release build) after them.
 
-1. **Expo project** — `npx eas-cli@latest init` in `apps/mobile`, then set `EAS_PROJECT_ID` in
-   `.env`. Expo push tokens are issued per project.
+1. **Expo project** — done: the project id is in `app.config.ts` (Expo push tokens are issued per
+   project).
 2. **Android (FCM)** — in the Firebase console create a project, add an Android app with the
    package `com.legalfinder.app`, and save its `google-services.json` in `apps/mobile/`
    (`plugins/withOptionalGoogleServices.js` picks it up; it holds no secret keys, so it can be
@@ -146,6 +151,7 @@ so rebuild (`expo prebuild --clean`, then the release build) after changing any 
 4. **Database** — apply `supabase/migrations/20260930120000_mobile_push_notifications.sql`
    (`npm run db:migrate` from the repo root). It stores device tokens and forwards each new
    notification and message to Expo's push service.
+5. **Switch it on** — set `PUSH_ENABLED = true` in `app.config.ts` and rebuild.
 
 ## One-time dashboard configuration
 

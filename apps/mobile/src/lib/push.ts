@@ -53,6 +53,10 @@ async function currentToken(): Promise<string | null> {
  */
 export function pushAvailable(): boolean {
   if (!Device.isDevice || !projectId()) return false;
+  // The project id alone isn't enough: every build has one (EAS Build needs it), while push also
+  // needs the server's token table and the store credentials. PUSH_ENABLED in app.config.ts is
+  // switched on once those exist.
+  if (Constants.expoConfig?.extra?.pushEnabled !== true) return false;
   // Android delivers through Firebase, which only exists in builds made with google-services.json.
   return Platform.OS !== "android" || Boolean(Constants.expoConfig?.android?.googleServicesFile);
 }

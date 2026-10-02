@@ -7,6 +7,16 @@ const VERSION = "2.0.0";
 const ANDROID_VERSION_CODE = 7;
 const IOS_BUILD_NUMBER = "1";
 
+// The Expo (EAS) project these builds belong to — expo.dev/accounts/ochienodavid/projects/legalfinder,
+// created by `eas init`. An identifier, not a secret: EAS Build refuses to run without it, and Expo
+// push tokens are issued per project.
+const EXPO_OWNER = "ochienodavid";
+const EAS_PROJECT_ID = "3e51f2b9-07dc-4ca6-8644-68648a4eeb69";
+
+// Push stays off in the app until everything behind it exists (README, "Push notifications"):
+// with only the project id above, the switch would appear on iOS and fail when tapped.
+const PUSH_ENABLED = false;
+
 const config: ExpoConfig = {
   name: "LegalFinder",
   slug: "legalfinder",
@@ -95,10 +105,11 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: true },
   extra: {
     router: {},
-    // Set EAS_PROJECT_ID after `npx eas-cli@latest init` — push notifications need it.
-    eas: process.env.EAS_PROJECT_ID ? { projectId: process.env.EAS_PROJECT_ID } : undefined,
+    eas: { projectId: EAS_PROJECT_ID },
+    // Read by pushAvailable() in src/lib/push.ts.
+    pushEnabled: PUSH_ENABLED,
   },
-  owner: process.env.EXPO_OWNER,
+  owner: EXPO_OWNER,
 };
 
 export default config;
