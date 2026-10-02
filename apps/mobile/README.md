@@ -17,9 +17,13 @@ It talks to the same backend as the website:
   setup, TOTP/SMS/backup codes), password reset, and Google/Apple/LinkedIn through the system
   browser (Google blocks sign-in inside WebViews). Phones use `@clerk/expo`; the desktop build runs
   Clerk in the same token-based mode (`src/lib/auth-provider.web.tsx`).
-- **`/api/mobile/*`** on the web app for anything that needs a server secret: payments (Pesapal),
-  the AI assistant, image-upload signing, push-token registration and account deletion. Those
-  routes reuse the web's own server logic (`src/lib/*.server.ts`).
+- **`/api/mobile/*`** on the web app for anything that needs a server secret or can't run on a
+  phone: payments (Pesapal), retrying an advocate's payout (admins), the AI assistant, document
+  generation (the web's PDF templates, rendered on the server, plus AI drafting), image-upload
+  signing, push-token registration and account deletion. Those routes reuse the web's own server
+  logic (`src/lib/*.server.ts`). The app and the website are released separately, so a new route
+  must be deployed before an app build that calls it reaches users; until then the app reports
+  that the feature isn't available on the server yet (`src/lib/api.ts`).
 
 ## Setup
 
@@ -85,8 +89,9 @@ On this Windows machine the shell environment needs two overrides for Gradle (th
 ANDROID_HOME="$LOCALAPPDATA/Android/Sdk" JAVA_HOME="C:/Program Files/Java/jdk-21" ./gradlew.bat bundleRelease
 ```
 
-A clean release build takes 30–60 minutes here (four CPU architectures of native code); later
-builds are incremental. Native (CMake) intermediates go to `~/.cxx-lf/` instead of each module's
+A clean release build takes one to two hours here (four CPU architectures of native code, on
+8 GB of memory); later builds are incremental. Reinstalling `node_modules` makes the next build a
+clean one again — each library's Android build output lives inside its package folder. Native (CMake) intermediates go to `~/.cxx-lf/` instead of each module's
 `.cxx/` folder — `plugins/withShortNativeBuildPaths.js` does that because the repo's deep path
 pushed ninja past Windows' 260-character limit ("build.ninja still dirty after 100 tries"). If
 native build errors look stale after a dependency upgrade, delete `~/.cxx-lf/`.
@@ -155,7 +160,8 @@ so rebuild (`expo prebuild --clean`, then the release build) after changing any 
 ```
 src/app/          Expo Router screens — (tabs) Home/Advocates/Messages/Learn/More, (auth) flows
 src/features/     screen building blocks (home, workspaces per role, admin, content editor)
-src/components/   design system (ui/) + shared components
+src/components/   design system (ui/), charts (charts/, drawn with react-native-svg) + shared
+                  components
 src/lib/          supabase, api, queries, session/roles, push, payments, documents, realtime;
                   *.web.ts files are the desktop counterparts (see "One codebase, three runtimes")
 src/theme/        "Chambers" tokens (hex conversions of the web's OKLCH palette) + theme provider

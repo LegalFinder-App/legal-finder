@@ -86,6 +86,14 @@ scripts/          one-off Node scripts (migrations, icon generation, gradle wrap
   (`src/integrations/supabase/auth.server.ts`, shared with `requireClerkAuth`) and call the same
   `*.server.ts` logic as the web's server functions. Keep server-only imports out of files the
   client bundle can reach — TanStack Start's import protection fails the build otherwise.
+- **PDFs for the apps** are rendered on the server (`src/lib/documents/generate.server.ts`, the
+  same react-pdf templates the web renders in the browser), because react-pdf can't run on a
+  phone. `pdfkit` must stay in `traceDeps` (`vite.config.ts`): bundled, it can't find its built-in
+  fonts. That only shows in a production build, never under `npm run dev` — after touching this,
+  run `npm run build && node --env-file=.env .output/server/index.mjs` and generate a document.
+- **Payouts**: every advocate-linked payment gets `payout_status = 'pending'` at insert (a DB
+  trigger), paid or not. Check `status === 'completed'` before treating a payout as owed —
+  `attemptLawyerPayout` does, and nothing else may call Flutterwave.
 - **OAuth**: `signIn.sso({ strategy, redirectUrl, redirectCallbackUrl })` in `src/routes/auth.tsx`.
   Provider credentials for Google/Apple/LinkedIn are configured in the **Clerk Dashboard** (Social
   Connections), not as app env vars — Vercel env vars never reach Clerk's own OAuth exchange.
@@ -131,7 +139,7 @@ builds don't point at production).
 ```
 npm run dev                    # local dev server
 npm run build                  # production web build
-npm test                       # vitest (23 tests as of writing; a "close timed out" warning
+npm test                       # vitest (50 tests as of writing; a "close timed out" warning
                                 # after they pass is a benign Vite-server-shutdown quirk)
 npm run lint                   # eslint (prettier formatting issues are real but low-priority;
                                 # react-refresh warnings noted above are expected)
@@ -172,10 +180,10 @@ intermediates.
 
 | Platform | Status |
 |---|---|
-| Web | Builds clean, tests pass, deployed on Vercel |
-| Android (native, `apps/mobile`) | Signed release AAB (versionCode 6) builds locally with the Play upload key; typecheck/lint/expo-doctor clean; `/api/mobile/*` verified end-to-end against prod Clerk/Supabase. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass |
+| Web | Builds clean, tests pass. Hosted on Vercel, but **deployments have been failing since 2026-10-01** (see Known gaps), so production runs the build from 13:21 that day |
+| Android (native, `apps/mobile`) | Signed release AAB (versionCode 7, 2026-10-02) builds locally with the Play upload key; typecheck/lint/expo-doctor clean, also in CI. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass |
 | Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
-| Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production. Unsigned (SmartScreen warns) |
+| Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production; payout details, analytics, admin payouts and document generation verified the same way (the last two against a local production build of the server). Unsigned (SmartScreen warns) |
 | macOS / Linux desktop | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run |
 | iOS (native) | Same codebase as Android; needs a Mac or EAS cloud build — not built from this environment |
 
@@ -190,9 +198,20 @@ structure" on every card regardless of actual state) and got walked back for exa
   an EAS project id plus, for Android, Firebase's `google-services.json` and an FCM key uploaded
   to Expo. Until then the app hides its push controls. Steps: `apps/mobile/README.md` ("Push
   notifications"). Web push is separate and unaffected.
-- **The app is a subset of the website.** Payout administration, document automation (PDF
-  templates) and the analytics dashboards exist only on the web, so the phone and desktop apps
-  don't replace the website for those tasks yet — don't describe them as feature-complete.
+- **Vercel is rejecting deployments** (first seen 2026-10-01 20:51 UTC, commit `8229352`): each
+  push fails within seconds, before a build starts, so it is an account/project-level problem and
+  not the code — `npm run build` passes locally and in CI. Until it is fixed in the Vercel
+  dashboard, production lacks everything pushed since, including the `/api/mobile/payouts/*` and
+  `/api/mobile/documents/*` routes the apps now call (the apps say the feature isn't available
+  on the server yet). Check `git log` against what production serves before assuming a fix is live.
+- **App parity is recent and only partly verified.** Payout details, admin payouts, analytics
+  and document generation were added to the apps on 2026-10-02 and exercised in the desktop
+  build — the server routes against a local production build, not the live site (see above), and
+  none of it on a phone. AI drafting's success path is unverified: the local `ANTHROPIC_API_KEY`
+  is not valid. Other website-only areas may remain (e.g. passkeys); check before claiming parity.
+- **Flutterwave payouts have never moved real money.** The transfer request shape is partly
+  inferred (`src/lib/flutterwave.server.ts`, FLUTTERWAVE_SETUP_NOTES) and needs a sandbox pass
+  before the Retry button or the automatic payout is relied on.
 - **Desktop distribution isn't finished**: installers are unsigned (SmartScreen / Gatekeeper
   warn), there is no auto-update (a new installer per release), and the macOS and Linux builds
   have never been run. Social sign-in and Pesapal checkout hand off to the browser and were tested

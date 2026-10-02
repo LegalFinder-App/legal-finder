@@ -61,8 +61,14 @@ Docs: https://docs.expo.dev/eas/index.md
 - **Toasts**: import `toast` from `@/lib/toast` (adds haptics; same shape as the web wrapper), not
   `sonner-native` directly.
 - **Data**: `src/lib/queries.ts` mirrors the web's queries against the same RLS policies.
-  Anything needing a server secret (payments, assistant, upload signing, push tokens, account
-  deletion) goes through the web's `/api/mobile/*` routes via `src/lib/api.ts`.
+  Anything needing a server secret (payments, payout retry, assistant, upload signing, push
+  tokens, account deletion) or that can't run on a phone (PDF generation) goes through the web's
+  `/api/mobile/*` routes via `src/lib/api.ts`.
+- **Charts and stat tiles**: charts are `src/components/charts` (react-native-svg, so identical on
+  all three runtimes) fed by the pure helpers in `src/lib/analytics.ts` — no `Intl`, and buckets
+  are keyed by year as well as month. A `StatTile` shares a phone's width with another one: keep
+  its label to about a dozen characters and show money with `formatUGXCompact`, the exact figure
+  in the hint.
 - **Offline cache**: only public query roots (`PUBLIC_QUERY_ROOTS` in `src/lib/query-client.ts`)
   are persisted to disk. Never add cases, messages, documents, payments or profiles to it.
 - **Releases**: bump `ANDROID_VERSION_CODE` / `IOS_BUILD_NUMBER` in `app.config.ts` for every

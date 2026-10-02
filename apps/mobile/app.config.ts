@@ -4,7 +4,7 @@ import type { ExpoConfig } from "expo/config";
 // the existing Play listing (and future App Store listing) rather than a new app. versionCode
 // must stay above the wrapper's last upload (4).
 const VERSION = "2.0.0";
-const ANDROID_VERSION_CODE = 6;
+const ANDROID_VERSION_CODE = 7;
 const IOS_BUILD_NUMBER = "1";
 
 const config: ExpoConfig = {
