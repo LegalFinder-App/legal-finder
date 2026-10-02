@@ -21,6 +21,7 @@ we hand them. So the demo accounts carry single-use **backup codes**, which the 
 node scripts/reviewer-accounts.mjs          # create or refresh both accounts and their sample data
 node scripts/reviewer-accounts.mjs codes    # issue fresh backup codes (do this before every submission)
 node scripts/reviewer-accounts.mjs status   # what exists right now
+node scripts/reviewer-accounts.mjs verify   # sign in to both, as the app does (uses no backup code)
 node scripts/reviewer-accounts.mjs remove   # delete the accounts and everything they own
 ```
 

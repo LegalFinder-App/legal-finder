@@ -157,8 +157,9 @@ npm test                       # vitest (71 tests as of writing; a "close timed 
 npm run lint                   # eslint (prettier formatting issues are real but low-priority;
                                 # react-refresh warnings noted above are expected)
 npm run db:migrate             # apply pending Supabase migrations (see Database above)
-node scripts/reviewer-accounts.mjs [codes|status|remove]   # the store reviewers' demo accounts
-                                # on production; "codes" before every submission (store-listing/)
+node scripts/reviewer-accounts.mjs [codes|verify|status|remove]   # the store reviewers' demo
+                                # accounts on production; "codes" then "verify" before every
+                                # submission (store-listing/)
 
 # Native app (apps/mobile) — what ships to the stores. Details: apps/mobile/README.md
 cd apps/mobile && npm run typecheck && npm run lint && npx expo-doctor

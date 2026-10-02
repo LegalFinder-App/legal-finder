@@ -3,6 +3,7 @@
 //   node scripts/reviewer-accounts.mjs          create or refresh both accounts and their sample data
 //   node scripts/reviewer-accounts.mjs codes    only issue fresh backup codes (before each submission)
 //   node scripts/reviewer-accounts.mjs status   show what exists, without changing anything
+//   node scripts/reviewer-accounts.mjs verify   sign in to both, as the app does, to prove they work
 //   node scripts/reviewer-accounts.mjs remove   delete the accounts and everything they own
 //
 // Why they exist: the production Clerk instance requires two-step verification for everyone, and
@@ -193,6 +194,40 @@ async function ensureUser(account, password) {
 }
 
 /**
+ * A Clerk native-client conversation, as the phone app has one: no cookies, and Clerk hands the
+ * client token back in the Authorization response header of each call.
+ */
+function nativeClient() {
+  let client = null;
+  return async (method, pathname, form) => {
+    const url = new URL(FAPI + pathname);
+    url.searchParams.set("_is_native", "1");
+    const res = await fetch(url, {
+      method,
+      headers: {
+        ...(client ? { Authorization: client } : {}),
+        ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+      },
+      body: form ? new URLSearchParams(form).toString() : undefined,
+    });
+    client = res.headers.get("authorization") ?? client;
+    const body = await res.json().catch(() => null);
+    if (res.status >= 300) {
+      const reason = body?.errors?.[0]?.long_message ?? body?.errors?.[0]?.message ?? "";
+      throw new Error(`Clerk ${method} ${pathname.split("?")[0]} failed (${res.status}) ${reason}`);
+    }
+    return body;
+  };
+}
+
+/** Waits out the last seconds of a 30-second window, where a code can expire in transit. */
+async function freshTotp(secret) {
+  const left = 30000 - (Date.now() % 30000);
+  if (left < 5000) await new Promise((resolve) => setTimeout(resolve, left + 500));
+  return totp(secret);
+}
+
+/**
  * Sets up two-step verification from scratch and returns the secret and the backup codes. Run as
  * the user, through Clerk's native-client API: a one-time sign-in ticket, then the same calls the
  * app's "Secure your account" screens make. Any earlier setup is discarded first, so this is also
@@ -215,27 +250,7 @@ async function enrolTwoStep(userId, withSession) {
   });
   if (ticket.status >= 300) throw new Error(`Couldn't create a sign-in ticket (${ticket.status})`);
 
-  let client = null; // Clerk returns the client token in the Authorization response header
-  const fapi = async (method, pathname, form) => {
-    const url = new URL(FAPI + pathname);
-    url.searchParams.set("_is_native", "1");
-    const res = await fetch(url, {
-      method,
-      headers: {
-        ...(client ? { Authorization: client } : {}),
-        ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
-      },
-      body: form ? new URLSearchParams(form).toString() : undefined,
-    });
-    client = res.headers.get("authorization") ?? client;
-    const body = await res.json().catch(() => null);
-    if (res.status >= 300) {
-      const reason = body?.errors?.[0]?.long_message ?? body?.errors?.[0]?.message ?? "";
-      throw new Error(`Clerk ${method} ${pathname.split("?")[0]} failed (${res.status}) ${reason}`);
-    }
-    return body;
-  };
-
+  const fapi = nativeClient();
   const signIn = await fapi("POST", "/v1/client/sign_ins", {
     strategy: "ticket",
     ticket: ticket.body.token,
@@ -246,10 +261,9 @@ async function enrolTwoStep(userId, withSession) {
   try {
     const created = await fapi("POST", `/v1/me/totp${q}`, {});
     const secret = created.response.secret;
-    // A code typed in the last seconds of its 30-second window can expire in transit.
-    const left = 30000 - (Date.now() % 30000);
-    if (left < 5000) await new Promise((resolve) => setTimeout(resolve, left + 500));
-    await fapi("POST", `/v1/me/totp/attempt_verification${q}`, { code: totp(secret) });
+    await fapi("POST", `/v1/me/totp/attempt_verification${q}`, {
+      code: await freshTotp(secret),
+    });
     const backup = await fapi("POST", `/v1/me/backup_codes${q}`, {});
     const codes = backup.response.codes;
     if (!Array.isArray(codes) || codes.length === 0)
@@ -798,6 +812,68 @@ async function status() {
   console.log(`credentials file: ${fs.existsSync(CREDENTIALS) ? "present" : "missing"}`);
 }
 
+/**
+ * Signs in to each account the way the app does — password, then the second step — to prove the
+ * details in the credentials file still work. The second step uses the authenticator secret, so
+ * no backup code is spent.
+ */
+async function verify() {
+  if (!fs.existsSync(CREDENTIALS)) {
+    throw new Error("No credentials file — run without arguments to set the accounts up.");
+  }
+  const file = fs.readFileSync(CREDENTIALS, "utf8");
+  const passwords = [...file.matchAll(/^Password:\s+(\S+)$/gm)].map((m) => m[1]);
+  let failures = 0;
+  for (const [index, [kind, account]] of Object.entries(ACCOUNTS).entries()) {
+    const secret = file.match(
+      new RegExp(`^\\s+${account.email.replace(/[.+]/g, "\\$&")}:\\s+(\\S+)$`, "m"),
+    )?.[1];
+    try {
+      if (!passwords[index] || !secret) throw new Error("its details are missing from the file");
+      const fapi = nativeClient();
+      const first = (
+        await fapi("POST", "/v1/client/sign_ins", {
+          strategy: "password",
+          identifier: account.email,
+          password: passwords[index],
+        })
+      ).response;
+      if (first.status !== "needs_second_factor") {
+        throw new Error(
+          `after the password the sign-in was "${first.status}", not the second step`,
+        );
+      }
+      const offered = (first.supported_second_factors ?? []).map((factor) => factor.strategy);
+      if (!offered.includes("backup_code")) throw new Error("backup codes are not offered");
+      const attempt = async () =>
+        (
+          await fapi("POST", `/v1/client/sign_ins/${first.id}/attempt_second_factor`, {
+            strategy: "totp",
+            code: await freshTotp(secret),
+          })
+        ).response;
+      // Clerk refuses an authenticator code it has already seen, and "codes" or an earlier
+      // "verify" may have used this half-minute's one: wait for the next and try once more.
+      const second = await attempt().catch(async (error) => {
+        if (!/Incorrect code/i.test(error.message)) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 31000 - (Date.now() % 30000)));
+        return attempt();
+      });
+      if (second.created_session_id) {
+        await clerk(`/sessions/${second.created_session_id}/revoke`, { method: "POST" });
+      }
+      if (second.status !== "complete") throw new Error(`the second step ended "${second.status}"`);
+      console.log(
+        `${kind}: ${account.email} — password accepted, second step asked for (backup codes offered), signed in`,
+      );
+    } catch (error) {
+      failures += 1;
+      console.log(`${kind}: ${account.email} — FAILED: ${error.message}`);
+    }
+  }
+  if (failures) throw new Error(`${failures} account(s) could not sign in`);
+}
+
 async function remove() {
   const client = await findUser(ACCOUNTS.client.email);
   const advocate = await findUser(ACCOUNTS.advocate.email);
@@ -817,9 +893,9 @@ async function remove() {
 }
 
 const command = process.argv[2] ?? "setup";
-const run = { setup, codes, status, remove }[command];
+const run = { setup, codes, status, verify, remove }[command];
 if (!run) {
-  console.error("usage: node scripts/reviewer-accounts.mjs [setup|codes|status|remove]");
+  console.error("usage: node scripts/reviewer-accounts.mjs [setup|codes|status|verify|remove]");
   process.exit(2);
 }
 run().catch((error) => {
