@@ -25,26 +25,7 @@ import {
   lawyersQuery,
 } from "@/lib/queries";
 import { useSession } from "@/lib/session";
-
-function monthLabel(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short" });
-}
-
-function dayLabel(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function buildLastN(n: number, unit: "month" | "day") {
-  const labels: string[] = [];
-  const now = new Date();
-  for (let i = n - 1; i >= 0; i -= 1) {
-    const date = new Date(now);
-    if (unit === "month") date.setMonth(date.getMonth() - i);
-    else date.setDate(date.getDate() - i);
-    labels.push(unit === "month" ? monthLabel(date.toISOString()) : dayLabel(date.toISOString()));
-  }
-  return labels;
-}
+import { dailySeries, monthlySeries } from "@/lib/analytics-series";
 
 const signupsConfig: ChartConfig = { count: { label: "New signups", color: "var(--brass)" } };
 const casesConfig: ChartConfig = { count: { label: "Cases", color: "var(--primary)" } };
@@ -59,15 +40,15 @@ export function AdminOverview() {
   const auditLogs = useQuery(auditLogsQuery(user?.id));
   const payments = useQuery(allPaymentsQuery);
 
-  const signupSeries = useMemo(() => {
-    const buckets = buildLastN(6, "month");
-    const counts = new Map(buckets.map((label) => [label, 0]));
-    for (const profile of profiles.data ?? []) {
-      const label = monthLabel(profile.created_at);
-      if (counts.has(label)) counts.set(label, (counts.get(label) ?? 0) + 1);
-    }
-    return buckets.map((label) => ({ label, count: counts.get(label) ?? 0 }));
-  }, [profiles.data]);
+  const signupSeries = useMemo(
+    () =>
+      monthlySeries(
+        profiles.data ?? [],
+        (profile) => profile.created_at,
+        () => 1,
+      ).map(({ label, value }) => ({ label, count: value })),
+    [profiles.data],
+  );
 
   const caseStatusSeries = useMemo(() => {
     const counts = new Map<string, number>();
@@ -78,26 +59,25 @@ export function AdminOverview() {
     return Array.from(counts.entries()).map(([label, count]) => ({ label, count }));
   }, [cases.data]);
 
-  const auditSeries = useMemo(() => {
-    const buckets = buildLastN(14, "day");
-    const counts = new Map(buckets.map((label) => [label, 0]));
-    for (const entry of auditLogs.data ?? []) {
-      const label = dayLabel(entry.created_at);
-      if (counts.has(label)) counts.set(label, (counts.get(label) ?? 0) + 1);
-    }
-    return buckets.map((label) => ({ label, count: counts.get(label) ?? 0 }));
-  }, [auditLogs.data]);
+  const auditSeries = useMemo(
+    () =>
+      dailySeries(
+        auditLogs.data ?? [],
+        (entry) => entry.created_at,
+        () => 1,
+      ).map(({ label, value }) => ({ label, count: value })),
+    [auditLogs.data],
+  );
 
-  const revenueSeries = useMemo(() => {
-    const buckets = buildLastN(6, "month");
-    const totals = new Map(buckets.map((label) => [label, 0]));
-    for (const payment of payments.data ?? []) {
-      if (payment.status !== "completed") continue;
-      const label = monthLabel(payment.created_at);
-      if (totals.has(label)) totals.set(label, (totals.get(label) ?? 0) + Number(payment.amount));
-    }
-    return buckets.map((label) => ({ label, amount: Math.round(totals.get(label) ?? 0) }));
-  }, [payments.data]);
+  const revenueSeries = useMemo(
+    () =>
+      monthlySeries(
+        (payments.data ?? []).filter((payment) => payment.status === "completed"),
+        (payment) => payment.created_at,
+        (payment) => Number(payment.amount),
+      ).map(({ label, value }) => ({ label, amount: Math.round(value) })),
+    [payments.data],
+  );
 
   const advocatePerformance = useMemo(() => {
     const caseCounts = new Map<string, number>();

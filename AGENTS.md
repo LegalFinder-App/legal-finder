@@ -139,7 +139,7 @@ builds don't point at production).
 ```
 npm run dev                    # local dev server
 npm run build                  # production web build
-npm test                       # vitest (50 tests as of writing; a "close timed out" warning
+npm test                       # vitest (53 tests as of writing; a "close timed out" warning
                                 # after they pass is a benign Vite-server-shutdown quirk)
 npm run lint                   # eslint (prettier formatting issues are real but low-priority;
                                 # react-refresh warnings noted above are expected)

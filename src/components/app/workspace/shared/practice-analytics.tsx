@@ -8,22 +8,8 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { monthlySeries } from "@/lib/analytics-series";
 import { allPaymentsQuery, myCasesQuery } from "@/lib/queries";
-
-function monthLabel(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short" });
-}
-
-function buildLastNMonths(n: number) {
-  const labels: string[] = [];
-  const now = new Date();
-  for (let i = n - 1; i >= 0; i -= 1) {
-    const date = new Date(now);
-    date.setMonth(date.getMonth() - i);
-    labels.push(monthLabel(date.toISOString()));
-  }
-  return labels;
-}
 
 const revenueConfig: ChartConfig = { amount: { label: "Revenue", color: "var(--brass)" } };
 const outcomeConfig: ChartConfig = { count: { label: "Cases", color: "var(--primary)" } };
@@ -62,24 +48,24 @@ export function PracticeAnalytics({ userId }: { userId: string | undefined }) {
     return Array.from(counts.entries()).map(([label, count]) => ({ label, count }));
   }, [closedCases]);
 
-  const revenueSeries = useMemo(() => {
-    const buckets = buildLastNMonths(6);
-    const totals = new Map(buckets.map((label) => [label, 0]));
-    for (const payment of payments.data ?? []) {
-      if (payment.status !== "completed") continue;
-      const label = monthLabel(payment.created_at);
-      if (totals.has(label)) totals.set(label, (totals.get(label) ?? 0) + Number(payment.amount));
-    }
-    return buckets.map((label) => ({ label, amount: Math.round(totals.get(label) ?? 0) }));
-  }, [payments.data]);
-
-  const totalRevenue = useMemo(
-    () =>
-      (payments.data ?? [])
-        .filter((p) => p.status === "completed")
-        .reduce((sum, p) => sum + Number(p.amount), 0),
-    [payments.data],
+  // RLS also returns fees this advocate paid as someone else's client (and everything, to an
+  // admin); only completed fees paid to them are their revenue.
+  const fees = useMemo(
+    () => (payments.data ?? []).filter((p) => p.status === "completed" && p.lawyer_id === userId),
+    [payments.data, userId],
   );
+
+  const revenueSeries = useMemo(
+    () =>
+      monthlySeries(
+        fees,
+        (p) => p.created_at,
+        (p) => Number(p.amount),
+      ).map(({ label, value }) => ({ label, amount: Math.round(value) })),
+    [fees],
+  );
+
+  const totalRevenue = useMemo(() => fees.reduce((sum, p) => sum + Number(p.amount), 0), [fees]);
 
   if (cases.isLoading || payments.isLoading) return <LoadingRows rows={3} />;
 
