@@ -90,7 +90,13 @@ ANDROID_HOME="$LOCALAPPDATA/Android/Sdk" JAVA_HOME="C:/Program Files/Java/jdk-21
 ```
 
 A clean release build takes one to two hours here (four CPU architectures of native code, on
-8 GB of memory); later builds are incremental. Reinstalling `node_modules` makes the next build a
+8 GB of memory); later builds are incremental. When only JavaScript and the version code have
+changed, skip `prebuild --clean` (it deletes `android/` and with it the two hours of native build
+output): set `versionCode` in `android/app/build.gradle` to match `ANDROID_VERSION_CODE` and run
+the Gradle command — about ten minutes (build 8 was made this way and checked: version code,
+signing certificate, contents). It is the one hand-edit of `android/` that is safe, because the
+next clean prebuild writes the same value from `app.config.ts`. Anything else there (plugins,
+permissions, icons, native dependencies) does need the clean prebuild. Reinstalling `node_modules` makes the next build a
 clean one again — each library's Android build output lives inside its package folder. Native (CMake) intermediates go to `~/.cxx-lf/` instead of each module's
 `.cxx/` folder — `plugins/withShortNativeBuildPaths.js` does that because the repo's deep path
 pushed ninja past Windows' 260-character limit ("build.ninja still dirty after 100 tries"). If
@@ -121,7 +127,13 @@ interactive, so this part can't be scripted:
    see <https://docs.expo.dev/eas/environment-variables/>). `eas env:list production` shows them.
 3. `npx eas-cli@latest build --platform ios --profile production`. It asks for your Apple
    Developer login and creates (or reuses) the distribution certificate and provisioning profile.
+   Once those are stored on EAS (they are, since 2026-10-02), later builds need no Apple login:
+   add `--non-interactive --no-wait` and follow the build at the link it prints.
 4. `npx eas-cli@latest submit --platform ios` uploads the build to App Store Connect / TestFlight.
+
+The app is **iPhone only** for now (`supportsTablet: false` in `app.config.ts`): the layout has
+never been run on an iPad, and iPad support can be added later but not removed once a version has
+shipped with it.
 
 What gets uploaded is decided by `.easignore` at the repo root, not by `.gitignore`: it is an
 allow-list of this folder minus its generated and local files (about 2 MB). Keep it that way —
@@ -132,8 +144,12 @@ would be sent, without starting a build:
 
 After that first build, `.github/workflows/mobile-eas-build.yml` can queue builds from GitHub
 (needs the `EXPO_TOKEN` repository secret). Versions come from `app.config.ts`
-(`appVersionSource: "local"`): bump `IOS_BUILD_NUMBER` for every upload. Apple's reviewers need a
-demo account that can pass two-step verification.
+(`appVersionSource: "local"`): bump `IOS_BUILD_NUMBER` for every upload.
+
+Apple's and Google's reviewers need an account that can pass two-step verification. The demo
+accounts, their backup codes, the listing text, privacy answers and screenshots are in
+`../../store-listing/` (start with its README); `node scripts/reviewer-accounts.mjs codes` from
+the repo root issues fresh backup codes before each submission.
 
 The same profiles build Android in the cloud (`--platform android`) if this machine is short on
 disk; upload the existing upload keystore to EAS first (`eas credentials`) so Play accepts it.

@@ -69,6 +69,12 @@ Docs: https://docs.expo.dev/eas/index.md
   are keyed by year as well as month. A `StatTile` shares a phone's width with another one: keep
   its label to about a dozen characters and show money with `formatUGXCompact`, the exact figure
   in the hint.
+- **AI features ask first**: anything that sends what the user types to the assistant or drafting
+  endpoints sits inside `AiConsentGate` (`src/components/AiConsent.tsx`, state in
+  `src/lib/ai-consent.ts`). App Store guideline 5.1.2(i) requires naming the third-party AI and
+  getting explicit permission before anything is sent; the website has the same gate. If the
+  provider or what is sent changes, change the notice, the Settings switch text and the privacy
+  policy together.
 - **Offline cache**: only public query roots (`PUBLIC_QUERY_ROOTS` in `src/lib/query-client.ts`)
   are persisted to disk. Never add cases, messages, documents, payments or profiles to it.
 - **Releases**: bump `ANDROID_VERSION_CODE` / `IOS_BUILD_NUMBER` in `app.config.ts` for every

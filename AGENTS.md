@@ -58,7 +58,10 @@ platforms/
                   and android/keystore.properties (the upload key the native app also signs with)
   desktop/        Electron shell (serves the app's export from disk) + electron-builder config
   shared/         icons and config shared across mobile/desktop
-scripts/          one-off Node scripts (migrations, icon generation, gradle wrapper, env checks)
+scripts/          one-off Node scripts (migrations, icon generation, gradle wrapper, env checks,
+                  the store reviewers' demo accounts)
+store-listing/    what the app stores ask for: listing text, privacy answers, screenshots and
+                  (git-ignored) the demo accounts' sign-in details — start with its README
 ```
 
 ## Conventions
@@ -94,6 +97,16 @@ scripts/          one-off Node scripts (migrations, icon generation, gradle wrap
 - **Payouts**: every advocate-linked payment gets `payout_status = 'pending'` at insert (a DB
   trigger), paid or not. Check `status === 'completed'` before treating a payout as owed —
   `attemptLawyerPayout` does, and nothing else may call Flutterwave.
+- **AI features ask first**: the assistant and AI-assisted drafting send what the user types to
+  Anthropic, so both sit behind `AiConsentGate` (`src/components/app/ai-consent.tsx`; the app's
+  twin is `apps/mobile/src/components/AiConsent.tsx`), with a switch under Settings → Privacy.
+  The privacy policy names consent as the basis and App Store guideline 5.1.2(i) requires it. A
+  new feature that sends user text to a model goes behind the same gate; if the provider or what
+  is sent changes, update the notice, the switch text and the privacy policy together.
+- **Account deletion** is one list in three places: what `deprovisionUser()` removes
+  (`src/integrations/clerk/deprovisioning.server.ts`), what `/delete-account` tells the public,
+  and section 7 of the privacy policy. Change them together — Play's Data safety form links to
+  that page.
 - **OAuth**: `signIn.sso({ strategy, redirectUrl, redirectCallbackUrl })` in `src/routes/auth.tsx`.
   Provider credentials for Google/Apple/LinkedIn are configured in the **Clerk Dashboard** (Social
   Connections), not as app env vars — Vercel env vars never reach Clerk's own OAuth exchange.
@@ -139,11 +152,13 @@ builds don't point at production).
 ```
 npm run dev                    # local dev server
 npm run build                  # production web build
-npm test                       # vitest (53 tests as of writing; a "close timed out" warning
+npm test                       # vitest (71 tests as of writing; a "close timed out" warning
                                 # after they pass is a benign Vite-server-shutdown quirk)
 npm run lint                   # eslint (prettier formatting issues are real but low-priority;
                                 # react-refresh warnings noted above are expected)
 npm run db:migrate             # apply pending Supabase migrations (see Database above)
+node scripts/reviewer-accounts.mjs [codes|status|remove]   # the store reviewers' demo accounts
+                                # on production; "codes" before every submission (store-listing/)
 
 # Native app (apps/mobile) — what ships to the stores. Details: apps/mobile/README.md
 cd apps/mobile && npm run typecheck && npm run lint && npx expo-doctor
@@ -180,16 +195,27 @@ intermediates.
 
 | Platform | Status |
 |---|---|
-| Web | Builds clean, tests pass. Hosted on Vercel, but **deployments have been failing since 2026-10-01** (see Known gaps), so production runs the build from 13:21 that day |
-| Android (native, `apps/mobile`) | Signed release AAB (versionCode 7, 2026-10-02) builds locally with the Play upload key; typecheck/lint/expo-doctor clean, also in CI. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass |
+| Web | Builds clean, tests pass, deployed on Vercel (deployments were blocked 1–2 Oct 2026 by a framework security advisory; fixed by upgrading — see "Deployments" below). The live site's signed-in flows and every `/api/mobile/*` route were re-checked against production on 2026-10-02 |
+| Android (native, `apps/mobile`) | Signed release AAB (versionCode 8, 2026-10-02, with the AI permission notice) builds locally with the Play upload key; typecheck/lint/expo-doctor clean, also in CI. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass |
 | Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
-| Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production; payout details, analytics, admin payouts and document generation verified the same way (the last two against a local production build of the server). Unsigned (SmartScreen warns) |
+| Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production; payout details, analytics, admin payouts, document generation, the AI permission notice and the store reviewers' sign-in (password, then a backup code) verified the same way. Installer rebuilt 2026-10-02. Unsigned (SmartScreen warns) |
 | macOS / Linux desktop | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run |
-| iOS (native) | Same codebase as Android; needs a Mac or EAS cloud build — never built. The EAS project exists (`@ochienodavid/legalfinder`); the first build still needs the `EXPO_PUBLIC_*` values pushed to EAS and an Apple Developer login |
+| iOS (native) | Builds on EAS (`@ochienodavid/legalfinder`; certificate, profile and push key are stored there, so `eas build -p ios --non-interactive` works from this machine). iPhone only. Build 2.0.0 (3) of 2026-10-02 carries the AI permission notice; its Info.plist was read back from the .ipa (iPhone only, build 3, no microphone text). **Never run on a device** and not yet submitted |
 
 Don't describe platform readiness in marketing/UI copy (e.g. the homepage `PlatformMatrix`
 component) more confidently than this table — it was previously overclaimed ("Production-ready
 structure" on every card regardless of actual state) and got walked back for exactly that reason.
+
+## Deployments
+
+Vercel deploys `main` on every push. A deployment that fails **within seconds, before the build
+starts**, is Vercel refusing a dependency: on 1–2 Oct 2026 it blocked every push because
+`@tanstack/react-start` 1.168.49 was affected by CVE-2026-102989 (reflected XSS in server-function
+responses; fixed in 1.168.60). The reason is only in the deployment's own log:
+`npx vercel ls legalfinder`, then `npx vercel inspect <deployment-url> --logs`. Fix it by
+upgrading; don't set the `DANGEROUSLY_DEPLOY_…` override it offers. After a framework upgrade,
+check the live site's signed-in flows, not just the build — the server-function transport is what
+such fixes change.
 
 ## Known gaps (flag if asked, don't silently "fix" by fabricating)
 
@@ -199,17 +225,26 @@ structure" on every card regardless of actual state) and got walked back for exa
   exists (id in `apps/mobile/app.config.ts`), so the app's push controls are held back by
   `PUSH_ENABLED` there instead — switch it on only once the rest is in place. Steps:
   `apps/mobile/README.md` ("Push notifications"). Web push is separate and unaffected.
-- **Vercel is rejecting deployments** (first seen 2026-10-01 20:51 UTC, commit `8229352`): each
-  push fails within seconds, before a build starts, so it is an account/project-level problem and
-  not the code — `npm run build` passes locally and in CI. Until it is fixed in the Vercel
-  dashboard, production lacks everything pushed since, including the `/api/mobile/payouts/*` and
-  `/api/mobile/documents/*` routes the apps now call (the apps say the feature isn't available
-  on the server yet). Check `git log` against what production serves before assuming a fix is live.
+- **The assistant and AI drafting have no working key.** The `ANTHROPIC_API_KEY` in `.env` and
+  in Vercel is rejected by Anthropic (401), so both features answer "misconfigured (invalid API
+  key)". The owner is supplying a new key: it goes in Vercel (Production) and in `.env`, followed
+  by a redeploy. The calls use `claude-opus-5-5` and have only been run against a stand-in for
+  the SDK (`src/lib/__tests__/assistant.server.test.ts`) — ask one real question once the key
+  works.
+- **Production still holds sample content.** The directory's eight advocates are illustrative
+  profiles shown as verified (none has an account, so none can be messaged or booked); the three
+  wanted notices, five judgements and four news posts are sample content too; no police unit is
+  using the police workspace that incident reports go to. Fine for a demo, not for a public
+  launch: App Store guideline 2.1 also asks for placeholder content to be removed before review.
+  Wanted notices and incident reporting can be switched off in Admin → Settings. Replacing the
+  content is the owner's call — don't delete it unasked.
+- **Pesapal and Flutterwave have no keys** in `.env` or Vercel, so paying a consultation fee
+  fails with "Payments aren't configured yet". Nobody reaches that today, because no listed
+  advocate can be booked.
 - **App parity is recent and only partly verified.** Payout details, admin payouts, analytics
   and document generation were added to the apps on 2026-10-02 and exercised in the desktop
-  build — the server routes against a local production build, not the live site (see above), and
-  none of it on a phone. AI drafting's success path is unverified: the local `ANTHROPIC_API_KEY`
-  is not valid. Other website-only areas may remain (e.g. passkeys); check before claiming parity.
+  build and, for the server routes, against the live site — none of it on a phone. Other
+  website-only areas may remain (e.g. passkeys); check before claiming parity.
 - **Flutterwave payouts have never moved real money.** The transfer request shape is partly
   inferred (`src/lib/flutterwave.server.ts`, FLUTTERWAVE_SETUP_NOTES) and needs a sandbox pass
   before the Retry button or the automatic payout is relied on.
@@ -217,9 +252,19 @@ structure" on every card regardless of actual state) and got walked back for exa
   warn), there is no auto-update (a new installer per release), and the macOS and Linux builds
   have never been run. Social sign-in and Pesapal checkout hand off to the browser and were tested
   only up to that hand-off, not through a real provider round trip.
-- **Store submission content** (Play Console Data Safety form, content rating questionnaire,
-  App Store privacy nutrition label, demo/reviewer account credentials for gated features) needs
-  real business/legal input — don't invent answers here.
+- **Store submission content** is drafted in `store-listing/` (listing text, App Privacy and
+  Data safety answers, age-rating facts, screenshots, reviewer notes) from what the code does. The
+  privacy answers, category, age rating and contact details are declarations the owner makes —
+  they are marked **Confirm** there; don't present them as settled, and don't invent the ones
+  that are still open. The screenshots were rendered from the desktop build at phone size, not
+  captured on a phone.
+- **Reviewer demo accounts live on production** (`appreview@legalfinder.co`,
+  `appreview-advocate@legalfinder.co`, created by `scripts/reviewer-accounts.mjs`). Their
+  matters, messages and documents are sample data; leave them alone unless asked. Their backup
+  codes are single-use — `node scripts/reviewer-accounts.mjs codes` before each submission.
+- **The Apple developer account is an Individual one.** App Store guideline 5.1.1(ix) wants apps
+  that handle sensitive user information submitted by a legal entity, so review may ask for an
+  Organization account.
 - Demo/seed data (advocate and "wanted persons" photos, judgement text, etc.) is explicitly
   illustrative — see `public/images/profiles/README.md` and the `presentation_dummy_content`
   migration. Don't reuse an existing advocate/client persona photo for an unrelated record (e.g. a
