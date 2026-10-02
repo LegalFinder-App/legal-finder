@@ -123,6 +123,13 @@ interactive, so this part can't be scripted:
    Developer login and creates (or reuses) the distribution certificate and provisioning profile.
 4. `npx eas-cli@latest submit --platform ios` uploads the build to App Store Connect / TestFlight.
 
+What gets uploaded is decided by `.easignore` at the repo root, not by `.gitignore`: it is an
+allow-list of this folder minus its generated and local files (about 2 MB). Keep it that way —
+on Windows eas-cli ignores `.gitignore` files in subfolders, and without `.easignore` it packs
+`android/` (gigabytes of build output) and the signed bundles in `release/`. To see exactly what
+would be sent, without starting a build:
+`npx eas-cli@latest build:inspect -p ios -s archive -o <empty folder>`.
+
 After that first build, `.github/workflows/mobile-eas-build.yml` can queue builds from GitHub
 (needs the `EXPO_TOKEN` repository secret). Versions come from `app.config.ts`
 (`appVersionSource: "local"`): bump `IOS_BUILD_NUMBER` for every upload. Apple's reviewers need a

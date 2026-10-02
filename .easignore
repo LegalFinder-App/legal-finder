@@ -1,0 +1,40 @@
+# What `eas build` uploads to Expo's build servers. When this file exists EAS uses it INSTEAD of
+# every .gitignore, so it is written as an allow-list: everything is left out except the app
+# (apps/mobile is self-contained), and inside the app the same things its own .gitignore leaves
+# out. Anything added here later must keep secrets out — the root .env is excluded only by the
+# first rule.
+#
+# Why it exists: on Windows, eas-cli doesn't apply .gitignore files in subfolders (it compares
+# "apps\mobile\…" with "apps/mobile/"), so without this file it packed apps/mobile/android — about
+# 2.7 GB of build output — and the signed bundles in apps/mobile/release, and ran out of disk.
+
+/*
+!/apps
+/apps/*
+!/apps/mobile
+
+# Generated or local-only (mirrors apps/mobile/.gitignore). The cloud build regenerates the native
+# projects itself and gets the EXPO_PUBLIC_* values from EAS environment variables, not from .env.
+/apps/mobile/android
+/apps/mobile/ios
+/apps/mobile/dist
+/apps/mobile/web-build
+/apps/mobile/release
+/apps/mobile/.expo
+/apps/mobile/expo-env.d.ts
+.env
+.env.*
+!/apps/mobile/.env.example
+
+# Keys and certificates never leave this machine.
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+
+*.log
+*.tsbuildinfo
+.DS_Store
