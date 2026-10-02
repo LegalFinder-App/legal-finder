@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as JudgementsRouteImport } from './routes/judgements'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
@@ -97,6 +98,11 @@ const AuthRoute = AuthRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeleteAccountRoute = DeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JudgementsRoute = JudgementsRouteImport.update({
@@ -424,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -490,6 +497,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -624,6 +633,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/delete-account'
     | '/judgements'
     | '/library'
     | '/privacy-policy'
@@ -690,6 +700,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/delete-account'
     | '/judgements'
     | '/library'
     | '/privacy-policy'
@@ -755,6 +766,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/delete-account'
     | '/judgements'
     | '/library'
     | '/privacy-policy'
@@ -823,6 +835,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  DeleteAccountRoute: typeof DeleteAccountRoute
   JudgementsRoute: typeof JudgementsRoute
   LibraryRoute: typeof LibraryRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -894,6 +907,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delete-account': {
+      id: '/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof DeleteAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/judgements': {
@@ -1424,6 +1444,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  DeleteAccountRoute: DeleteAccountRoute,
   JudgementsRoute: JudgementsRoute,
   LibraryRoute: LibraryRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,

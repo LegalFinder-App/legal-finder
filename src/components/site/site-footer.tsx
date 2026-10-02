@@ -74,6 +74,9 @@ export function SiteFooter() {
             <Link to="/privacy-policy" className="transition-colors hover:text-brass">
               Privacy Policy
             </Link>
+            <Link to="/delete-account" className="transition-colors hover:text-brass">
+              Delete account
+            </Link>
           </div>
         </div>
         <div className="mx-auto max-w-7xl px-4 pb-6 text-xs text-ink-foreground/50 sm:px-6 lg:px-8">

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/privacy-policy")({
   component: PrivacyPolicy,
 });
 
-const LAST_UPDATED = "September 9, 2026";
+const LAST_UPDATED = "October 2, 2026";
 
 type Section = {
   id: string;
@@ -85,13 +85,23 @@ const SECTIONS: Section[] = [
           <span className="font-medium text-foreground">Payment data.</span> When you pay a
           consultation fee, our payment processor, Pesapal, collects your card or mobile-money
           details directly. We store only the resulting transaction reference, amount, and status —
-          never your full card number or mobile-money PIN.
+          never your full card number or mobile-money PIN. Advocates who are paid through the
+          Service give us the mobile-money number or bank account their fees should be sent to; we
+          store those payout details and pass them to our payout processor, Flutterwave, when a
+          payout is made.
         </p>
         <p>
-          <span className="font-medium text-foreground">Assistant conversations.</span> If you use
-          the AI legal assistant, the questions you send it are processed to generate a response.
-          Avoid sharing information in that chat that you would not want processed to answer your
-          question.
+          <span className="font-medium text-foreground">
+            AI assistant and AI-assisted drafting.
+          </span>{" "}
+          If you use the AI legal assistant or AI-assisted document drafting, what you type into
+          them — your questions, your drafting instructions, and the draft you are revising — is
+          sent to Anthropic, the provider of the Claude AI model, to generate a response. Your name,
+          email address, and account details are not sent with it. We ask for your permission before
+          these features are first used, and you can withdraw it at any time in Settings. We do not
+          keep a copy of your conversation with the assistant; a draft you choose to save is stored
+          with your other documents. Avoid sharing information in these features that you would not
+          want processed to answer your request.
         </p>
         <p>
           <span className="font-medium text-foreground">Device and usage data.</span> We use
@@ -151,9 +161,10 @@ const SECTIONS: Section[] = [
           </li>
           <li>
             With our service providers, who process data on our behalf under contract: Clerk
-            (authentication), Supabase (database hosting), Pesapal (payment processing), ImageKit
-            (file storage and delivery), Cloudflare (bot/abuse protection), and Vercel (hosting and
-            analytics);
+            (authentication), Supabase (database hosting), Pesapal (payment processing), Flutterwave
+            (payouts to advocates), Anthropic (the AI model behind the assistant and AI-assisted
+            drafting), ImageKit (file storage and delivery), Cloudflare (bot/abuse protection), and
+            Vercel (hosting and analytics);
           </li>
           <li>
             With law enforcement or courts where required by law, to protect someone's safety, or to
@@ -175,9 +186,14 @@ const SECTIONS: Section[] = [
       <p>
         We keep your data for as long as your account is active, and afterwards for as long as
         needed to comply with legal, tax, or regulatory obligations, resolve disputes, and enforce
-        our agreements. If your account is deleted, your profile and role records are removed; case,
+        our agreements. If your account is deleted, your sign-in account, profile, and role records
+        are removed, together with an advocate's directory listing and payout details; case,
         payment, and audit records that form part of a legal or financial file may be retained for a
-        longer, legally required period even after account deletion.
+        longer, legally required period even after account deletion.{" "}
+        <Link to="/delete-account" className="text-brass hover:underline">
+          How to delete your account
+        </Link>{" "}
+        lists exactly what is removed and what is kept.
       </p>
     ),
   },
@@ -206,12 +222,19 @@ const SECTIONS: Section[] = [
             Correct inaccurate or incomplete data — most profile fields can be edited directly in
             the app;
           </li>
-          <li>Request deletion of your account and associated personal data;</li>
+          <li>
+            Request deletion of your account and associated personal data — you can do this yourself
+            in Settings, as described in{" "}
+            <Link to="/delete-account" className="text-brass hover:underline">
+              How to delete your account
+            </Link>
+            ;
+          </li>
           <li>Object to, or ask us to restrict, certain processing;</li>
           <li>Request a portable copy of the data you provided to us; and</li>
           <li>
-            Withdraw consent at any time where processing is based on consent, such as
-            notifications.
+            Withdraw consent at any time where processing is based on consent, such as notifications
+            or the AI features.
           </li>
         </ul>
         <p>

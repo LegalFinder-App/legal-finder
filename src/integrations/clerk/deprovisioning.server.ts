@@ -5,20 +5,52 @@
 // are intentionally left in place — Clerk id columns no longer carry an ON DELETE CASCADE FK
 // (dropped in the Clerk auth migration), and purging case/audit history is a separate, much
 // bigger data-retention decision than "remove this account from Users & Roles".
+//
+// What does go, besides the profile and roles, is what only makes sense while the account
+// exists: an advocate's public directory listing (name, phone, email and bar number shown to
+// everyone — its reviews and CPD records cascade with it), their payout details, and the
+// devices registered for push. /delete-account and the privacy policy describe exactly this
+// list, so change them together.
 import { clerkClient } from "@clerk/tanstack-react-start/server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+// lawyer_payout_accounts isn't in AppDatabase (see src/lib/lawyer-payout.ts).
+const payoutAccounts = supabaseAdmin as unknown as {
+  from: (table: "lawyer_payout_accounts") => {
+    delete: () => {
+      eq: (col: "lawyer_user_id", val: string) => Promise<{ error: { message: string } | null }>;
+    };
+  };
+};
+
 export async function deprovisionUser(userId: string): Promise<void> {
-  await clerkClient().users.deleteUser(userId);
+  try {
+    await clerkClient().users.deleteUser(userId);
+  } catch (error) {
+    // Already gone: an earlier attempt removed the sign-in and then failed below. Carry on, so
+    // an administrator's retry can finish the cleanup instead of failing here forever.
+    if ((error as { status?: number } | null)?.status !== 404) throw error;
+  }
 
-  const { error: rolesError } = await supabaseAdmin
-    .from("user_roles")
-    .delete()
-    .eq("user_id", userId);
-  if (rolesError) throw new Error(rolesError.message);
+  // Every step runs even if an earlier one fails — the person can no longer sign in to try
+  // again — and the first failure is reported once all of them have been attempted.
+  const failures: string[] = [];
+  const attempt = async (what: string, run: PromiseLike<{ error: { message: string } | null }>) => {
+    const { error } = await run;
+    if (error) failures.push(`${what}: ${error.message}`);
+  };
 
-  const { error: profileError } = await supabaseAdmin.from("profiles").delete().eq("id", userId);
-  if (profileError) throw new Error(profileError.message);
+  await attempt("roles", supabaseAdmin.from("user_roles").delete().eq("user_id", userId));
+  await attempt("profile", supabaseAdmin.from("profiles").delete().eq("id", userId));
+  await attempt("directory listing", supabaseAdmin.from("lawyers").delete().eq("user_id", userId));
+  await attempt(
+    "payout details",
+    payoutAccounts.from("lawyer_payout_accounts").delete().eq("lawyer_user_id", userId),
+  );
+  await attempt(
+    "browser push",
+    supabaseAdmin.from("push_subscriptions").delete().eq("user_id", userId),
+  );
 
   // Stop pushes to the deleted account's phones. Best-effort: the table only exists once the
   // mobile push migration is applied, and a leftover token must never block the deletion.
@@ -27,4 +59,9 @@ export async function deprovisionUser(userId: string): Promise<void> {
     .delete()
     .eq("user_id", userId);
   if (tokensError) console.warn("[deprovision] push tokens not removed:", tokensError.message);
+
+  if (failures.length) {
+    console.error("[deprovision] incomplete for", userId, failures);
+    throw new Error(failures[0].slice(failures[0].indexOf(": ") + 2));
+  }
 }
