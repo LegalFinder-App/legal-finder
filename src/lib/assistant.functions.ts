@@ -9,7 +9,14 @@ const chatMessageSchema = z.object({
 
 // Also used by /api/mobile/assistant to validate the native app's requests identically.
 export const chatRequestSchema = z.object({
-  messages: z.array(chatMessageSchema).min(1).max(20),
+  messages: z
+    .array(chatMessageSchema)
+    .min(1)
+    .max(20)
+    // The API rejects a conversation that ends on the assistant's own words.
+    .refine((messages) => messages[messages.length - 1]?.role === "user", {
+      message: "The last message must be a question from you.",
+    }),
 });
 
 /**

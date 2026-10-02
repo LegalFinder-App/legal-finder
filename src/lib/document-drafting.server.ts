@@ -49,8 +49,9 @@ export async function draftDocument(data: DraftRequest): Promise<{ draftText: st
   let response;
   try {
     response = await client.messages.create({
-      model: "claude-opus-5",
-      max_tokens: 2048,
+      model: "claude-opus-5-5",
+      // Covers the model's thinking as well as the draft (see assistant.server.ts).
+      max_tokens: 4096,
       system: SYSTEM_PROMPT,
       output_config: { effort: "medium" },
       messages: [{ role: "user", content: userPrompt }],
@@ -70,6 +71,13 @@ export async function draftDocument(data: DraftRequest): Promise<{ draftText: st
 
   if (response.stop_reason === "refusal") {
     throw new Error("The assistant couldn't draft that. Try rephrasing your instructions.");
+  }
+
+  // A draft that stops mid-clause is worse than none: it would go into the document as written.
+  if (response.stop_reason === "max_tokens") {
+    throw new Error(
+      "That draft came out too long to finish. Ask for a shorter document, or draft it one section at a time.",
+    );
   }
 
   const textBlock = response.content.find(

@@ -16,6 +16,10 @@ Ground rules:
 /**
  * Non-streaming: server functions are RPC calls, not a raw HTTP stream, so low effort + a modest
  * max_tokens keeps this comfortably inside normal request timeouts.
+ *
+ * max_tokens covers the model's thinking as well as the answer (thinking is always on from
+ * Claude Opus 5.5 and can't be switched off), so it is set with room for both; the system prompt
+ * is what keeps answers short. A reply that still hits the limit says so instead of just stopping.
  */
 export async function runAssistant(messages: ChatMessage[]): Promise<{ reply: string }> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -38,8 +42,8 @@ export async function runAssistant(messages: ChatMessage[]): Promise<{ reply: st
   let response;
   try {
     response = await client.messages.create({
-      model: "claude-opus-5",
-      max_tokens: 1024,
+      model: "claude-opus-5-5",
+      max_tokens: 2048,
       system: SYSTEM_PROMPT,
       output_config: { effort: "low" },
       messages: messages.map((message) => ({ role: message.role, content: message.content })),
@@ -64,8 +68,19 @@ export async function runAssistant(messages: ChatMessage[]): Promise<{ reply: st
     };
   }
 
+  // Selected by type: a response can begin with thinking blocks.
   const textBlock = response.content.find(
     (block): block is Anthropic.TextBlock => block.type === "text",
   );
-  return { reply: textBlock?.text ?? "I didn't get a response — please try again." };
+  const text = textBlock?.text.trim();
+  if (response.stop_reason === "max_tokens") {
+    return {
+      reply: text
+        ? `${text}
+
+(This answer was cut short. Ask me to continue, or ask about one part at a time.)`
+        : "That needs a longer answer than I can give in one go. Try asking about one part of it at a time.",
+    };
+  }
+  return { reply: text || "I didn't get a response — please try again." };
 }
