@@ -226,12 +226,12 @@ such fixes change.
   exists (id in `apps/mobile/app.config.ts`), so the app's push controls are held back by
   `PUSH_ENABLED` there instead — switch it on only once the rest is in place. Steps:
   `apps/mobile/README.md` ("Push notifications"). Web push is separate and unaffected.
-- **The assistant and AI drafting have no working key.** The `ANTHROPIC_API_KEY` in `.env` and
-  in Vercel is rejected by Anthropic (401), so both features answer "misconfigured (invalid API
-  key)". The owner is supplying a new key: it goes in Vercel (Production) and in `.env`, followed
-  by a redeploy. The calls use `claude-opus-5-5` and have only been run against a stand-in for
-  the SDK (`src/lib/__tests__/assistant.server.test.ts`) — ask one real question once the key
-  works.
+- **The assistant works on production, not from the local `.env`.** The owner replaced the key
+  in Vercel on 2026-10-03, and the `claude-opus-5-5` calls were then run for real: through
+  `/api/mobile/assistant` and `/api/mobile/documents/draft`, and inside the desktop build (an
+  answer, a follow-up in context, a draft edited and saved as a PDF). The `ANTHROPIC_API_KEY` in
+  the local `.env` is still the old one Anthropic rejects (401), so a locally run server answers
+  "misconfigured (invalid API key)" until it is replaced there too.
 - **Production still holds sample content.** The directory's eight advocates are illustrative
   profiles shown as verified (none has an account, so none can be messaged or booked); the three
   wanted notices, five judgements and four news posts are sample content too; no police unit is

@@ -89,7 +89,8 @@ Review can go ahead without these, but each is visible to real users.
 - **Payments.** Pesapal's keys are not configured, so paying a consultation fee fails. No listed
   advocate can be booked yet, so nobody reaches that step today. Flutterwave (advocate payouts) is
   not configured either.
-- **The AI assistant** needs a valid `ANTHROPIC_API_KEY` in Vercel; without it the assistant and
-  AI drafting show an error.
+- **The AI assistant** works on the live site as of 3 October 2026 (checked with a real question
+  and a real draft, from the app). If it ever says "misconfigured", the `ANTHROPIC_API_KEY` in
+  Vercel has been revoked or removed.
 - **Sign in with Google, Apple and LinkedIn** are switched on in Clerk and were tested up to the
   hand-off to each provider, not through a full sign-in. Try each once on a phone.
