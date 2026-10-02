@@ -2,14 +2,15 @@
 
 Everything the App Store and Google Play ask for when LegalFinder is submitted, in one place.
 
-| File                                                                   | What it is                                                                                                                                                                    |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [app-store.md](app-store.md)                                           | App Store Connect, field by field: name, subtitle, description, keywords, links, App Privacy answers, age-rating facts, notes for App Review                                  |
-| [google-play.md](google-play.md)                                       | Play Console, field by field: title, descriptions, Data safety answers, App access, the content declarations                                                                  |
-| [screenshots/iphone-6.9/](screenshots/iphone-6.9/)                     | 8 iPhone screenshots, 1320 × 2868 (the size App Store Connect requires; it scales them for smaller iPhones)                                                                   |
-| [screenshots/android-phone/](screenshots/android-phone/)               | 8 Android phone screenshots, 1080 × 1920                                                                                                                                      |
-| `reviewer-credentials.local`                                           | The demo accounts' sign-in details and review notes. **Not in git** — created by the script below                                                                             |
-| [../platforms/mobile/store-assets/](../platforms/mobile/store-assets/) | Play's 512 × 512 icon and 1024 × 500 feature graphic (unchanged). The `screenshots/` folder beside them shows the old website wrapper — don't upload those; use the ones here |
+| File                                                                   | What it is                                                                                                                                                                                                            |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [app-store.md](app-store.md)                                           | App Store Connect, field by field: name, subtitle, description, keywords, links, App Privacy answers, age-rating facts, notes for App Review                                                                          |
+| [google-play.md](google-play.md)                                       | Play Console, field by field: title, descriptions, Data safety answers, App access, the content declarations                                                                                                          |
+| [screenshots/iphone-6.9/](screenshots/iphone-6.9/)                     | 8 iPhone screenshots, 1320 × 2868 (the size App Store Connect requires; it scales them for smaller iPhones)                                                                                                           |
+| [screenshots/android-phone/](screenshots/android-phone/)               | 8 Android phone screenshots, 1080 × 1920                                                                                                                                                                              |
+| `play-upload-build8/`                                                  | **Not in git.** Everything Play Console takes as a file for Android build 8, in one place: the bundle, the icon and feature graphic, the eight screenshots. Copies, made per build — don't reuse it for a later build |
+| `reviewer-credentials.local`                                           | The demo accounts' sign-in details and review notes. **Not in git** — created by the script below                                                                                                                     |
+| [../platforms/mobile/store-assets/](../platforms/mobile/store-assets/) | Play's 512 × 512 icon and 1024 × 500 feature graphic (unchanged). The `screenshots/` folder beside them shows the old website wrapper — don't upload those; use the ones here                                         |
 
 ## The reviewer demo accounts
 

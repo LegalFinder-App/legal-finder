@@ -44,6 +44,10 @@ platforms/mobile/ios/App/**/DerivedData/
 platforms/desktop/release/
 .electron-dist-*/
 
+# A per-build copy of the files Play Console takes, gathered for uploading (the bundle is ~86 MB;
+# the graphics and screenshots in it are tracked where they live).
+store-listing/play-upload-*/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
