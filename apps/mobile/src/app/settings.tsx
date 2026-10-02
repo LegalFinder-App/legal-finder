@@ -25,6 +25,7 @@ import { RequireAuth } from "@/components/RequireAuth";
 import { appLockAvailable, isAppLockEnabled, setAppLockEnabled } from "@/components/BiometricGate";
 import { PayoutDetailsCard } from "@/features/payouts/PayoutDetailsCard";
 import { useSession } from "@/lib/session";
+import { useAiConsent } from "@/lib/ai-consent";
 import { updateProfilePhoto } from "@/lib/images";
 import {
   disablePushNotifications,
@@ -43,6 +44,7 @@ function Settings() {
   const { user: clerkUser } = useUser();
   const clerk = useClerk();
   const { user, primaryRole } = useSession();
+  const aiConsent = useAiConsent();
   const qc = useQueryClient();
   const [name, setName] = useState(user?.fullName ?? "");
   const [savingName, setSavingName] = useState(false);
@@ -296,6 +298,16 @@ function Settings() {
           </Card>
         </>
       ) : null}
+
+      <SectionTitle title="Privacy" />
+      <Card>
+        <SwitchField
+          label="AI features"
+          description="Let the legal assistant and AI-assisted drafting send what you type to Anthropic, which provides the AI model. Off: both ask again before they are used."
+          value={aiConsent.allowed}
+          onChange={(on) => void (on ? aiConsent.allow() : aiConsent.withdraw())}
+        />
+      </Card>
 
       <SectionTitle title="Appearance" />
       <Segmented<ThemePreference>

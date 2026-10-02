@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AiConsentGate } from "@/components/app/ai-consent";
 import { supabase } from "@/integrations/supabase/client";
 import { draftDocumentSection } from "@/lib/document-drafting.functions";
 import {
@@ -303,7 +304,9 @@ export function DocumentGenerator({
         {mode === "template" ? (
           <TemplateMode userId={userId} caseId={caseId} onGenerated={onGenerated} />
         ) : (
-          <AiMode userId={userId} caseId={caseId} onGenerated={onGenerated} />
+          <AiConsentGate onDecline={() => setMode("template")}>
+            <AiMode userId={userId} caseId={caseId} onGenerated={onGenerated} />
+          </AiConsentGate>
         )}
       </div>
     </div>

@@ -11,6 +11,7 @@ import { fonts } from "@/theme/tokens";
 import { Chip, EmptyState, KeyboardLift, Text } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
+import { AiConsentGate } from "@/components/AiConsent";
 import { api } from "@/lib/api";
 import { appSettingsQuery } from "@/lib/queries";
 import { errorMessage } from "@/lib/toast";
@@ -212,7 +213,12 @@ export default function AssistantScreen() {
         </View>
       ) : (
         <RequireAuth message="Sign in to ask the legal assistant.">
-          <Assistant />
+          <AiConsentGate
+            fullScreen
+            onDecline={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)"))}
+          >
+            <Assistant />
+          </AiConsentGate>
         </RequireAuth>
       )}
     </>

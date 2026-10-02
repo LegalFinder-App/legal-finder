@@ -7,6 +7,7 @@ import { Loader2, Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ import { profileQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteOwnAccount } from "@/lib/account.functions";
 import { useSession } from "@/lib/session";
+import { useAiConsent } from "@/lib/ai-consent";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +47,7 @@ function SettingsPage() {
   const profile = useQuery(profileQuery(user?.id));
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
+  const aiConsent = useAiConsent();
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -154,6 +157,25 @@ function SettingsPage() {
         </p>
         <div className="mt-4">
           <PushRegistrationCard userId={user?.id} />
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+        <h2 className="font-display text-lg font-semibold">Privacy</h2>
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div>
+            <Label htmlFor="ai-features">AI features</Label>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Let the legal assistant and AI-assisted drafting send what you type to Anthropic,
+              which provides the AI model. Off: both ask again before they are used.
+            </p>
+          </div>
+          <Switch
+            id="ai-features"
+            checked={aiConsent.allowed}
+            disabled={aiConsent.loading}
+            onCheckedChange={(on) => (on ? aiConsent.allow() : aiConsent.withdraw())}
+          />
         </div>
       </section>
 

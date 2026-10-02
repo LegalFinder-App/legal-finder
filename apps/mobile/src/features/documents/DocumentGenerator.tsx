@@ -13,6 +13,7 @@ import {
   SelectField,
   Text,
 } from "@/components/ui";
+import { AiConsentGate } from "@/components/AiConsent";
 import { api, type DocumentTemplateField } from "@/lib/api";
 import { errorMessage, toast } from "@/lib/toast";
 
@@ -290,7 +291,9 @@ export function DocumentGenerator({
         <TemplateMode caseId={caseId} onGenerated={onGenerated} />
       </View>
       <View style={mode === "ai" ? undefined : { display: "none" }}>
-        <AiMode caseId={caseId} onGenerated={onGenerated} />
+        <AiConsentGate onDecline={() => setMode("template")}>
+          <AiMode caseId={caseId} onGenerated={onGenerated} />
+        </AiConsentGate>
       </View>
     </View>
   );
