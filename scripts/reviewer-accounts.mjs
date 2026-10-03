@@ -686,7 +686,8 @@ This is a client account with sample data: three matters (one with a hearing dat
 notes, deadlines and two documents), a confirmed appointment, a conversation with an
 advocate, and notifications. Everything in it is fictional.
 
-The legal assistant (More > Legal assistant) and AI-assisted drafting ask for
+The legal assistant ("Ask assistant" on the home screen, or More > AI legal
+assistant) and AI-assisted drafting ask for
 permission the first time they are used, because what is typed is sent to Anthropic's
 Claude to write the answer. Choose "Allow and continue" to try them.
 
