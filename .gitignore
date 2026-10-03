@@ -47,6 +47,8 @@ platforms/desktop/release/
 # A per-build copy of the files Play Console takes, gathered for uploading (the bundle is ~86 MB;
 # the graphics and screenshots in it are tracked where they live).
 store-listing/play-upload-*/
+# The App Store preview video (scripts/store-previews.mjs makes it again).
+store-listing/previews/
 
 # Editor directories and files
 .vscode/*
