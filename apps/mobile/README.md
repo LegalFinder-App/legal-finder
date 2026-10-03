@@ -93,7 +93,7 @@ A clean release build takes one to two hours here (four CPU architectures of nat
 8 GB of memory); later builds are incremental. When only JavaScript and the version code have
 changed, skip `prebuild --clean` (it deletes `android/` and with it the two hours of native build
 output): set `versionCode` in `android/app/build.gradle` to match `ANDROID_VERSION_CODE` and run
-the Gradle command — about ten minutes (build 8 was made this way and checked: version code,
+the Gradle command — about ten minutes (builds 8 and 9 were made this way and checked: version code,
 signing certificate, contents). It is the one hand-edit of `android/` that is safe, because the
 next clean prebuild writes the same value from `app.config.ts`. Anything else there (plugins,
 permissions, icons, native dependencies) does need the clean prebuild. Reinstalling `node_modules` makes the next build a

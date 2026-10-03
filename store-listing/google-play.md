@@ -3,7 +3,8 @@
 Field by field. Text in code blocks is ready to paste. **Confirm** marks a choice or declaration
 that is yours to make.
 
-Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build8.aab` (version code 8).
+Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build9.aab` (version code 9). Play has
+already seen version code 8, so builds 8 and earlier are refused.
 
 ## Main store listing
 
@@ -136,6 +137,6 @@ A complete rebuild as a native app: faster, works with your phone's fingerprint 
 
 ## Testing track
 
-The earlier wrapper app went to closed testing up to version code 4; this bundle (code 8) is an
+The earlier wrapper app went to closed testing up to version code 4; this bundle (code 9) is an
 update to the same listing. Promote it through internal or closed testing before production, and
 try it once on a real phone: this build has not yet been run on a device.
