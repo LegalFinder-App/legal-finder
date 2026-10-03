@@ -72,12 +72,12 @@ that feature off before launch.
 advocate,lawyer,attorney,law,court,case,judgement,police,uganda,land,tenancy,legal aid,rights
 ```
 
-| Field            | Value                                                                                          |
-| ---------------- | ---------------------------------------------------------------------------------------------- |
-| Support URL      | `https://www.legalfinder.co/contact`                                                           |
-| Marketing URL    | `https://www.legalfinder.co`                                                                   |
-| Screenshots      | `screenshots/iphone-6.9/` — upload all eight under **iPhone 6.9" Display**, in file-name order |
-| iPad screenshots | Not needed: this build is iPhone only                                                          |
+| Field            | Value                                                                                                                                                                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Support URL      | `https://www.legalfinder.co/contact`                                                                                                                                                                                                                                                  |
+| Marketing URL    | `https://www.legalfinder.co`                                                                                                                                                                                                                                                          |
+| Screenshots      | One set, in the slot whose size it matches: `screenshots/iphone-6.5/` (1284 × 2778) under **iPhone 6.5" Display**, or `screenshots/iphone-6.9/` (1320 × 2868) under **iPhone 6.9" Display**. All eight, in file-name order. App Store Connect refuses a set dropped in the other slot |
+| iPad screenshots | Not needed: this build is iPhone only                                                                                                                                                                                                                                                 |
 
 ## App Review Information
 

@@ -2,13 +2,17 @@
 //
 //   npm run desktop:web                  # export the app first → apps/mobile/dist/desktop
 //   npm install --no-save playwright     # once; it is not a project dependency
-//   node scripts/store-screenshots.mjs
+//   node scripts/store-screenshots.mjs                # every set
+//   node scripts/store-screenshots.mjs iphone-6.5     # only the named set(s)
 //
 // The desktop shell runs the same code as the phone apps, so this opens it, signs in as the
 // store reviewers' demo client (scripts/reviewer-accounts.mjs must have been run), and captures
 // each screen at a phone's size and pixel density:
-//   iPhone 6.9"   440 x 956 pt  @3x   → 1320 x 2868  (the size App Store Connect requires)
+//   iPhone 6.9"   440 x 956 pt  @3x   → 1320 x 2868
+//   iPhone 6.5"   428 x 926 pt  @3x   → 1284 x 2778
 //   Android       432 x 768 dp  @2.5x → 1080 x 1920  (9:16, as Play asks for phones)
+// App Store Connect needs one of the two iPhone sets, in the matching "Display" slot: it refuses
+// 6.9" images dropped on the 6.5" slot and the other way round.
 // They are renders of the app's screens, not captures from a phone: no status bar.
 //
 // Sign-in uses the authenticator secret from store-listing/reviewer-credentials.local, so no
@@ -24,10 +28,17 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "store-listing", "screenshots");
-const SETS = [
+const ALL_SETS = [
   { dir: "iphone-6.9", width: 440, height: 956, scale: 3 },
+  { dir: "iphone-6.5", width: 428, height: 926, scale: 3 },
   { dir: "android-phone", width: 432, height: 768, scale: 2.5 },
 ];
+const only = process.argv.slice(2);
+const SETS = only.length ? ALL_SETS.filter((set) => only.includes(set.dir)) : ALL_SETS;
+if (!SETS.length) {
+  console.error(`Unknown set. Choose from: ${ALL_SETS.map((set) => set.dir).join(", ")}`);
+  process.exit(2);
+}
 
 let electron;
 try {
