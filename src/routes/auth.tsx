@@ -151,7 +151,7 @@ function AuthPage() {
             description:
               role === "user"
                 ? "Welcome to LegalFinder."
-                : "Your account is active. Privileged roles require administrator approval.",
+                : "Next, send your details and documents for review.",
           });
           redirecting = true;
         } else {
@@ -271,7 +271,7 @@ function AuthPage() {
           description:
             role === "user"
               ? "Welcome to LegalFinder."
-              : "Your account is active. Privileged roles require administrator approval.",
+              : "Next, send your details and documents for review.",
         });
       } else {
         const { error } =
@@ -517,6 +517,14 @@ function AuthPage() {
                           </button>
                         ))}
                       </div>
+                      {role !== "user" ? (
+                        <p className="text-xs text-muted-foreground">
+                          Next you’ll send your details and documents (such as your ID and{" "}
+                          {role === "lawyer" ? "practising certificate" : "staff identity card"}).
+                          An administrator checks them before your {ROLE_LABELS[role].toLowerCase()}{" "}
+                          account is switched on.
+                        </p>
+                      ) : null}
                     </div>
                   </>
                 )}

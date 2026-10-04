@@ -109,8 +109,51 @@ export type ContentReportRow = {
 };
 type UserBlockRow = { blocker_id: string; blocked_id: string; created_at: string };
 
+// 20261005090000_professional_onboarding.sql
+export type ApplicationRole = "lawyer" | "police" | "judiciary";
+export type ApplicationStatus =
+  "draft" | "submitted" | "changes_requested" | "approved" | "rejected";
+export type RoleApplicationRow = {
+  id: string;
+  user_id: string;
+  role: ApplicationRole;
+  status: ApplicationStatus;
+  details: Record<string, string>;
+  review_note: string | null;
+  submitted_at: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+export type RoleApplicationDocumentRow = {
+  id: string;
+  application_id: string;
+  user_id: string;
+  kind: string;
+  name: string;
+  storage_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  created_at: string;
+};
+
 export type AppDatabase = Omit<BaseDatabase, "public"> & {
-  public: Omit<BaseDatabase["public"], "Tables"> & {
+  public: Omit<BaseDatabase["public"], "Tables" | "Functions"> & {
+    Functions: BaseDatabase["public"]["Functions"] & {
+      submit_role_application: {
+        Args: { _application_id: string };
+        Returns: RoleApplicationRow;
+      };
+      review_role_application: {
+        Args: {
+          _application_id: string;
+          _decision: "approve" | "changes" | "reject";
+          _note?: string;
+        };
+        Returns: RoleApplicationRow;
+      };
+    };
     Tables: Omit<BaseDatabase["public"]["Tables"], "cases" | "lawyers"> & {
       cases: Omit<BaseDatabase["public"]["Tables"]["cases"], "Row" | "Insert" | "Update"> & {
         Row: BaseDatabase["public"]["Tables"]["cases"]["Row"] & { outcome: CaseOutcome | null };
@@ -304,6 +347,27 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
         Row: UserBlockRow;
         Insert: { blocker_id: string; blocked_id: string; created_at?: string };
         Update: Partial<UserBlockRow>;
+        Relationships: [];
+      };
+      role_applications: {
+        Row: RoleApplicationRow;
+        // Status and review fields change only through the two functions below.
+        Insert: { user_id: string; role: ApplicationRole; details?: Record<string, string> };
+        Update: { details?: Record<string, string> };
+        Relationships: [];
+      };
+      role_application_documents: {
+        Row: RoleApplicationDocumentRow;
+        Insert: {
+          application_id: string;
+          user_id: string;
+          kind: string;
+          name: string;
+          storage_path: string;
+          mime_type?: string | null;
+          size_bytes?: number | null;
+        };
+        Update: Record<string, never>;
         Relationships: [];
       };
       device_push_tokens: {

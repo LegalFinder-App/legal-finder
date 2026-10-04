@@ -26,6 +26,7 @@ import { Route as StationsRouteImport } from './routes/stations'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedApplyRouteImport } from './routes/_authenticated/apply'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedBenchRouteImport } from './routes/_authenticated/bench'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -42,6 +43,7 @@ import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as SessionTasksSetupMfaRouteImport } from './routes/session-tasks/setup-mfa'
 import { Route as WantedIdRouteImport } from './routes/wanted.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminApplicationsRouteImport } from './routes/_authenticated/admin/applications'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminContentRouteRouteImport } from './routes/_authenticated/admin/content/route'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin/payouts'
@@ -161,6 +163,11 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedApplyRoute = AuthenticatedApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -241,6 +248,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminApplicationsRoute =
+  AuthenticatedAdminApplicationsRouteImport.update({
+    id: '/applications',
+    path: '/applications',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -449,6 +462,7 @@ export interface FileRoutesByFullPath {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/wanted': typeof WantedRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/apply': typeof AuthenticatedApplyRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bench': typeof AuthenticatedBenchRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -465,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/lawyers/': typeof LawyersIndexRoute
   '/news/': typeof NewsIndexRoute
   '/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
+  '/admin/applications': typeof AuthenticatedAdminApplicationsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -516,6 +531,7 @@ export interface FileRoutesByTo {
   '/stations': typeof StationsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/wanted': typeof WantedRouteWithChildren
+  '/apply': typeof AuthenticatedApplyRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/bench': typeof AuthenticatedBenchRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -531,6 +547,7 @@ export interface FileRoutesByTo {
   '/advice': typeof AdviceIndexRoute
   '/lawyers': typeof LawyersIndexRoute
   '/news': typeof NewsIndexRoute
+  '/admin/applications': typeof AuthenticatedAdminApplicationsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -585,6 +602,7 @@ export interface FileRoutesById {
   '/terms-of-service': typeof TermsOfServiceRoute
   '/wanted': typeof WantedRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/apply': typeof AuthenticatedApplyRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/bench': typeof AuthenticatedBenchRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -601,6 +619,7 @@ export interface FileRoutesById {
   '/lawyers/': typeof LawyersIndexRoute
   '/news/': typeof NewsIndexRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRouteRouteWithChildren
+  '/_authenticated/admin/applications': typeof AuthenticatedAdminApplicationsRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -655,6 +674,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/wanted'
     | '/admin'
+    | '/apply'
     | '/assistant'
     | '/bench'
     | '/dashboard'
@@ -671,6 +691,7 @@ export interface FileRouteTypes {
     | '/lawyers/'
     | '/news/'
     | '/admin/content'
+    | '/admin/applications'
     | '/admin/audit'
     | '/admin/payouts'
     | '/admin/reports'
@@ -722,6 +743,7 @@ export interface FileRouteTypes {
     | '/stations'
     | '/terms-of-service'
     | '/wanted'
+    | '/apply'
     | '/assistant'
     | '/bench'
     | '/dashboard'
@@ -737,6 +759,7 @@ export interface FileRouteTypes {
     | '/advice'
     | '/lawyers'
     | '/news'
+    | '/admin/applications'
     | '/admin/audit'
     | '/admin/payouts'
     | '/admin/reports'
@@ -790,6 +813,7 @@ export interface FileRouteTypes {
     | '/terms-of-service'
     | '/wanted'
     | '/_authenticated/admin'
+    | '/_authenticated/apply'
     | '/_authenticated/assistant'
     | '/_authenticated/bench'
     | '/_authenticated/dashboard'
@@ -806,6 +830,7 @@ export interface FileRouteTypes {
     | '/lawyers/'
     | '/news/'
     | '/_authenticated/admin/content'
+    | '/_authenticated/admin/applications'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/reports'
@@ -1006,6 +1031,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/apply': {
+      id: '/_authenticated/apply'
+      path: '/apply'
+      fullPath: '/apply'
+      preLoaderRoute: typeof AuthenticatedApplyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assistant': {
       id: '/_authenticated/assistant'
       path: '/assistant'
@@ -1116,6 +1148,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/applications': {
+      id: '/_authenticated/admin/applications'
+      path: '/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AuthenticatedAdminApplicationsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/audit': {
@@ -1395,6 +1434,7 @@ const AuthenticatedAdminContentRouteRouteWithChildren =
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminContentRouteRoute: typeof AuthenticatedAdminContentRouteRouteWithChildren
+  AuthenticatedAdminApplicationsRoute: typeof AuthenticatedAdminApplicationsRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
@@ -1408,6 +1448,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminContentRouteRoute:
       AuthenticatedAdminContentRouteRouteWithChildren,
+    AuthenticatedAdminApplicationsRoute: AuthenticatedAdminApplicationsRoute,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
     AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
@@ -1424,6 +1465,7 @@ const AuthenticatedAdminRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedApplyRoute: typeof AuthenticatedApplyRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedBenchRoute: typeof AuthenticatedBenchRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1436,6 +1478,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedApplyRoute: AuthenticatedApplyRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedBenchRoute: AuthenticatedBenchRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

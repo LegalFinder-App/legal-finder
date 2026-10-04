@@ -87,6 +87,11 @@ Docs: https://docs.expo.dev/eas/index.md
 - **Android 7.0 and Let's Encrypt**: `plugins/withLetsEncryptRoot.js` adds ISRG Root X1 (beside
   it, `isrg-root-x1.crt`) to release builds, because 7.0 predates that root and
   www.legalfinder.co chains to it. Re-check if the site's certificate provider changes.
+- **Professional accounts** (advocate, police, judiciary) come only from an approved
+  application: `src/features/onboarding` (the applicant, shown on the home tab while someone is
+  applying and at `/apply`) and `src/features/admin/ApplicationsPanel.tsx`. The required items
+  live in `src/lib/onboarding.ts`, mirrored on the web and in the database — see the root
+  AGENTS.md before changing them.
 - **Crash reports**: the app has no crash-reporting library. For "it won't open on some phones",
   start with Play Console → Android vitals → Crashes & ANRs and the pre-launch report: they have
   the stack traces and the phone models.

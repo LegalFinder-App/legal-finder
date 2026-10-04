@@ -84,6 +84,10 @@ function DeleteAccount() {
             <li>The devices and browsers you registered for notifications;</li>
             <li>The people you blocked, and any blocks other people set on you;</li>
             <li>
+              Any application for an advocate, police or judiciary account, with the identity and
+              professional documents you sent with it;
+            </li>
+            <li>
               For advocates: your public directory listing with its reviews, your professional
               development records, and your payout details.
             </li>

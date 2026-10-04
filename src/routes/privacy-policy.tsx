@@ -18,7 +18,7 @@ export const Route = createFileRoute("/privacy-policy")({
   component: PrivacyPolicy,
 });
 
-const LAST_UPDATED = "October 4, 2026";
+const LAST_UPDATED = "October 5, 2026";
 
 type Section = {
   id: string;
@@ -75,6 +75,14 @@ const SECTIONS: Section[] = [
           <span className="font-medium text-foreground">Profile and directory data.</span> For
           advocates, this includes headline, firm, practice areas, languages, fees, bar number, and
           licence status shown in the public directory.
+        </p>
+        <p>
+          <span className="font-medium text-foreground">Professional verification.</span> If you
+          apply for an advocate, police or judiciary account, we collect the details and documents
+          the application asks for — for example your Roll of Advocates number and practising
+          certificate, your force or staff number, a letter from your station or court, and your
+          National ID or passport. They are stored privately and seen only by you and our
+          administrators, who use them to decide whether to approve your account.
         </p>
         <p>
           <span className="font-medium text-foreground">Case, messaging, and document data.</span>{" "}
@@ -189,10 +197,10 @@ const SECTIONS: Section[] = [
         We keep your data for as long as your account is active, and afterwards for as long as
         needed to comply with legal, tax, or regulatory obligations, resolve disputes, and enforce
         our agreements. If your account is deleted, your sign-in account, profile, and role records
-        are removed, together with an advocate's directory listing and payout details and any blocks
-        you set or that name you; case, payment, and audit records that form part of a legal or
-        financial file, and reports of abuse, may be retained for a longer, legally required period
-        even after account deletion.{" "}
+        are removed, together with an advocate's directory listing and payout details, any blocks
+        you set or that name you, and any application for a professional account with its documents;
+        case, payment, and audit records that form part of a legal or financial file, and reports of
+        abuse, may be retained for a longer, legally required period even after account deletion.{" "}
         <Link to="/delete-account" className="text-brass hover:underline">
           How to delete your account
         </Link>{" "}

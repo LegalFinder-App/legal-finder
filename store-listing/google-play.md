@@ -3,8 +3,8 @@
 Field by field. Text in code blocks is ready to paste. **Confirm** marks a choice or declaration
 that is yours to make.
 
-Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build11.aab` (version code 11), also in
-`play-upload-build11/`. It adds reporting and blocking; it no longer stays on its splash screen
+Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build12.aab` (version code 12), also in
+`play-upload-build12/`. It adds the document check for advocate, police and judiciary accounts. It adds reporting and blocking; it no longer stays on its splash screen
 when the phone can't reach the sign-in service at launch; and Android 7.0 phones can reach the
 LegalFinder server. Play has already seen version codes 8 and 9, so those are refused.
 
@@ -109,20 +109,20 @@ does not count a transfer to a service provider working on your behalf as "shari
 user starts themselves (a message to their advocate), so **Shared** is "No" throughout —
 **Confirm** that your agreements with the providers named in the privacy policy fit that.
 
-| Play's data type                                                                    | Collected | Required or optional                                                                                                   | Purpose                                                                          |
-| ----------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Personal info → Name                                                                | Yes       | Required                                                                                                               | App functionality, Account management                                            |
-| Personal info → Email address                                                       | Yes       | Required                                                                                                               | App functionality, Account management                                            |
-| Personal info → User IDs                                                            | Yes       | Required                                                                                                               | App functionality, Account management                                            |
-| Personal info → Phone number                                                        | Yes       | Optional (advocates, for payouts)                                                                                      | App functionality                                                                |
-| Financial info → User payment info                                                  | Yes       | Optional (advocates' payout bank or mobile-money details)                                                              | App functionality                                                                |
-| Financial info → Purchase history                                                   | Yes       | Optional (records of consultation fees paid)                                                                           | App functionality                                                                |
-| Messages → Other in-app messages                                                    | Yes       | Optional                                                                                                               | App functionality                                                                |
-| Photos and videos → Photos                                                          | Yes       | Optional (profile photo)                                                                                               | App functionality                                                                |
-| Files and docs → Files and docs                                                     | Yes       | Optional (documents added to a matter)                                                                                 | App functionality                                                                |
-| App activity → Other user-generated content                                         | Yes       | Optional (matter notes, incident reports, reviews, reports of other users' content, what is typed to the AI assistant) | App functionality                                                                |
-| Device or other IDs                                                                 | No        |                                                                                                                        | Push notifications are off in this build. Change to Yes when push is switched on |
-| Location, Contacts, Calendar, Health, Audio, Web browsing, App info and performance | No        |                                                                                                                        | No location permission, and no analytics or crash-reporting library              |
+| Play's data type                                                                    | Collected | Required or optional                                                                                                         | Purpose                                                                          |
+| ----------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Personal info → Name                                                                | Yes       | Required                                                                                                                     | App functionality, Account management                                            |
+| Personal info → Email address                                                       | Yes       | Required                                                                                                                     | App functionality, Account management                                            |
+| Personal info → User IDs                                                            | Yes       | Required                                                                                                                     | App functionality, Account management                                            |
+| Personal info → Phone number                                                        | Yes       | Optional (advocates, for payouts)                                                                                            | App functionality                                                                |
+| Financial info → User payment info                                                  | Yes       | Optional (advocates' payout bank or mobile-money details)                                                                    | App functionality                                                                |
+| Financial info → Purchase history                                                   | Yes       | Optional (records of consultation fees paid)                                                                                 | App functionality                                                                |
+| Messages → Other in-app messages                                                    | Yes       | Optional                                                                                                                     | App functionality                                                                |
+| Photos and videos → Photos                                                          | Yes       | Optional (profile photo)                                                                                                     | App functionality                                                                |
+| Files and docs → Files and docs                                                     | Yes       | Optional (documents added to a matter; ID and professional documents sent with an advocate, police or judiciary application) | App functionality                                                                |
+| App activity → Other user-generated content                                         | Yes       | Optional (matter notes, incident reports, reviews, reports of other users' content, what is typed to the AI assistant)       | App functionality                                                                |
+| Device or other IDs                                                                 | No        |                                                                                                                              | Push notifications are off in this build. Change to Yes when push is switched on |
+| Location, Contacts, Calendar, Health, Audio, Web browsing, App info and performance | No        |                                                                                                                              | No location permission, and no analytics or crash-reporting library              |
 
 A client's card or mobile-money details are entered on Pesapal's own page in the browser and never
 reach the app, so they are not collected by it.
@@ -134,11 +134,33 @@ does not store the conversation.
 ## Release notes for this build (500)
 
 ```
-A complete rebuild as a native app: faster, works with your phone's fingerprint or face unlock, and adds practice analytics for advocates, payout details, and document generation from templates or with AI assistance. The AI features now ask your permission before first use. You can report or block another user from a conversation. The app now tells you when it can't connect, instead of staying on its start screen.
+A complete rebuild as a native app: faster, works with your phone's fingerprint or face unlock, and adds practice analytics for advocates, payout details, and document generation from templates or with AI assistance. The AI features now ask your permission before first use. You can report or block another user from a conversation. The app now tells you when it can't connect, instead of staying on its start screen. Advocates, police and judicial officers now apply with their documents.
 ```
 
 ## Testing track
 
-The earlier wrapper app went to closed testing up to version code 4; this bundle (code 9) is an
+The earlier wrapper app went to closed testing up to version code 4; this bundle (code 12) is an
 update to the same listing. Promote it through internal or closed testing before production, and
 try it once on a real phone: this build has not yet been run on a device.
+
+### When a tester sees "Item not found"
+
+Play says "Item not found" (rather than "not compatible with your device") when the Google account
+signed in to the phone's Play Store can't see that testing track. It isn't the app: the app
+targets Android 16, has no upper Android version and asks for no particular hardware. Check, in
+order:
+
+1. **The tester is on the list.** Internal testing → Testers (or the closed track's tester list
+   or Google Group) must hold the exact Gmail address the phone's Play Store uses.
+2. **They accepted the invitation.** They open the track's opt-in link while signed in with that
+   account, tap **Become a tester**, and only then use the download link.
+3. **The phone's Play Store uses that account.** With several Google accounts on one phone, the
+   Play Store uses the one picked in its own profile menu, not necessarily the phone's main
+   account. Switch it there, or open the opt-in link in a browser signed in to the tester's
+   account.
+4. **The release has finished.** A closed-testing release waits for Google's review before anyone
+   can install it; internal testing is available within minutes of rollout.
+5. **The country is included.** The track's countries or regions must include the tester's.
+
+After a change, wait a few minutes, clear the Play Store's cache (Settings → Apps → Google Play
+Store → Storage) and open the link again.

@@ -66,7 +66,12 @@ function AuthBridge() {
     provisioned.current = userId;
     api
       .session()
-      .then(() => queryClient.invalidateQueries({ queryKey: ["roles", userId] }))
+      .then(() =>
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["roles", userId] }),
+          queryClient.invalidateQueries({ queryKey: ["profile", userId] }),
+        ]),
+      )
       .catch(() => {
         provisioned.current = null;
       });

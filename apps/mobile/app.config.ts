@@ -4,8 +4,8 @@ import type { ExpoConfig } from "expo/config";
 // the existing Play listing (and future App Store listing) rather than a new app. versionCode
 // must stay above the wrapper's last upload (4).
 const VERSION = "2.0.0";
-const ANDROID_VERSION_CODE = 11;
-const IOS_BUILD_NUMBER = "5";
+const ANDROID_VERSION_CODE = 12;
+const IOS_BUILD_NUMBER = "6";
 
 // The Expo (EAS) project these builds belong to — expo.dev/accounts/ochienodavid/projects/legalfinder,
 // created by `eas init`. An identifier, not a secret: EAS Build refuses to run without it, and Expo

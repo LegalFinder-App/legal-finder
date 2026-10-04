@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import {
+  BadgeCheck,
   Bell,
   Briefcase,
   CalendarDays,
@@ -123,6 +124,17 @@ export default function MoreTab() {
             title="Notifications"
             onPress={() => router.push("/notifications")}
           />
+          {primaryRole === "user" ? (
+            <>
+              <Divider />
+              <ListRow
+                icon={icon(BadgeCheck)}
+                title="Professional account"
+                subtitle="Apply as an advocate, police or judicial officer"
+                onPress={() => router.push("/apply")}
+              />
+            </>
+          ) : null}
         </Group>
       ) : null}
 

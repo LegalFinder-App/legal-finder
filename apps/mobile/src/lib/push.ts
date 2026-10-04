@@ -118,6 +118,7 @@ function routeFromLink(link: unknown): string | null {
   if (path === "/dashboard" || path === "/practice" || path === "/precinct" || path === "/bench")
     return "/";
   if (path === "/admin/reports") return "/?tab=reports";
+  if (path === "/admin/applications") return "/?tab=applications";
   if (path === "/admin" || path.startsWith("/admin/")) return "/";
   return path;
 }

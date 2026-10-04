@@ -35,6 +35,7 @@ import { ContentManager } from "@/features/content/ContentManager";
 import { CONTENT } from "@/features/content/configs";
 import { PayoutsPanel } from "@/features/payouts/PayoutsPanel";
 import { ReportsPanel, reportsQuery } from "@/features/admin/ReportsPanel";
+import { ApplicationsPanel, applicationsToReviewQuery } from "@/features/admin/ApplicationsPanel";
 import { ROLE_LABELS, useSession, type AppRole } from "@/lib/session";
 import {
   allCasesQuery,
@@ -53,7 +54,15 @@ import { useWideLayout } from "@/lib/layout";
 import { toast } from "@/lib/toast";
 
 type Tab =
-  "overview" | "verify" | "reports" | "users" | "payouts" | "content" | "platform" | "audit";
+  | "overview"
+  | "applications"
+  | "verify"
+  | "reports"
+  | "users"
+  | "payouts"
+  | "content"
+  | "platform"
+  | "audit";
 const ALL_ROLES: AppRole[] = ["user", "lawyer", "police", "judiciary", "admin"];
 
 function Overview() {
@@ -416,6 +425,7 @@ export function AdminHome() {
     if (params.tab) setTab(params.tab);
   }
   const openReports = useQuery(reportsQuery("open")).data?.length ?? 0;
+  const toReview = useQuery(applicationsToReviewQuery).data?.length ?? 0;
   const qc = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   return (
@@ -438,6 +448,10 @@ export function AdminHome() {
         onChange={setTab}
         options={[
           { value: "overview", label: "Overview" },
+          {
+            value: "applications",
+            label: toReview ? `Applications (${toReview})` : "Applications",
+          },
           { value: "verify", label: "Verify" },
           { value: "reports", label: openReports ? `Reports (${openReports})` : "Reports" },
           { value: "users", label: "Users" },
@@ -448,6 +462,7 @@ export function AdminHome() {
         ]}
       />
       {tab === "overview" ? <Overview /> : null}
+      {tab === "applications" ? <ApplicationsPanel /> : null}
       {tab === "verify" ? <Verifications /> : null}
       {tab === "reports" ? <ReportsPanel /> : null}
       {tab === "users" ? <UsersAndRoles /> : null}

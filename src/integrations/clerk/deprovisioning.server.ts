@@ -9,9 +9,10 @@
 // What does go, besides the profile and roles, is what only makes sense while the account
 // exists: an advocate's public directory listing (name, phone, email and bar number shown to
 // everyone — its reviews and CPD records cascade with it), their payout details, the blocks they
-// set or that name them, and the devices registered for push. Reports of abuse are kept, like
-// the case and audit history. /delete-account and the privacy policy describe exactly this
-// list, so change them together.
+// set or that name them, any application for an advocate, police or judiciary account with its
+// identity documents, and the devices registered for push. Reports of abuse are kept, like the
+// case and audit history. /delete-account and the privacy policy describe exactly this list, so
+// change them together.
 import { clerkClient } from "@clerk/tanstack-react-start/server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -23,6 +24,20 @@ const payoutAccounts = supabaseAdmin as unknown as {
     };
   };
 };
+
+/** The identity documents in the private onboarding bucket, filed under <user id>/<application>/. */
+async function removeApplicationFiles(userId: string): Promise<{ error: { message: string } | null }> {
+  const { data, error } = await supabaseAdmin
+    .from("role_application_documents")
+    .select("storage_path")
+    .eq("user_id", userId);
+  if (error) return { error };
+  if (!data?.length) return { error: null };
+  const { error: removeError } = await supabaseAdmin.storage
+    .from("onboarding")
+    .remove(data.map((d) => d.storage_path));
+  return { error: removeError };
+}
 
 export async function deprovisionUser(userId: string): Promise<void> {
   try {
@@ -54,6 +69,12 @@ export async function deprovisionUser(userId: string): Promise<void> {
       .from("user_blocks")
       .delete()
       .or(`blocker_id.eq.${userId},blocked_id.eq.${userId}`),
+  );
+  await attempt("application documents", removeApplicationFiles(userId));
+  // Its document rows cascade with it.
+  await attempt(
+    "applications",
+    supabaseAdmin.from("role_applications").delete().eq("user_id", userId),
   );
   await attempt(
     "browser push",

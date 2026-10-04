@@ -33,7 +33,7 @@ export default function SignUpScreen() {
       description:
         role === "user"
           ? "Welcome to LegalFinder."
-          : "Your account is active. Privileged roles require administrator approval.",
+          : "Next, send your details and documents for review.",
     });
 
   const submit = async () => {
@@ -173,8 +173,9 @@ export default function SignUpScreen() {
       />
       {role !== "user" ? (
         <Text variant="small" tone="muted">
-          {ROLE_LABELS[role]} access is reviewed by an administrator before it’s granted. You can
-          use the app as a client in the meantime.
+          Next you’ll send your details and documents (such as your ID and{" "}
+          {role === "lawyer" ? "practising certificate" : "staff identity card"}). An administrator
+          checks them before your {ROLE_LABELS[role].toLowerCase()} account is switched on.
         </Text>
       ) : null}
 

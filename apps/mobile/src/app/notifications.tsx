@@ -20,6 +20,7 @@ function routeFor(link: string | null): string | null {
   if (["/dashboard", "/practice", "/precinct", "/bench", "/admin"].includes(path)) return "/";
   // The app's administration lives on its home tab; the web's /admin/* pages are its tabs there.
   if (path === "/admin/reports") return "/?tab=reports";
+  if (path === "/admin/applications") return "/?tab=applications";
   if (path.startsWith("/admin/")) return "/";
   return path;
 }

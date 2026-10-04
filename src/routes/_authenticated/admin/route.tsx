@@ -4,6 +4,7 @@ import { requireRoles } from "@/lib/rbac";
 const TABS = [
   { to: "/admin", label: "Overview" },
   { to: "/admin/audit", label: "Audit trail" },
+  { to: "/admin/applications", label: "Applications" },
   { to: "/admin/verifications", label: "Verifications" },
   { to: "/admin/reports", label: "Reports" },
   { to: "/admin/users", label: "Users & roles" },
