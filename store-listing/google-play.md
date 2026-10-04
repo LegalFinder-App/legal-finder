@@ -3,8 +3,8 @@
 Field by field. Text in code blocks is ready to paste. **Confirm** marks a choice or declaration
 that is yours to make.
 
-Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build12.aab` (version code 12), also in
-`play-upload-build12/`. It adds the document check for advocate, police and judiciary accounts. It adds reporting and blocking; it no longer stays on its splash screen
+Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build13.aab` (version code 13), also in
+`play-upload-build13/`. Play has already seen 12 (the same app), so it refuses that one. It adds the document check for advocate, police and judiciary accounts. It adds reporting and blocking; it no longer stays on its splash screen
 when the phone can't reach the sign-in service at launch; and Android 7.0 phones can reach the
 LegalFinder server. Play has already seen version codes 8 and 9, so those are refused.
 
@@ -139,7 +139,7 @@ A complete rebuild as a native app: faster, works with your phone's fingerprint 
 
 ## Testing track
 
-The earlier wrapper app went to closed testing up to version code 4; this bundle (code 12) is an
+The earlier wrapper app went to closed testing up to version code 4; this bundle (code 13) is an
 update to the same listing. Promote it through internal or closed testing before production, and
 try it once on a real phone: this build has not yet been run on a device.
 
