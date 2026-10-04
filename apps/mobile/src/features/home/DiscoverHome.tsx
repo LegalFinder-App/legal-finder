@@ -1,11 +1,11 @@
-import { FlatList, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import {
-  ArrowRight,
-  BookOpen,
+  ChevronRight,
   Gavel,
   Library,
   ScrollText,
@@ -15,13 +15,14 @@ import {
 } from "lucide-react-native";
 import type { ComponentType } from "react";
 import { useTheme } from "@/theme/ThemeProvider";
-import { gradients } from "@/theme/tokens";
-import { Button, Card, LoadingRows, SectionTitle, Text } from "@/components/ui";
-import { Logo } from "@/components/Logo";
+import { fonts, gradients } from "@/theme/tokens";
+import { Button, Text } from "@/components/ui";
 import { useWideLayout } from "@/lib/layout";
 import { ScreenStatusBar } from "@/components/ScreenStatusBar";
-import { LawyerCard } from "@/components/LawyerCard";
-import { adviceListQuery, publicLawyersQuery, quotesQuery } from "@/lib/queries";
+import { quotesQuery } from "@/lib/queries";
+
+// The signed-out home: a welcome screen, not the website's landing page. The tab bar only
+// appears once someone signs in ((tabs)/_layout.tsx), so these cards are the way in.
 
 type Pillar = {
   icon: ComponentType<{ size?: number; color?: string }>;
@@ -74,47 +75,52 @@ export function DiscoverHome() {
   const { colors, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const wide = useWideLayout();
-  const lawyers = useQuery(publicLawyersQuery());
-  const advice = useQuery(adviceListQuery);
   const quotes = useQuery(quotesQuery);
   const quote = quotes.data?.[0];
 
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 24 }}
     >
       <ScreenStatusBar style="light" />
       <LinearGradient
         colors={[...(scheme === "dark" ? gradients.inkDark : gradients.inkLight)]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.hero, wide ? styles.wideHero : { paddingTop: insets.top + 16 }]}
+        style={[styles.header, wide ? styles.wideHeader : { paddingTop: insets.top + 36 }]}
       >
-        {/* The desktop sidebar already carries the logo. */}
-        {wide ? null : <Logo onInk />}
-        <Text variant="eyebrow" tone="brass" style={{ marginTop: wide ? 0 : 28 }}>
+        {/* The LegalFinder seal, as on the app icon, in a brass ring. */}
+        <View style={[styles.sealRing, { borderColor: `${colors.brass}8c` }]}>
+          <Image
+            source={require("../../../assets/splash-icon.png")}
+            style={styles.seal}
+            contentFit="contain"
+            accessibilityLabel="LegalFinder seal"
+          />
+        </View>
+        <Text style={styles.wordmark} accessibilityRole="header">
+          <Text style={[styles.wordmark, { color: colors.inkForeground }]}>Legal</Text>
+          <Text style={[styles.wordmark, { color: colors.brass }]}>Finder</Text>
+        </Text>
+        <View style={[styles.rule, { backgroundColor: colors.brass }]} />
+        <Text variant="eyebrow" tone="brass" style={{ textAlign: "center" }}>
           Justice, within reach
         </Text>
-        <Text variant="display" tone="inkForeground" style={{ marginTop: 8 }}>
-          Find the right advocate.
+        <Text tone="inkForeground" style={styles.tagline}>
+          Verified advocates, your cases and the courts — in one place.
         </Text>
-        <Text variant="display" tone="brass">
-          Follow your case to the end.
-        </Text>
-        <Text tone="inkForeground" style={{ opacity: 0.75, marginTop: 12 }}>
-          Clients, advocates, police services and the judiciary — on one platform.
-        </Text>
-        <View style={styles.heroActions}>
+        <View style={[styles.actions, wide && styles.wideActions]}>
           <Button
-            title="Browse advocates"
-            onPress={() => router.push("/(tabs)/advocates")}
-            iconRight={<ArrowRight size={16} color={colors.brassForeground} />}
+            title="Create account"
+            onPress={() => router.push("/(auth)/sign-up")}
+            style={{ flex: 1 }}
           />
           <Button
             title="Sign in"
             variant="inkOutline"
             onPress={() => router.push("/(auth)/sign-in")}
+            style={{ flex: 1 }}
           />
         </View>
       </LinearGradient>
@@ -123,7 +129,7 @@ export function DiscoverHome() {
         <Text variant="eyebrow" tone="brass">
           What you can do
         </Text>
-        <Text variant="h2" style={{ marginTop: 6 }}>
+        <Text variant="h2" style={{ marginTop: 4 }}>
           Everything a legal matter needs
         </Text>
         <View style={styles.grid}>
@@ -132,6 +138,7 @@ export function DiscoverHome() {
               key={title}
               accessibilityRole="button"
               accessibilityLabel={title}
+              accessibilityHint={body}
               onPress={() => router.push(href as never)}
               style={({ pressed }) => [
                 styles.pillar,
@@ -140,11 +147,17 @@ export function DiscoverHome() {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
                   opacity: pressed ? 0.85 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
                 },
               ]}
             >
-              <Icon size={20} color={colors.brass} />
-              <Text variant="bodyStrong" style={{ marginTop: 10 }}>
+              <View style={styles.pillarTop}>
+                <View style={[styles.iconTile, { backgroundColor: colors.accent }]}>
+                  <Icon size={20} color={colors.brass} />
+                </View>
+                <ChevronRight size={16} color={colors.mutedForeground} />
+              </View>
+              <Text variant="bodyStrong" style={{ marginTop: 12 }}>
                 {title}
               </Text>
               <Text variant="caption" tone="muted" style={{ marginTop: 4 }}>
@@ -153,64 +166,6 @@ export function DiscoverHome() {
             </Pressable>
           ))}
         </View>
-      </View>
-
-      <View style={[styles.section, wide && styles.wideSection]}>
-        <SectionTitle
-          title="Advocates accepting clients"
-          action={
-            <Pressable accessibilityRole="link" onPress={() => router.push("/(tabs)/advocates")}>
-              <Text variant="small" tone="brass">
-                View all
-              </Text>
-            </Pressable>
-          }
-        />
-        {lawyers.isLoading ? (
-          <LoadingRows rows={1} height={150} />
-        ) : (
-          <FlatList
-            horizontal
-            data={(lawyers.data ?? []).filter((l) => l.accepting_clients).slice(0, 8)}
-            keyExtractor={(l) => l.id}
-            renderItem={({ item }) => <LawyerCard lawyer={item} compact />}
-            ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 4, paddingRight: 20 }}
-          />
-        )}
-      </View>
-
-      <View style={[styles.section, wide && styles.wideSection]}>
-        <SectionTitle
-          title="Plain-language guides"
-          action={
-            <Pressable accessibilityRole="link" onPress={() => router.push("/advice")}>
-              <Text variant="small" tone="brass">
-                All guides
-              </Text>
-            </Pressable>
-          }
-        />
-        {(advice.data ?? []).slice(0, 3).map((item) => (
-          <Card
-            key={item.id}
-            onPress={() => router.push(`/advice/${item.slug}`)}
-            accessibilityLabel={item.title}
-          >
-            <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
-              <BookOpen size={18} color={colors.brass} />
-              <View style={{ flex: 1 }}>
-                <Text variant="bodyStrong">{item.title}</Text>
-                {item.summary ? (
-                  <Text variant="small" tone="muted" numberOfLines={2} style={{ marginTop: 4 }}>
-                    {item.summary}
-                  </Text>
-                ) : null}
-              </View>
-            </View>
-          </Card>
-        ))}
       </View>
 
       {quote ? (
@@ -237,20 +192,55 @@ export function DiscoverHome() {
 }
 
 const styles = StyleSheet.create({
-  hero: { paddingHorizontal: 20, paddingBottom: 28 },
-  heroActions: { flexDirection: "row", gap: 10, marginTop: 20, flexWrap: "wrap" },
-  section: { paddingHorizontal: 20, marginTop: 28, gap: 12 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 6 },
+  header: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  sealRing: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    borderWidth: 1.5,
+    padding: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  seal: { width: 96, height: 96, borderRadius: 48 },
+  wordmark: { fontFamily: fonts.display, fontSize: 30, lineHeight: 38, marginTop: 14 },
+  rule: { width: 36, height: 2, borderRadius: 1, marginTop: 10, marginBottom: 12 },
+  tagline: { textAlign: "center", opacity: 0.78, marginTop: 6, maxWidth: 320 },
+  actions: { flexDirection: "row", gap: 10, marginTop: 22, alignSelf: "stretch" },
+  section: { paddingHorizontal: 20, marginTop: 26, gap: 8 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 8 },
   pillar: {
-    width: "48%",
+    width: "47%",
     flexGrow: 1,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
   },
+  pillarTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  iconTile: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   quote: { borderLeftWidth: 3, paddingLeft: 16, marginHorizontal: 20, paddingHorizontal: 0 },
-  // Wide desktop window: sections keep a comfortable measure instead of running edge to edge.
-  wideHero: { paddingHorizontal: 48, paddingTop: 56, paddingBottom: 56 },
+  // Wide desktop window: the header stays a centred block and sections keep a comfortable
+  // measure instead of running edge to edge.
+  wideHeader: {
+    paddingTop: 48,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  wideActions: { alignSelf: "center", width: 360 },
   wideSection: { paddingHorizontal: 48, maxWidth: 1120 },
   widePillar: { width: "31%" },
   wideQuote: { marginHorizontal: 48, maxWidth: 1024 },

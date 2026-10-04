@@ -8,8 +8,9 @@
 //
 // What does go, besides the profile and roles, is what only makes sense while the account
 // exists: an advocate's public directory listing (name, phone, email and bar number shown to
-// everyone — its reviews and CPD records cascade with it), their payout details, and the
-// devices registered for push. /delete-account and the privacy policy describe exactly this
+// everyone — its reviews and CPD records cascade with it), their payout details, the blocks they
+// set or that name them, and the devices registered for push. Reports of abuse are kept, like
+// the case and audit history. /delete-account and the privacy policy describe exactly this
 // list, so change them together.
 import { clerkClient } from "@clerk/tanstack-react-start/server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -46,6 +47,13 @@ export async function deprovisionUser(userId: string): Promise<void> {
   await attempt(
     "payout details",
     payoutAccounts.from("lawyer_payout_accounts").delete().eq("lawyer_user_id", userId),
+  );
+  await attempt(
+    "blocks",
+    supabaseAdmin
+      .from("user_blocks")
+      .delete()
+      .or(`blocker_id.eq.${userId},blocked_id.eq.${userId}`),
   );
   await attempt(
     "browser push",

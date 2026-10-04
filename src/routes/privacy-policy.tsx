@@ -18,7 +18,7 @@ export const Route = createFileRoute("/privacy-policy")({
   component: PrivacyPolicy,
 });
 
-const LAST_UPDATED = "October 2, 2026";
+const LAST_UPDATED = "October 4, 2026";
 
 type Section = {
   id: string;
@@ -79,7 +79,9 @@ const SECTIONS: Section[] = [
         <p>
           <span className="font-medium text-foreground">Case, messaging, and document data.</span>{" "}
           Content you create using the Service — case details, case updates, messages with another
-          user, uploaded documents, appointments, reviews, and incident reports.
+          user, uploaded documents, appointments, reviews, and incident reports. If you report a
+          message, review, or person, we keep your report with a copy of what you reported so our
+          team can act on it; if you block someone, we keep that block until you remove it.
         </p>
         <p>
           <span className="font-medium text-foreground">Payment data.</span> When you pay a
@@ -187,9 +189,10 @@ const SECTIONS: Section[] = [
         We keep your data for as long as your account is active, and afterwards for as long as
         needed to comply with legal, tax, or regulatory obligations, resolve disputes, and enforce
         our agreements. If your account is deleted, your sign-in account, profile, and role records
-        are removed, together with an advocate's directory listing and payout details; case,
-        payment, and audit records that form part of a legal or financial file may be retained for a
-        longer, legally required period even after account deletion.{" "}
+        are removed, together with an advocate's directory listing and payout details and any blocks
+        you set or that name you; case, payment, and audit records that form part of a legal or
+        financial file, and reports of abuse, may be retained for a longer, legally required period
+        even after account deletion.{" "}
         <Link to="/delete-account" className="text-brass hover:underline">
           How to delete your account
         </Link>{" "}

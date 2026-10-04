@@ -1,6 +1,6 @@
 import { useAuth, useUser } from "./auth";
 import { useQuery } from "@tanstack/react-query";
-import { userRolesQuery } from "./queries";
+import { profileQuery, userRolesQuery } from "./queries";
 
 // Mirrors src/lib/session.tsx on the web.
 export type AppRole = "user" | "lawyer" | "police" | "judiciary" | "admin";
@@ -31,6 +31,9 @@ export function useSession() {
   const { user: clerkUser } = useUser();
   const rolesQuery = useQuery(userRolesQuery(isSignedIn ? (userId ?? undefined) : undefined));
   const roles = (rolesQuery.data ?? []) as AppRole[];
+  // The photo people upload (here or on the website) is saved on their profile, not in Clerk —
+  // Clerk only has one for social sign-ins, and otherwise hands out a generic placeholder.
+  const profile = useQuery(profileQuery(isSignedIn ? (userId ?? undefined) : undefined));
 
   const user: SessionUser | null =
     isSignedIn && clerkUser
@@ -42,7 +45,7 @@ export function useSession() {
             (typeof clerkUser.unsafeMetadata?.full_name === "string"
               ? (clerkUser.unsafeMetadata.full_name as string)
               : null),
-          imageUrl: clerkUser.imageUrl ?? null,
+          imageUrl: profile.data?.avatar_url || (clerkUser.hasImage ? clerkUser.imageUrl : null),
         }
       : null;
 

@@ -594,7 +594,7 @@ function AuthPage() {
                       >
                         Privacy Policy
                       </Link>
-                      .
+                      . There is no tolerance for objectionable content or abusive users.
                     </Label>
                   </div>
                 )}

@@ -4,7 +4,6 @@ import { showAlert } from "@/lib/alert";
 import { Stack, router } from "expo-router";
 import { useClerk, useUser } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
-import * as ImagePicker from "expo-image-picker";
 import Constants from "expo-constants";
 import { Camera, KeyRound, ShieldCheck } from "lucide-react-native";
 import { useTheme, type ThemePreference } from "@/theme/ThemeProvider";
@@ -26,7 +25,7 @@ import { appLockAvailable, isAppLockEnabled, setAppLockEnabled } from "@/compone
 import { PayoutDetailsCard } from "@/features/payouts/PayoutDetailsCard";
 import { useSession } from "@/lib/session";
 import { useAiConsent } from "@/lib/ai-consent";
-import { updateProfilePhoto } from "@/lib/images";
+import { pickImage, updateProfilePhoto } from "@/lib/images";
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -49,6 +48,8 @@ function Settings() {
   const [name, setName] = useState(user?.fullName ?? "");
   const [savingName, setSavingName] = useState(false);
   const [uploading, setUploading] = useState(false);
+  // Shown while the upload runs, so the new photo appears the moment it's chosen.
+  const [preview, setPreview] = useState<string | null>(null);
   const [appLock, setAppLock] = useState(false);
   const [push, setPush] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
@@ -65,21 +66,27 @@ function Settings() {
   if (!user || !clerkUser) return null;
 
   const changePhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.85,
-    });
-    if (result.canceled || !result.assets[0]) return;
+    let asset;
+    try {
+      asset = await pickImage({ square: true });
+    } catch (error) {
+      toast.error(errorMessage(error, "Couldn't open your photos"));
+      return;
+    }
+    if (!asset) return;
+    setPreview(asset.uri);
     setUploading(true);
     try {
-      await updateProfilePhoto(result.assets[0], user.id);
+      await updateProfilePhoto(asset, user.id);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["profile", user.id] }),
+        qc.invalidateQueries({ queryKey: ["lawyers"] }),
+      ]);
       toast.success("Photo updated");
-      qc.invalidateQueries({ queryKey: ["profile", user.id] });
     } catch (error) {
       toast.error(errorMessage(error, "Couldn't update your photo"));
     } finally {
+      setPreview(null);
       setUploading(false);
     }
   };
@@ -202,7 +209,7 @@ function Settings() {
 
       <Card>
         <View style={{ alignItems: "center", gap: 10 }}>
-          <Avatar name={user.fullName ?? user.email} uri={clerkUser.imageUrl} size={84} />
+          <Avatar name={user.fullName ?? user.email} uri={preview ?? user.imageUrl} size={84} />
           <Button
             title={uploading ? "Uploading…" : "Change photo"}
             size="sm"

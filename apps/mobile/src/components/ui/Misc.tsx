@@ -7,6 +7,14 @@ import { fonts, radius } from "@/theme/tokens";
 import { mediaUrl } from "@/lib/media";
 import { Text } from "./Text";
 
+// ImageKit resizes on delivery: a phone-camera original is several megabytes, an avatar needs a
+// few kilobytes.
+function sized(url: string | null, size: number) {
+  if (!url || !url.startsWith("https://ik.imagekit.io/")) return url;
+  const px = Math.round(size * 3);
+  return `${url}${url.includes("?") ? "&" : "?"}tr=w-${px},h-${px},c-at_max`;
+}
+
 export function Avatar({
   name,
   uri,
@@ -25,7 +33,7 @@ export function Avatar({
       .map((part) => part[0]?.toUpperCase())
       .join("") || "LF";
 
-  const source = mediaUrl(uri);
+  const source = sized(mediaUrl(uri), size);
   if (source) {
     return (
       <Image

@@ -1,8 +1,10 @@
-import { Tabs } from "expo-router";
+import { Pressable } from "react-native";
+import { Tabs, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BookOpen, Home, Menu, MessageSquare, Scale } from "lucide-react-native";
+import { BookOpen, ChevronLeft, Home, Menu, MessageSquare, Scale } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts } from "@/theme/tokens";
+import { useAuth } from "@/lib/auth";
 import { useWideLayout } from "@/lib/layout";
 import { useUnreadCount } from "@/lib/realtime";
 
@@ -15,10 +17,28 @@ export default function TabsLayout() {
   const bottom = Math.max(insets.bottom, 10);
   // On a wide desktop window the sidebar (DesktopShell) is the navigation.
   const wide = useWideLayout();
+  // The tab bar is for signed-in people. Signed out, the home screen's cards lead to the
+  // public screens, and each of those gets a way back home instead.
+  const { isLoaded, isSignedIn } = useAuth();
+  const signedIn = Boolean(isLoaded && isSignedIn);
 
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
+        headerLeft:
+          signedIn || wide || route.name === "index"
+            ? undefined
+            : () => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Back to home"
+                  onPress={() => router.navigate("/(tabs)")}
+                  hitSlop={10}
+                  style={{ paddingHorizontal: 12 }}
+                >
+                  <ChevronLeft size={26} color={colors.foreground} />
+                </Pressable>
+              ),
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.foreground,
         headerTitleStyle: { fontFamily: fonts.display, fontSize: 18 },
@@ -26,16 +46,17 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.brass,
         tabBarInactiveTintColor: colors.mutedForeground,
         tabBarLabelStyle: { fontFamily: fonts.sansMedium, fontSize: 11 },
-        tabBarStyle: wide
-          ? { display: "none" }
-          : {
-              backgroundColor: colors.card,
-              borderTopColor: colors.border,
-              height: 58 + bottom,
-              paddingTop: 6,
-              paddingBottom: bottom,
-            },
-      }}
+        tabBarStyle:
+          wide || !signedIn
+            ? { display: "none" }
+            : {
+                backgroundColor: colors.card,
+                borderTopColor: colors.border,
+                height: 58 + bottom,
+                paddingTop: 6,
+                paddingBottom: bottom,
+              },
+      })}
     >
       <Tabs.Screen
         name="index"

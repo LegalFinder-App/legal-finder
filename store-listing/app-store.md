@@ -3,7 +3,9 @@
 Field by field, in the order App Store Connect asks. Text in code blocks is ready to paste.
 **Confirm** marks a choice or declaration that is yours to make.
 
-Build to submit: **2.0.0 (3)** — iPhone only. (Builds 1 and 2 are older: don't submit those.)
+Build to submit: **2.0.0 (4)** — iPhone only. It adds reporting and blocking. (Builds 1–3 are older:
+don't submit those. App Review held build 3 for more information; the reply is in
+`app-review-reply.md`.)
 
 ## App information
 
@@ -101,9 +103,11 @@ Apple calculates the rating from a questionnaire. The facts it asks about:
 - **Crime-related text.** Wanted notices name alleged offences, and guides discuss arrest and
   criminal procedure. No graphic detail.
 - **Messaging.** Private one-to-one messages between a client and an advocate.
-- **User-generated content.** Clients can review an advocate, and those reviews are public. Anyone
-  can file an incident report, signed in or anonymously; a report is readable only by the person
-  who filed it and by police and administrator accounts.
+- **User-generated content.** Clients can review an advocate, and those reviews are public; they
+  are screened for abusive language before they are posted. Messages, reviews and people can be
+  reported from inside the app, and anyone can be blocked from messaging you. Anyone can file an
+  incident report, signed in or anonymously; a report is readable only by the person who filed it
+  and by police and administrator accounts.
 - **AI assistant.** A text assistant for legal questions, using Anthropic's Claude.
 - No advertising. No unrestricted web access. No in-app purchases.
 - The privacy policy says the service is not directed at anyone under 18.
@@ -129,7 +133,7 @@ advertising.
 | Financial Info → Purchase History                                  | Yes                 | Records of consultation fees paid: amount, date, status                                                                                                                                                            |
 | User Content → Emails or Text Messages                             | Yes                 | Messages between a client and an advocate                                                                                                                                                                          |
 | User Content → Photos or Videos                                    | Yes                 | A profile photo, and any images uploaded as documents                                                                                                                                                              |
-| User Content → Other User Content                                  | Yes                 | Matter details and notes, uploaded and generated documents, appointments, incident reports, reviews, and what is typed to the AI assistant and AI drafting                                                         |
+| User Content → Other User Content                                  | Yes                 | Matter details and notes, uploaded and generated documents, appointments, incident reports, reviews, reports of other users' content, and what is typed to the AI assistant and AI drafting                        |
 | Identifiers → User ID                                              | Yes                 | The account's ID                                                                                                                                                                                                   |
 | Identifiers → Device ID                                            | No                  | Push notifications are off in this build, so no device token is stored. Change to Yes when push is switched on                                                                                                     |
 | Location                                                           | No                  | The app never asks for location. An incident's place is typed as text                                                                                                                                              |
@@ -145,6 +149,12 @@ Clerk (sign-in), Supabase (database and document storage), ImageKit (profile pho
 
 ## Things App Review commonly asks about
 
+- **Guideline 1.2, user-generated content.** Sign-up requires agreeing to the Terms, which say
+  there is no tolerance for objectionable content or abusive users. In a conversation, press and
+  hold a message to report it, or use the ⋮ menu to report or block the other person. Reviews
+  have a Report link, and abusive language in a review is refused. Reports reach every
+  administrator, under Admin → Reports in the app and on the website. The Terms promise action
+  within 24 hours: that is yours to keep. **Confirm**
 - **Guideline 5.1.2(i), third-party AI.** The assistant and AI drafting open on a notice that
   names Anthropic and Claude, says what is sent, and waits for "Allow and continue". The permission
   can be withdrawn under Settings → Privacy.

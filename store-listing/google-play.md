@@ -3,8 +3,9 @@
 Field by field. Text in code blocks is ready to paste. **Confirm** marks a choice or declaration
 that is yours to make.
 
-Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build9.aab` (version code 9). Play has
-already seen version code 8, so builds 8 and earlier are refused.
+Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build10.aab` (version code 10), also in
+`play-upload-build10/`. It adds reporting and blocking. Play has already seen version codes 8
+and 9, so those are refused.
 
 ## Main store listing
 
@@ -77,7 +78,7 @@ a government app and link to its sources, in the description as well as in the a
 - No violence, sexual content, profanity, gambling or drug content. Wanted notices and legal guides
   mention crimes in plain text, without graphic detail.
 - Users can communicate: private one-to-one messages between a client and an advocate, and public
-  reviews of advocates.
+  reviews of advocates. Users can report messages, reviews and people, and block other users.
 - The app does not share a user's location, and has no purchases of digital goods.
 
 **Target audience:** 18 and over (the privacy policy says the service is not directed at anyone
@@ -107,20 +108,20 @@ does not count a transfer to a service provider working on your behalf as "shari
 user starts themselves (a message to their advocate), so **Shared** is "No" throughout —
 **Confirm** that your agreements with the providers named in the privacy policy fit that.
 
-| Play's data type                                                                    | Collected | Required or optional                                                                  | Purpose                                                                          |
-| ----------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Personal info → Name                                                                | Yes       | Required                                                                              | App functionality, Account management                                            |
-| Personal info → Email address                                                       | Yes       | Required                                                                              | App functionality, Account management                                            |
-| Personal info → User IDs                                                            | Yes       | Required                                                                              | App functionality, Account management                                            |
-| Personal info → Phone number                                                        | Yes       | Optional (advocates, for payouts)                                                     | App functionality                                                                |
-| Financial info → User payment info                                                  | Yes       | Optional (advocates' payout bank or mobile-money details)                             | App functionality                                                                |
-| Financial info → Purchase history                                                   | Yes       | Optional (records of consultation fees paid)                                          | App functionality                                                                |
-| Messages → Other in-app messages                                                    | Yes       | Optional                                                                              | App functionality                                                                |
-| Photos and videos → Photos                                                          | Yes       | Optional (profile photo)                                                              | App functionality                                                                |
-| Files and docs → Files and docs                                                     | Yes       | Optional (documents added to a matter)                                                | App functionality                                                                |
-| App activity → Other user-generated content                                         | Yes       | Optional (matter notes, incident reports, reviews, what is typed to the AI assistant) | App functionality                                                                |
-| Device or other IDs                                                                 | No        |                                                                                       | Push notifications are off in this build. Change to Yes when push is switched on |
-| Location, Contacts, Calendar, Health, Audio, Web browsing, App info and performance | No        |                                                                                       | No location permission, and no analytics or crash-reporting library              |
+| Play's data type                                                                    | Collected | Required or optional                                                                                                   | Purpose                                                                          |
+| ----------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Personal info → Name                                                                | Yes       | Required                                                                                                               | App functionality, Account management                                            |
+| Personal info → Email address                                                       | Yes       | Required                                                                                                               | App functionality, Account management                                            |
+| Personal info → User IDs                                                            | Yes       | Required                                                                                                               | App functionality, Account management                                            |
+| Personal info → Phone number                                                        | Yes       | Optional (advocates, for payouts)                                                                                      | App functionality                                                                |
+| Financial info → User payment info                                                  | Yes       | Optional (advocates' payout bank or mobile-money details)                                                              | App functionality                                                                |
+| Financial info → Purchase history                                                   | Yes       | Optional (records of consultation fees paid)                                                                           | App functionality                                                                |
+| Messages → Other in-app messages                                                    | Yes       | Optional                                                                                                               | App functionality                                                                |
+| Photos and videos → Photos                                                          | Yes       | Optional (profile photo)                                                                                               | App functionality                                                                |
+| Files and docs → Files and docs                                                     | Yes       | Optional (documents added to a matter)                                                                                 | App functionality                                                                |
+| App activity → Other user-generated content                                         | Yes       | Optional (matter notes, incident reports, reviews, reports of other users' content, what is typed to the AI assistant) | App functionality                                                                |
+| Device or other IDs                                                                 | No        |                                                                                                                        | Push notifications are off in this build. Change to Yes when push is switched on |
+| Location, Contacts, Calendar, Health, Audio, Web browsing, App info and performance | No        |                                                                                                                        | No location permission, and no analytics or crash-reporting library              |
 
 A client's card or mobile-money details are entered on Pesapal's own page in the browser and never
 reach the app, so they are not collected by it.
@@ -132,7 +133,7 @@ does not store the conversation.
 ## Release notes for this build (500)
 
 ```
-A complete rebuild as a native app: faster, works with your phone's fingerprint or face unlock, and adds practice analytics for advocates, payout details, and document generation from templates or with AI assistance. The AI features now ask your permission before first use.
+A complete rebuild as a native app: faster, works with your phone's fingerprint or face unlock, and adds practice analytics for advocates, payout details, and document generation from templates or with AI assistance. The AI features now ask your permission before first use. You can report or block another user from a conversation.
 ```
 
 ## Testing track

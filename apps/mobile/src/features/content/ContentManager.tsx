@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { showAlert } from "@/lib/alert";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { ImagePlus, Pencil, Plus, Trash2 } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -21,7 +20,7 @@ import {
   Text,
 } from "@/components/ui";
 import { supabase } from "@/lib/supabase";
-import { uploadImage } from "@/lib/images";
+import { pickImage, uploadImage } from "@/lib/images";
 import { mediaUrl } from "@/lib/media";
 import { errorMessage, toast } from "@/lib/toast";
 import type { ContentConfig, ContentField } from "./configs";
@@ -70,15 +69,11 @@ function ImageField({
   const { colors } = useTheme();
   const [busy, setBusy] = useState(false);
   const pick = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.85,
-      allowsEditing: true,
-    });
-    if (result.canceled || !result.assets[0]) return;
+    const asset = await pickImage().catch(() => null);
+    if (!asset) return;
     setBusy(true);
     try {
-      onChange(await uploadImage(result.assets[0], "content"));
+      onChange(await uploadImage(asset, "content"));
     } catch (error) {
       toast.error(errorMessage(error, "Image upload failed"));
     } finally {

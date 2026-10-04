@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { showAlert } from "@/lib/alert";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -33,6 +34,7 @@ import { AdminAnalytics } from "@/features/analytics/AdminAnalytics";
 import { ContentManager } from "@/features/content/ContentManager";
 import { CONTENT } from "@/features/content/configs";
 import { PayoutsPanel } from "@/features/payouts/PayoutsPanel";
+import { ReportsPanel, reportsQuery } from "@/features/admin/ReportsPanel";
 import { ROLE_LABELS, useSession, type AppRole } from "@/lib/session";
 import {
   allCasesQuery,
@@ -50,7 +52,8 @@ import { formatDateTime, formatUGX, formatUGXCompact } from "@/lib/format";
 import { useWideLayout } from "@/lib/layout";
 import { toast } from "@/lib/toast";
 
-type Tab = "overview" | "verify" | "users" | "payouts" | "content" | "platform" | "audit";
+type Tab =
+  "overview" | "verify" | "reports" | "users" | "payouts" | "content" | "platform" | "audit";
 const ALL_ROLES: AppRole[] = ["user", "lawyer", "police", "judiciary", "admin"];
 
 function Overview() {
@@ -404,7 +407,15 @@ function Audit() {
 }
 
 export function AdminHome() {
-  const [tab, setTab] = useState<Tab>("overview");
+  // A notification can open a tab directly (`/?tab=reports`, see notifications.tsx).
+  const params = useLocalSearchParams<{ tab?: Tab }>();
+  const [tab, setTab] = useState<Tab>(params.tab ?? "overview");
+  const [linkedTab, setLinkedTab] = useState(params.tab);
+  if (params.tab !== linkedTab) {
+    setLinkedTab(params.tab);
+    if (params.tab) setTab(params.tab);
+  }
+  const openReports = useQuery(reportsQuery("open")).data?.length ?? 0;
   const qc = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   return (
@@ -428,6 +439,7 @@ export function AdminHome() {
         options={[
           { value: "overview", label: "Overview" },
           { value: "verify", label: "Verify" },
+          { value: "reports", label: openReports ? `Reports (${openReports})` : "Reports" },
           { value: "users", label: "Users" },
           { value: "payouts", label: "Payouts" },
           { value: "content", label: "Content" },
@@ -437,6 +449,7 @@ export function AdminHome() {
       />
       {tab === "overview" ? <Overview /> : null}
       {tab === "verify" ? <Verifications /> : null}
+      {tab === "reports" ? <ReportsPanel /> : null}
       {tab === "users" ? <UsersAndRoles /> : null}
       {tab === "payouts" ? <PayoutsPanel /> : null}
       {tab === "content" ? <ContentHub /> : null}

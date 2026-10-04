@@ -122,9 +122,15 @@ function migrationName(filename) {
 async function main() {
   const token = readCliToken();
   const migrationsDir = join(process.cwd(), "supabase", "migrations");
+  // `npm run db:migrate -- --only <file>` applies just that migration, leaving any other pending
+  // ones (e.g. the push migration, held back until push is set up) untouched.
+  const onlyIndex = process.argv.indexOf("--only");
+  const only = onlyIndex > -1 ? process.argv[onlyIndex + 1] : null;
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
+    .filter((file) => !only || file === only || file === `${only}.sql`)
     .sort();
+  if (only && files.length === 0) throw new Error(`No migration named ${only}`);
 
   console.log(`Project: ${PROJECT_REF}`);
   console.log(`Migrations: ${files.length}`);

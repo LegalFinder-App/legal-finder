@@ -107,14 +107,26 @@ store-listing/    what the app stores ask for: listing text, privacy answers, sc
   (`src/integrations/clerk/deprovisioning.server.ts`), what `/delete-account` tells the public,
   and section 7 of the privacy policy. Change them together — Play's Data safety form links to
   that page.
+- **Reporting and blocking** (App Store guideline 1.2) are enforced in the database
+  (`20261004120000_reports_and_blocks.sql`, `20261004130000_review_language_filter.sql`). A report
+  copies the reported text from the database itself and notifies every admin; admins work through
+  them under Admin → Reports (web `admin/reports`, app `ReportsPanel`). A block stops messages
+  both ways, and a public review with abusive language is refused. All of it is triggers, not RLS
+  policies, because the two Clerk auth migrations recreate the message and review policies on
+  every `db:migrate`. The app's entry points: a conversation's ⋮ menu, press-and-hold on a
+  message, and the Report link on a review. The Terms promise action on reports within 24 hours —
+  the owner's commitment, so don't weaken or extend it without them.
+- **Profile photos** live in `profiles.avatar_url` (ImageKit), set by the web and the app alike.
+  Clerk's `imageUrl` is only a real photo for social sign-ins (`hasImage`), so the app's session
+  prefers the profile's photo; showing Clerk's is why web uploads used to be missing in the app.
 - **OAuth**: `signIn.sso({ strategy, redirectUrl, redirectCallbackUrl })` in `src/routes/auth.tsx`.
   Provider credentials for Google/Apple/LinkedIn are configured in the **Clerk Dashboard** (Social
   Connections), not as app env vars — Vercel env vars never reach Clerk's own OAuth exchange.
 - **Formatting/lint**: Prettier (100-col, double quotes, trailing commas) + ESLint
   (`eslint.config.js`). `react-refresh/only-export-components` warnings in `components/ui/*` and
   `lib/documents/templates/*` are expected shadcn/PDF-template patterns, not bugs.
-- **Comments**: match the existing style — short, explain *why* (a constraint, a gotcha, a
-  cross-file dependency), not *what*. Several files already model this well
+- **Comments**: match the existing style — short, explain _why_ (a constraint, a gotcha, a
+  cross-file dependency), not _what_. Several files already model this well
   (`capacitor.config.ts`, `platform-matrix.tsx`, `queries.ts`).
 - **Commits**: end with a `Co-Authored-By: <model> <noreply@anthropic.com>` line naming the model
   that made the change, when an Anthropic agent makes it (see recent history for tone/format).
@@ -128,6 +140,9 @@ store-listing/    what the app stores ask for: listing text, privacy answers, sc
   edit an already-applied migration to "fix" it** — the live database won't re-run it. Add a new,
   small follow-up migration instead. It's fine to also fix the original seed file for future fresh
   installs, as long as the live-DB fix is a separate migration.
+- `npm run db:migrate -- --only <file>` applies just that one migration. Use it while a pending
+  migration is deliberately held back (the push migration, see Known gaps), since a plain run
+  applies everything pending.
 - Two migrations (`20260908090000_clerk_auth_migration.sql`,
   `20260908110000_clerk_auth_migration_retry.sql`) re-apply on every `db:migrate` run. This is a
   known, harmless quirk of this project's migration tracker — verify actual DB state via
@@ -156,7 +171,8 @@ npm test                       # vitest (71 tests as of writing; a "close timed 
                                 # after they pass is a benign Vite-server-shutdown quirk)
 npm run lint                   # eslint (prettier formatting issues are real but low-priority;
                                 # react-refresh warnings noted above are expected)
-npm run db:migrate             # apply pending Supabase migrations (see Database above)
+npm run db:migrate             # apply pending Supabase migrations (see Database above);
+                                # -- --only <file> applies a single one
 node scripts/reviewer-accounts.mjs [codes|verify|status|remove]   # the store reviewers' demo
                                 # accounts on production; "codes" then "verify" before every
                                 # submission (store-listing/)
@@ -194,14 +210,14 @@ intermediates.
 
 ## Platform status (verified in-session, update as this changes)
 
-| Platform | Status |
-|---|---|
-| Web | Builds clean, tests pass, deployed on Vercel (deployments were blocked 1–2 Oct 2026 by a framework security advisory; fixed by upgrading — see "Deployments" below). The live site's signed-in flows and every `/api/mobile/*` route were re-checked against production on 2026-10-02 |
-| Android (native, `apps/mobile`) | Signed release AAB (versionCode 9, 2026-10-03 — Play had already seen 8; same code as 8, with the AI permission notice) builds locally with the Play upload key; typecheck/lint/expo-doctor clean, also in CI. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass |
-| Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4 |
-| Windows desktop | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production; payout details, analytics, admin payouts, document generation, the AI permission notice and the store reviewers' sign-in (password, then a backup code) verified the same way. Installer rebuilt 2026-10-02. Unsigned (SmartScreen warns) |
-| macOS / Linux desktop | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run |
-| iOS (native) | Builds on EAS (`@ochienodavid/legalfinder`; certificate, profile and push key are stored there, so `eas build -p ios --non-interactive` works from this machine). iPhone only. Build 2.0.0 (3) of 2026-10-02 carries the AI permission notice; its Info.plist was read back from the .ipa (iPhone only, build 3, no microphone text). **Never run on a device** and not yet submitted |
+| Platform                        | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web                             | Builds clean, tests pass, deployed on Vercel (deployments were blocked 1–2 Oct 2026 by a framework security advisory; fixed by upgrading — see "Deployments" below). The live site's signed-in flows and every `/api/mobile/*` route were re-checked against production on 2026-10-02                                                                                                                                                                                                                                                                                                                                        |
+| Android (native, `apps/mobile`) | Signed release AAB (versionCode 10, 2026-10-04 — reporting and blocking, the signed-out welcome screen, the profile-photo fixes; `store-listing/play-upload-build10/`) builds locally with the Play upload key; typecheck/lint/expo-doctor clean, also in CI. The shared screens and sign-in logic have been run for real through the desktop build, but the Android app itself has **not yet been run on a device** (no working emulator here) — needs a real-phone pass                                                                                                                                                    |
+| Android (old Capacitor wrapper) | Superseded by the native app; was in Play closed testing up to versionCode 4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Windows desktop                 | Standalone app (no website loading). Installer builds; sign-in incl. two-step, session restore, sign-out, browser hand-off, documents and account deletion verified by driving the real window against production; payout details, analytics, admin payouts, document generation, the AI permission notice and the store reviewers' sign-in (password, then a backup code) verified the same way. Installer rebuilt 2026-10-02. Unsigned (SmartScreen warns)                                                                                                                                                                 |
+| macOS / Linux desktop           | Same app; packaging is configured (`.github/workflows/desktop-build.yml`) but neither has ever been built or run                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| iOS (native)                    | Builds on EAS (`@ochienodavid/legalfinder`; certificate, profile and push key are stored there, so `eas build -p ios --non-interactive` works from this machine). iPhone only. App Review held build 2.0.0 (3) on 2026-10-04 under 2.1 "Information Needed" (a recording on a physical device incl. reporting and blocking, purpose, access, services, regions, regulation); the answer and the recording script are in `store-listing/app-review-reply.md`. Build 2.0.0 (4) of 2026-10-04 adds reporting and blocking. **Never run on a device** by us — the owner records the reply's video on their iPhone via TestFlight |
 
 Don't describe platform readiness in marketing/UI copy (e.g. the homepage `PlatformMatrix`
 component) more confidently than this table — it was previously overclaimed ("Production-ready

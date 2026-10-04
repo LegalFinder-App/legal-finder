@@ -37,6 +37,7 @@ import {
 import { lawyerQuery, reviewsQuery, type Lawyer } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/session";
+import { ReportSheet } from "@/components/ReportSheet";
 import { formatDate, formatUGX } from "@/lib/format";
 import { payForPayment } from "@/lib/payments";
 import { errorMessage, toast } from "@/lib/toast";
@@ -46,6 +47,8 @@ export default function LawyerProfileScreen() {
   const { colors } = useTheme();
   const lawyer = useQuery(lawyerQuery(id));
   const reviews = useQuery(reviewsQuery(id));
+  const { user } = useSession();
+  const [reportingReview, setReportingReview] = useState<string | null>(null);
 
   if (lawyer.isLoading) {
     return (
@@ -222,12 +225,33 @@ export default function LawyerProfileScreen() {
               <Stars value={r.rating} size={12} />
             </View>
             {r.comment ? <Text style={{ marginTop: 6 }}>{r.comment}</Text> : null}
-            <Text variant="caption" tone="muted" style={{ marginTop: 6 }}>
-              {formatDate(r.created_at)}
-            </Text>
+            <View style={styles.reviewBottom}>
+              <Text variant="caption" tone="muted">
+                {formatDate(r.created_at)}
+              </Text>
+              {/* Anyone signed in can report a review that isn't their own. */}
+              {user && r.author_id !== user.id ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Report this review"
+                  onPress={() => setReportingReview(r.id)}
+                  hitSlop={8}
+                >
+                  <Text variant="caption" tone="muted" style={{ textDecorationLine: "underline" }}>
+                    Report
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
           </Card>
         ))
       )}
+      <ReportSheet
+        target={
+          reportingReview ? { type: "review", id: reportingReview, label: "this review" } : null
+        }
+        onClose={() => setReportingReview(null)}
+      />
     </Screen>
   );
 }
@@ -545,6 +569,12 @@ function ReviewForm({ lawyerId }: { lawyerId: string }) {
 }
 
 const styles = StyleSheet.create({
+  reviewBottom: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 6,
+  },
   hero: { alignItems: "center", gap: 6, marginTop: 4 },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 },
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 8 },

@@ -5,6 +5,7 @@ const TABS = [
   { to: "/admin", label: "Overview" },
   { to: "/admin/audit", label: "Audit trail" },
   { to: "/admin/verifications", label: "Verifications" },
+  { to: "/admin/reports", label: "Reports" },
   { to: "/admin/users", label: "Users & roles" },
   { to: "/admin/content", label: "Content" },
   { to: "/admin/settings", label: "Settings" },
@@ -21,8 +22,8 @@ function AdminLayout() {
       <p className="eyebrow text-brass">Administration</p>
       <h1 className="mt-2 font-display text-4xl font-semibold">Admin dashboard</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Platform analytics, the tamper-evident audit trail, advocate verification, user roles and
-        site content all live here.
+        Platform analytics, the tamper-evident audit trail, advocate verification, reports, user
+        roles and site content all live here.
       </p>
 
       <nav className="mt-8 flex flex-wrap gap-1 border-b border-border">

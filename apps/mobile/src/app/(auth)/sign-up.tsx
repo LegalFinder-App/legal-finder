@@ -208,7 +208,7 @@ export default function SignUpScreen() {
           <Link href="/legal/privacy" style={{ color: colors.brass }}>
             Privacy Policy
           </Link>
-          .
+          . There is no tolerance for objectionable content or abusive users.
         </Text>
       </Pressable>
 

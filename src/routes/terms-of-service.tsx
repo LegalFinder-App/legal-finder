@@ -18,7 +18,7 @@ export const Route = createFileRoute("/terms-of-service")({
   component: TermsOfService,
 });
 
-const LAST_UPDATED = "September 9, 2026";
+const LAST_UPDATED = "October 4, 2026";
 
 type Section = {
   id: string;
@@ -184,6 +184,13 @@ const SECTIONS: Section[] = [
         <p>
           We may suspend or terminate access, remove content, and where appropriate involve law
           enforcement, in response to a breach of this section.
+        </p>
+        <p>
+          There is no tolerance for objectionable content or abusive users on LegalFinder. You can
+          report a message, a review, or a person from inside the app, and block anyone from
+          messaging you; public reviews are also screened automatically for abusive language. We
+          review reports within 24 hours, remove content that breaches these Terms, and suspend or
+          remove the accounts of the people who posted it.
         </p>
       </>
     ),

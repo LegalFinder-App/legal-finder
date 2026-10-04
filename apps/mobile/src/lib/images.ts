@@ -1,15 +1,30 @@
+import * as ImagePicker from "expo-image-picker";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { api } from "./api";
 import { formFile } from "./files";
 import { supabase } from "./supabase";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+// Phone cameras take 12–50 MP photos; ImageKit accepts up to 25 MB and resizes on delivery.
+const MAX_BYTES = 20 * 1024 * 1024;
 const EXTENSIONS: Record<string, string> = {
   "image/jpeg": ".jpg",
   "image/png": ".png",
   "image/webp": ".webp",
   "image/heic": ".jpg",
 };
+
+/** Picks one photo. "Compatible" makes iPhones hand over a JPEG rather than a HEIC original. */
+export async function pickImage(options: { square?: boolean } = {}) {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ["images"],
+    allowsEditing: true,
+    ...(options.square ? { aspect: [1, 1] as [number, number] } : {}),
+    quality: 0.8,
+    preferredAssetRepresentationMode:
+      ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+  });
+  return result.canceled ? null : (result.assets[0] ?? null);
+}
 
 /**
  * Same ImageKit flow as the web's src/lib/imagekit.ts: the server signs a short-lived upload
@@ -20,9 +35,9 @@ export async function uploadImage(
   purpose: "profile" | "content",
 ): Promise<string> {
   if (asset.fileSize && asset.fileSize > MAX_BYTES)
-    throw new Error("Images must be 5 MB or smaller.");
-  const mime = asset.mimeType ?? "image/jpeg";
-  const extension = EXTENSIONS[mime] ?? ".jpg";
+    throw new Error("That photo is too large. Choose one under 20 MB.");
+  const mime = asset.mimeType && EXTENSIONS[asset.mimeType] ? asset.mimeType : "image/jpeg";
+  const extension = EXTENSIONS[mime];
   const auth = await api.imageUploadAuth(extension, purpose);
 
   const form = new FormData();

@@ -87,6 +87,28 @@ type DevicePushTokenRow = {
   updated_at: string;
 };
 
+// Reporting and blocking — 20261004120000_reports_and_blocks.sql. excerpt, reported_user_id, status
+// and the handled_* fields are set by the database, whatever the reporter sends.
+export type ReportTargetType = "message" | "review" | "user";
+export type ReportReason = "harassment" | "spam" | "offensive" | "fraud" | "other";
+export type ReportStatus = "open" | "resolved" | "dismissed";
+export type ContentReportRow = {
+  id: string;
+  reporter_id: string;
+  target_type: ReportTargetType;
+  target_id: string;
+  reported_user_id: string | null;
+  reason: ReportReason;
+  details: string | null;
+  excerpt: string | null;
+  status: ReportStatus;
+  resolution_note: string | null;
+  handled_by: string | null;
+  handled_at: string | null;
+  created_at: string;
+};
+type UserBlockRow = { blocker_id: string; blocked_id: string; created_at: string };
+
 export type AppDatabase = Omit<BaseDatabase, "public"> & {
   public: Omit<BaseDatabase["public"], "Tables"> & {
     Tables: Omit<BaseDatabase["public"]["Tables"], "cases" | "lawyers"> & {
@@ -259,6 +281,29 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      content_reports: {
+        Row: ContentReportRow;
+        Insert: {
+          reporter_id: string;
+          target_type: ReportTargetType;
+          target_id: string;
+          reason: ReportReason;
+          details?: string | null;
+        };
+        Update: {
+          status?: ReportStatus;
+          resolution_note?: string | null;
+          handled_by?: string | null;
+          handled_at?: string | null;
+        };
+        Relationships: [];
+      };
+      user_blocks: {
+        Row: UserBlockRow;
+        Insert: { blocker_id: string; blocked_id: string; created_at?: string };
+        Update: Partial<UserBlockRow>;
         Relationships: [];
       };
       device_push_tokens: {

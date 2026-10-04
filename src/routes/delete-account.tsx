@@ -82,6 +82,7 @@ function DeleteAccount() {
             </li>
             <li>Your profile and your roles;</li>
             <li>The devices and browsers you registered for notifications;</li>
+            <li>The people you blocked, and any blocks other people set on you;</li>
             <li>
               For advocates: your public directory listing with its reviews, your professional
               development records, and your payout details.
@@ -93,10 +94,10 @@ function DeleteAccount() {
           <h2 className="font-display text-xl font-semibold">What is kept</h2>
           <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
             <p>
-              Case files, messages, documents, appointments, incident reports, payment records, and
-              audit entries you were part of are not removed automatically. They can form part of
-              another person's legal or financial file — your advocate's or your client's, for
-              example — and are kept as described in section 7 of the{" "}
+              Case files, messages, documents, appointments, incident reports, reports of abuse,
+              payment records, and audit entries you were part of are not removed automatically.
+              They can form part of another person's legal or financial file — your advocate's or
+              your client's, for example — and are kept as described in section 7 of the{" "}
               <Link to="/privacy-policy" className="text-brass hover:underline">
                 Privacy Policy
               </Link>
