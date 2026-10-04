@@ -275,6 +275,10 @@ such fixes change.
   they are marked **Confirm** there; don't present them as settled, and don't invent the ones
   that are still open. The screenshots were rendered from the desktop build at phone size, not
   captured on a phone.
+- **Reporting and blocking buttons are app-only.** The website has Admin → Reports, and the
+  database applies a block made in the app everywhere, but the website's own conversations and
+  reviews have no Report or Block buttons yet (added 2026-10-04 for App Review, which only sees
+  the app).
 - **Reviewer demo accounts live on production** (`appreview@legalfinder.co`,
   `appreview-advocate@legalfinder.co`, created by `scripts/reviewer-accounts.mjs`). Their
   matters, messages and documents are sample data; leave them alone unless asked. Their backup
