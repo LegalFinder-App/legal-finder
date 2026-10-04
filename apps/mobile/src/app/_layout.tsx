@@ -1,5 +1,5 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -32,6 +32,7 @@ import { api } from "@/lib/api";
 import { usePushRegistration } from "@/lib/push";
 import { useRealtimeSync } from "@/lib/realtime";
 import { BiometricGate } from "@/components/BiometricGate";
+import { ConnectionGate, StillConnecting } from "@/components/ConnectionGate";
 import { DesktopShell } from "@/components/DesktopShell";
 
 // Expo Router wraps the whole app in this; without it a render error closes a release build.
@@ -107,26 +108,27 @@ function SessionTaskRouter() {
   return null;
 }
 
-function RootNavigator() {
+function RootNavigator({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { colors, scheme } = useTheme();
   const wide = useWideLayout();
   const { isLoaded } = useAuth();
-  const [fontsLoaded] = useFonts({
-    Fraunces_600SemiBold,
-    Fraunces_700Bold,
-    PublicSans_400Regular,
-    PublicSans_500Medium,
-    PublicSans_600SemiBold,
-    PublicSans_700Bold,
-    IBMPlexMono_500Medium,
-  });
+
+  // ConnectionGate makes this rare, but if Clerk still doesn't load, say so instead of leaving
+  // the splash screen up.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (isLoaded) return;
+    const timer = setTimeout(() => setSlow(true), 20_000);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
 
   const ready = fontsLoaded && isLoaded;
+  const stuck = fontsLoaded && !isLoaded && slow;
   useEffect(() => {
-    if (ready) void SplashScreen.hideAsync();
-  }, [ready]);
+    if (ready || stuck) void SplashScreen.hideAsync();
+  }, [ready, stuck]);
 
-  if (!ready) return null;
+  if (!ready) return stuck ? <StillConnecting /> : null;
 
   return (
     <>
@@ -166,24 +168,36 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    PublicSans_400Regular,
+    PublicSans_500Medium,
+    PublicSans_600SemiBold,
+    PublicSans_700Bold,
+    IBMPlexMono_500Medium,
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <SafeAreaProvider>
-          <AuthProvider>
-            <PersistQueryClientProvider
-              client={queryClient}
-              persistOptions={{
-                persister,
-                maxAge: 24 * 60 * 60_000,
-                dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
-              }}
-            >
-              <ThemeProvider>
-                <RootNavigator />
-              </ThemeProvider>
-            </PersistQueryClientProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <ConnectionGate fontsLoaded={fontsLoaded}>
+              <AuthProvider>
+                <PersistQueryClientProvider
+                  client={queryClient}
+                  persistOptions={{
+                    persister,
+                    maxAge: 24 * 60 * 60_000,
+                    dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+                  }}
+                >
+                  <RootNavigator fontsLoaded={fontsLoaded} />
+                </PersistQueryClientProvider>
+              </AuthProvider>
+            </ConnectionGate>
+          </ThemeProvider>
         </SafeAreaProvider>
       </KeyboardProvider>
     </GestureHandlerRootView>

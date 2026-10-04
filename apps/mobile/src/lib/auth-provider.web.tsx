@@ -3,7 +3,7 @@ import { Clerk } from "@clerk/clerk-js/no-rhc";
 import { InternalClerkProvider } from "@clerk/react/internal";
 import { bridgedFetch } from "./bridged-fetch";
 import { desktop } from "./desktop";
-import { env } from "./env";
+import { clerkFrontendApiHost, env } from "./env";
 import * as SecureStore from "./secure-store";
 
 // Clerk in the desktop app. A browser page normally keeps its Clerk session in cookies on the
@@ -14,14 +14,9 @@ import * as SecureStore from "./secure-store";
 
 const CLIENT_JWT_KEY = "__clerk_client_jwt";
 
-/** "pk_live_<base64 of 'clerk.example.com$'>" → "clerk.example.com" */
-function frontendApiHost(publishableKey: string): string {
-  return atob(publishableKey.split("_")[2] ?? "").replace(/\$$/, "");
-}
-
 // Clerk's API doesn't answer an app:// origin with CORS headers, so its requests go through the
 // desktop shell. clerk-js looks `fetch` up at call time; nothing else is rerouted.
-const clerkHost = frontendApiHost(env.clerkPublishableKey);
+const clerkHost = clerkFrontendApiHost();
 const pageFetch = globalThis.fetch.bind(globalThis);
 globalThis.fetch = (input, init) => {
   const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;

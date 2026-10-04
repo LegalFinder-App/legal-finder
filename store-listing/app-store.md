@@ -3,8 +3,8 @@
 Field by field, in the order App Store Connect asks. Text in code blocks is ready to paste.
 **Confirm** marks a choice or declaration that is yours to make.
 
-Build to submit: **2.0.0 (4)** — iPhone only. It adds reporting and blocking. (Builds 1–3 are older:
-don't submit those. App Review held build 3 for more information; the reply is in
+Build to submit: **2.0.0 (5)** — iPhone only. It adds reporting and blocking, and opens reliably on
+a weak connection. (Builds 1–4 are older: don't submit those. App Review held build 3 for more information; the reply is in
 `app-review-reply.md`.)
 
 ## App information

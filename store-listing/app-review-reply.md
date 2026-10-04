@@ -6,14 +6,14 @@ that is yours to make; check those before sending.
 
 ## In this order
 
-1. **Get build 2.0.0 (4) onto your iPhone.** It has the reporting and blocking Apple's message asks
-   to see. When the EAS build finishes, send it to App Store Connect from `apps/mobile`:
+1. **Get build 2.0.0 (5) onto your iPhone.** It has the reporting and blocking Apple's message asks
+   to see, and opens reliably on a weak connection (build 4 could stay on its splash screen). When the EAS build finishes, send it to App Store Connect from `apps/mobile`:
    `npx eas-cli submit -p ios --latest` (it asks for your Apple ID). Once it has processed,
    install it with TestFlight. Don't record build 3: it can't report or block.
 2. **Get fresh backup codes** for the demo accounts: `node scripts/reviewer-accounts.mjs codes`,
    then paste the new notes from `reviewer-credentials.local` into App Review Information.
 3. **Record the screen** on the iPhone, following the script below.
-4. **Swap the build**: on the version page, remove build 3 and add build 4.
+4. **Swap the build**: on the version page, remove build 3 and add build 5.
 5. **Reply** in App Review (the message thread under the rejected submission). Paste the reply
    below and attach the recording, then resubmit.
 
@@ -55,10 +55,10 @@ Paste the text below and fill in the two **[brackets]** first.
 ```
 Hello,
 
-Thank you for reviewing LegalFinder. Build 2.0.0 (4), now attached to this version, adds the content reporting and blocking your message mentions. Our answers, in the order you asked:
+Thank you for reviewing LegalFinder. Build 2.0.0 (5), now attached to this version, adds the content reporting and blocking your message mentions. Our answers, in the order you asked:
 
 1. Screen recording
-Attached. It was recorded on a physical iPhone running build 2.0.0 (4). It shows: launching the app; registration (sign-up, email verification and the two-step verification every account must set up); deleting that account in Settings; signing in with the demo account; reporting a message and a person from a conversation; blocking and unblocking that person; and a public review being refused for abusive language. The app has no paid digital content and no in-app purchases (see below), so there is no purchase to show.
+Attached. It was recorded on a physical iPhone running build 2.0.0 (5). It shows: launching the app; registration (sign-up, email verification and the two-step verification every account must set up); deleting that account in Settings; signing in with the demo account; reporting a message and a person from a conversation; blocking and unblocking that person; and a public review being refused for abusive language. The app has no paid digital content and no in-app purchases (see below), so there is no purchase to show.
 
 2. Purpose and audience
 LegalFinder helps people in Uganda with a legal problem. A member of the public can find an advocate (a lawyer) checked against the roll of advocates, message them, and follow their legal matter: hearing dates, updates from the advocate, and a private document vault shared only with the people on the matter. Everyone can read plain-language guides to the law, court judgements and statutes, find police stations, and report an incident to the police. An optional AI assistant answers general legal questions in plain language; it gives general information, not legal advice, and asks permission before it is first used. Advocates get a workspace for their matters and appointments, and verified police, judiciary and administrator accounts get workspaces for their own work. The audience is adults in Uganda: members of the public, advocates, and justice-sector officials.

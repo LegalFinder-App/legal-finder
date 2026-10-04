@@ -28,3 +28,8 @@ export const env = {
     process.env.EXPO_PUBLIC_LIVE_TRIAL_ROOM_BASE_URL ?? "https://meet.jit.si"
   ).replace(/\/$/, ""),
 };
+
+/** "pk_live_<base64 of 'clerk.example.com$'>" → "clerk.example.com": where Clerk's API is. */
+export function clerkFrontendApiHost(): string {
+  return atob(env.clerkPublishableKey.split("_")[2] ?? "").replace(/\$$/, "");
+}

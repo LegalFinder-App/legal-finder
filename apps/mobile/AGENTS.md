@@ -77,5 +77,18 @@ Docs: https://docs.expo.dev/eas/index.md
   policy together.
 - **Offline cache**: only public query roots (`PUBLIC_QUERY_ROOTS` in `src/lib/query-client.ts`)
   are persisted to disk. Never add cases, messages, documents, payments or profiles to it.
+- **Launch waits for Clerk, which never retries.** If Clerk's first request at launch fails (no
+  data, a weak signal, a wrong phone clock), `isLoaded` stays false for good and the app used to
+  sit on its splash screen until force-closed. `ConnectionGate` (`src/components/ConnectionGate.tsx`)
+  checks that Clerk's API answers before mounting `AuthProvider`, and otherwise shows "Can't
+  connect" and keeps retrying. Keep the provider inside it. To reproduce in the desktop build,
+  block Clerk's host and hide `navigator.webdriver`: under Playwright it is true, and Clerk then
+  treats the window as a bot and fails softly instead.
+- **Android 7.0 and Let's Encrypt**: `plugins/withLetsEncryptRoot.js` adds ISRG Root X1 (beside
+  it, `isrg-root-x1.crt`) to release builds, because 7.0 predates that root and
+  www.legalfinder.co chains to it. Re-check if the site's certificate provider changes.
+- **Crash reports**: the app has no crash-reporting library. For "it won't open on some phones",
+  start with Play Console → Android vitals → Crashes & ANRs and the pre-launch report: they have
+  the stack traces and the phone models.
 - **Releases**: bump `ANDROID_VERSION_CODE` / `IOS_BUILD_NUMBER` in `app.config.ts` for every
   store upload; see `README.md` for the Windows build environment.

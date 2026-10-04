@@ -3,9 +3,10 @@
 Field by field. Text in code blocks is ready to paste. **Confirm** marks a choice or declaration
 that is yours to make.
 
-Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build10.aab` (version code 10), also in
-`play-upload-build10/`. It adds reporting and blocking. Play has already seen version codes 8
-and 9, so those are refused.
+Bundle to upload: `apps/mobile/release/LegalFinder-2.0.0-build11.aab` (version code 11), also in
+`play-upload-build11/`. It adds reporting and blocking; it no longer stays on its splash screen
+when the phone can't reach the sign-in service at launch; and Android 7.0 phones can reach the
+LegalFinder server. Play has already seen version codes 8 and 9, so those are refused.
 
 ## Main store listing
 
@@ -133,7 +134,7 @@ does not store the conversation.
 ## Release notes for this build (500)
 
 ```
-A complete rebuild as a native app: faster, works with your phone's fingerprint or face unlock, and adds practice analytics for advocates, payout details, and document generation from templates or with AI assistance. The AI features now ask your permission before first use. You can report or block another user from a conversation.
+A complete rebuild as a native app: faster, works with your phone's fingerprint or face unlock, and adds practice analytics for advocates, payout details, and document generation from templates or with AI assistance. The AI features now ask your permission before first use. You can report or block another user from a conversation. The app now tells you when it can't connect, instead of staying on its start screen.
 ```
 
 ## Testing track
