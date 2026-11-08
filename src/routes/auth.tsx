@@ -686,11 +686,17 @@ function AuthPage() {
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
             By continuing you agree to LegalFinder's{" "}
-            <Link to="/terms-of-service" className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass">
+            <Link
+              to="/terms-of-service"
+              className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
+            >
               terms
             </Link>{" "}
             and{" "}
-            <Link to="/privacy-policy" className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass">
+            <Link
+              to="/privacy-policy"
+              className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
+            >
               privacy policy
             </Link>
             .

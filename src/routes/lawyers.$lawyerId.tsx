@@ -575,7 +575,10 @@ function ReviewForm({ lawyerId }: { lawyerId: string }) {
   if (!user) {
     return (
       <p className="mt-6 text-sm text-muted-foreground">
-        <Link to="/auth" className="text-brass underline decoration-brass/40 underline-offset-4 hover:decoration-brass">
+        <Link
+          to="/auth"
+          className="text-brass underline decoration-brass/40 underline-offset-4 hover:decoration-brass"
+        >
           Sign in
         </Link>{" "}
         to leave a review.
