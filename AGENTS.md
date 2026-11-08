@@ -28,8 +28,14 @@ whether the app needs the same change (`apps/mobile/src/lib/queries.ts`, `npm ru
 - **Payments**: Pesapal (consultation fees) and Flutterwave (lawyer payouts).
 - **AI assistant**: Anthropic SDK (`@anthropic-ai/sdk`).
 - **Media**: ImageKit for uploads/transforms.
-- **Styling**: Tailwind CSS v4 + shadcn/ui (`src/components/ui/`) + a custom "Chambers" theme
-  (ink navy `--ink` / brass `--brass` tokens in `src/styles.css`).
+- **Styling**: Tailwind CSS v4 + shadcn/ui (`src/components/ui/`) + the LegalFinder theme (ink
+  navy `--ink` / brass `--brass`, from the emblem). All tokens — colour, fluid type scale
+  (`text-display`, `text-h1`…), radii, shadows, motion — live in `src/design/tokens.css`;
+  `src/styles.css` holds utilities (`surface-ink`, `container-page`, `reveal`, `spotlight`…).
+  After changing tokens run `npm run tokens:export` to refresh `src/design/tokens.json`, the
+  hex mirror meant for the Expo app. `--brass` is contextual: deep gold on light surfaces (AA
+  for text), bright gold inside `surface-ink` and dark mode — use `gold` for decorative fills
+  (stars). Fonts are self-hosted via `@fontsource` (Plus Jakarta Sans; Fraunces italic accent).
 - **Testing**: Vitest.
 - **Mobile**: Expo SDK 57 / React Native 0.86 with Expo Router, in `apps/mobile` (Android
   buildable locally; iOS needs a Mac or EAS). The superseded Capacitor wrapper is in

@@ -42,7 +42,7 @@ export function PageHeader({
         aria-hidden
         className="absolute -left-32 top-10 -z-10 h-72 w-72 rounded-full bg-info/10 blur-3xl"
       />
-      <div className="container-page py-12 sm:py-16 lg:py-20">
+      <div className="container-page pb-10 pt-10 sm:pb-12 sm:pt-14 lg:pb-14 lg:pt-16">
         {eyebrow && (
           <p className="animate-rise inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 eyebrow text-brass shadow-xs backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden />

@@ -194,7 +194,7 @@ function LawyersPage() {
             </div>
             {isLoading ? (
               <div
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3"
                 role="status"
                 aria-label="Loading advocates"
               >
@@ -228,7 +228,7 @@ function LawyersPage() {
               />
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                   {pageItems.map((l) => (
                     <LawyerCard key={l.id} lawyer={l} />
                   ))}
