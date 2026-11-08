@@ -10,3 +10,9 @@ export function trackSpotlight(event: PointerEvent<HTMLElement>) {
   el.style.setProperty("--mx", `${event.clientX - rect.left}px`);
   el.style.setProperty("--my", `${event.clientY - rect.top}px`);
 }
+
+/**
+ * The hero's two text effects (ParticleText, Typewriter) take turns: each sets its flag while
+ * animating and waits while the other's is up, so the heading is never blank all at once.
+ */
+export const heroFx = { dust: false, typing: false };

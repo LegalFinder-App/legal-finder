@@ -23,6 +23,7 @@ import { PublicLayout } from "@/components/site/public-layout";
 import { HeroVisual } from "@/components/site/hero-visual";
 import { HowItWorks } from "@/components/site/how-it-works";
 import { ParticleText } from "@/components/site/particle-text";
+import { Typewriter } from "@/components/site/typewriter";
 import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard, LawyerCardSkeleton } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,14 @@ import { prefetchForPage } from "@/lib/prefetch";
 import { siteMediaQuery } from "@/lib/site-media";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate, formatNumber } from "@/lib/format";
+
+// Second hero line, typed in turn. The first is what search engines and screen readers get.
+const HERO_PHRASES = [
+  "Follow your case to the end.",
+  "Know your rights, in plain words.",
+  "Track every hearing and deadline.",
+  "Talk to a verified advocate.",
+];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -172,9 +181,10 @@ function Index() {
                 style={delay(80)}
               >
                 <ParticleText>Find the right advocate.</ParticleText>{" "}
-                <span className="block pb-1 font-serif font-normal italic tracking-[-0.025em] text-brass-gradient">
-                  Follow your case to the end.
-                </span>
+                <Typewriter
+                  phrases={HERO_PHRASES}
+                  className="pb-1 font-serif font-normal italic tracking-[-0.025em] text-brass-gradient"
+                />
               </h1>
 
               <p

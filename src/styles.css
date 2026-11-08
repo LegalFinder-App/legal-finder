@@ -583,6 +583,22 @@ html.liquid-svg .liquid-glass {
 }
 
 /* Staggered entrance: set --delay inline (e.g. style={{ "--delay": "120ms" }}). */
+/* Typewriter caret: on, then a soft blink. */
+@utility animate-caret {
+  animation: caret-blink 1.05s steps(1, end) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
 @utility animate-rise {
   animation: rise-in 700ms var(--ease-out-expo) both;
   animation-delay: var(--delay, 0ms);
