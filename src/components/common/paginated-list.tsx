@@ -63,6 +63,9 @@ export function PaginationBar({
               event.preventDefault();
               if (page > 1) onChange(page - 1);
             }}
+            // Unavailable on the first page: announced as disabled and skipped by Tab.
+            aria-disabled={page === 1 || undefined}
+            tabIndex={page === 1 ? -1 : undefined}
             className={page === 1 ? "pointer-events-none opacity-50" : undefined}
           />
         </PaginationItem>
@@ -93,6 +96,8 @@ export function PaginationBar({
               event.preventDefault();
               if (page < totalPages) onChange(page + 1);
             }}
+            aria-disabled={page === totalPages || undefined}
+            tabIndex={page === totalPages ? -1 : undefined}
             className={page === totalPages ? "pointer-events-none opacity-50" : undefined}
           />
         </PaginationItem>

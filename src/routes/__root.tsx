@@ -116,7 +116,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         crossOrigin: "anonymous",
       },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", href: "/icons/icon-192.png", type: "image/png" },
+      // The LegalFinder coin emblem (public/images/brand), in the sizes browsers ask for.
+      { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+      { rel: "icon", href: "/icons/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { rel: "icon", href: "/icons/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { rel: "icon", href: "/icons/favicon-96.png", type: "image/png", sizes: "96x96" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png", sizes: "180x180" },
     ],
   }),
   shellComponent: RootShell,
