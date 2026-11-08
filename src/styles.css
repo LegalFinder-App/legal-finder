@@ -588,6 +588,43 @@ html.liquid-svg .liquid-glass {
   animation-delay: var(--delay, 0ms);
 }
 
+@keyframes auth-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.98);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@utility animate-auth-in {
+  animation: auth-in 650ms var(--ease-out-expo) both;
+}
+
+@keyframes shake-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+/* A single, subtle shake on a failed submit. */
+@utility animate-shake {
+  animation: shake-x 420ms var(--ease-standard) 1;
+}
+
 @utility animate-float {
   animation: float-y 6s ease-in-out infinite;
   animation-delay: var(--delay, 0ms);

@@ -3,16 +3,36 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth, useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { toast } from "@/lib/toast";
-import { Apple, Eye, EyeOff, Fingerprint, Linkedin, Loader2 } from "lucide-react";
-import { Logo } from "@/components/brand/logo";
+import {
+  ArrowRight,
+  Fingerprint,
+  Gavel,
+  KeyRound,
+  Loader2,
+  MailCheck,
+  Scale,
+  Shield,
+  ShieldCheck,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
+import { AuthShell } from "@/components/auth/auth-shell";
+import {
+  AuthDivider,
+  CodeField,
+  EmailField,
+  FieldShell,
+  IconInput,
+  PasswordField,
+  SocialButton,
+} from "@/components/auth/auth-fields";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
 import { navigateAfterAuth } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
-import heroImage from "@/assets/hero-justice.jpg";
+import { delay } from "@/lib/motion";
 
 type Mode = "signin" | "signup";
 
@@ -68,6 +88,14 @@ export const Route = createFileRoute("/auth")({
 
 const SIGNUP_ROLES = (Object.keys(ROLE_LABELS) as AppRole[]).filter((role) => role !== "admin");
 
+// What each sign-up role is for, shown on the role cards.
+const ROLE_DETAILS: Partial<Record<AppRole, { icon: LucideIcon; body: string }>> = {
+  user: { icon: UserRound, body: "Get legal help and follow your matters" },
+  lawyer: { icon: Scale, body: "Run your practice and take on clients" },
+  police: { icon: Shield, body: "Handle incident reports and notices" },
+  judiciary: { icon: Gavel, body: "Publish judgements and cause lists" },
+};
+
 function AuthPage() {
   const { mode: initialMode } = Route.useSearch();
   const navigate = useNavigate();
@@ -92,6 +120,8 @@ function AuthPage() {
   // old phone-vs-email guess never handled.
   const [codeStrategy, setCodeStrategy] = useState<CodeStrategy>("email_code");
   const autoSecondFactorStarted = useRef(false);
+  // Bumped on a failed attempt; keys the card so it shakes once.
+  const [shake, setShake] = useState(0);
 
   // useAuth() reports a pending session (one still owing Clerk a task, e.g. MFA enrollment) as
   // signed out, so the redirect effect below never fires for it. Clerk's own listener does see
@@ -169,6 +199,7 @@ function AuthPage() {
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
+      setShake((n) => n + 1);
     } finally {
       if (!redirecting) setBusy(false);
     }
@@ -295,6 +326,7 @@ function AuthPage() {
       // same reasoning as submit().
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Verification failed");
+      setShake((n) => n + 1);
       setBusy(false);
     }
   };
@@ -349,86 +381,56 @@ function AuthPage() {
     navigate({ to: "/reset-password", search: { email } });
   };
 
+  const onCodeStep = verificationCode !== null;
+  const title = onCodeStep
+    ? mode === "signin"
+      ? CODE_STEP_COPY[codeStrategy].title
+      : "Verify your email"
+    : mode === "signin"
+      ? "Welcome back"
+      : "Create your account";
+  const subtitle = onCodeStep
+    ? mode === "signin"
+      ? CODE_STEP_COPY[codeStrategy].description
+      : `Enter the 6-digit code we sent to ${email}.`
+    : mode === "signin"
+      ? "Sign in to reach your workspace."
+      : "Free for clients. Professionals are verified before going live.";
+
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden isolate overflow-hidden surface-ink lg:block">
-        <img
-          src={heroImage}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-25"
-        />
-        <div className="relative flex h-full flex-col justify-between p-12">
-          <Link to="/" className="text-ink-foreground">
-            <Logo />
-          </Link>
-          <div>
-            <p className="eyebrow text-brass">LegalFinder</p>
-            <h2 className="mt-4 max-w-md font-display text-4xl font-semibold leading-tight text-ink-foreground">
-              The justice system, organised around the person who needs it.
-            </h2>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-foreground/60">
-              One account works across web, desktop and mobile — with your cases, documents and
-              conversations always in sync.
-            </p>
-          </div>
-          <p className="text-xs text-ink-foreground/40">
-            Protected by role-based access control and row-level security.
-          </p>
-        </div>
-      </div>
+    <AuthShell
+      showcaseTitle={
+        mode === "signup"
+          ? "Join the platform built around the person who needs justice."
+          : "The justice system, organised around the person who needs it."
+      }
+    >
+      <div key={shake} className={cn(shake > 0 && "animate-shake")}>
+        {onCodeStep && (
+          <span className="mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
+            {mode === "signup" || codeStrategy === "email_code" ? (
+              <MailCheck className="h-6 w-6" aria-hidden />
+            ) : codeStrategy === "backup_code" ? (
+              <KeyRound className="h-6 w-6" aria-hidden />
+            ) : (
+              <ShieldCheck className="h-6 w-6" aria-hidden />
+            )}
+          </span>
+        )}
+        <h1 className="text-h3 font-bold">{title}</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
 
-      <div className="surface-ink px-4 py-8 sm:px-8 lg:hidden">
-        <Link to="/" className="text-ink-foreground">
-          <Logo />
-        </Link>
-        <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-foreground/70">
-          The justice system, organised around the person who needs it — one account across web,
-          desktop and mobile.
-        </p>
-      </div>
-
-      <div className="flex items-center justify-center bg-background px-4 py-12 sm:px-8">
-        <div className="w-full max-w-md">
-          <h1 className="mt-8 font-display text-3xl font-semibold lg:mt-0">
-            {verificationCode !== null
-              ? mode === "signin"
-                ? CODE_STEP_COPY[codeStrategy].title
-                : "Verify your email"
-              : mode === "signin"
-                ? "Welcome back"
-                : "Create your account"}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {verificationCode !== null
-              ? mode === "signin"
-                ? CODE_STEP_COPY[codeStrategy].description
-                : `Enter the code we sent to ${email}.`
-              : mode === "signin"
-                ? "Sign in to reach your workspace."
-                : "Choose the role that matches how you'll use LegalFinder."}
-          </p>
-
-          {verificationCode !== null ? (
-            <form onSubmit={submitVerificationCode} className="mt-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="verification-code">Verification code</Label>
-                <Input
-                  id="verification-code"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  required
-                  autoFocus
-                  // Backup codes are alphanumeric and longer than the 6-digit one-time codes.
-                  inputMode={codeStrategy === "backup_code" ? "text" : "numeric"}
-                  autoComplete="one-time-code"
-                  maxLength={codeStrategy === "backup_code" ? 16 : 6}
-                  placeholder={codeStrategy === "backup_code" ? "Backup code" : "123456"}
-                />
-              </div>
-              <Button type="submit" variant="brass" size="lg" className="w-full" disabled={busy}>
-                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                Verify and continue
-              </Button>
+        {onCodeStep ? (
+          <form onSubmit={submitVerificationCode} className="animate-rise mt-7 space-y-5">
+            <CodeField
+              value={verificationCode}
+              onChange={setVerificationCode}
+              backup={mode === "signin" && codeStrategy === "backup_code"}
+            />
+            <Button type="submit" size="lg" className="h-12 w-full" loading={busy}>
+              Verify and continue
+            </Button>
+            <div className="space-y-1 text-center">
               {mode === "signin" &&
                 (["totp", "phone_code", "backup_code"] as CodeStrategy[])
                   .filter((s) => s !== codeStrategy && availableFactors.includes(s))
@@ -444,7 +446,7 @@ function AuthPage() {
                           ),
                         )
                       }
-                      className="w-full text-center text-xs text-brass hover:underline"
+                      className="block min-h-10 w-full rounded-full text-sm font-semibold text-brass hover:bg-accent"
                     >
                       {s === "totp"
                         ? "Use your authenticator app instead"
@@ -456,253 +458,252 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={() => setVerificationCode(null)}
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+                className="min-h-10 w-full rounded-full text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
               >
                 Back
               </button>
-            </form>
-          ) : (
-            <>
-              <div className="mt-8 grid grid-cols-2 gap-1 rounded-md bg-secondary p-1">
-                {(["signin", "signup"] as Mode[]).map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMode(m)}
-                    className={cn(
-                      "rounded-sm px-3 py-2 text-sm font-medium transition-colors",
-                      mode === m
-                        ? "bg-card text-foreground shadow-plate"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {m === "signin" ? "Sign in" : "Sign up"}
-                  </button>
-                ))}
-              </div>
+            </div>
+          </form>
+        ) : (
+          <>
+            {/* Sign in / Sign up */}
+            <div
+              role="tablist"
+              aria-label="Choose sign in or sign up"
+              className="relative mt-7 grid grid-cols-2 rounded-full border border-border bg-secondary/70 p-1"
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-card shadow-plate transition-transform duration-300 ease-(--ease-out-expo) dark:bg-white/12 dark:ring-1 dark:ring-white/15",
+                  mode === "signup" && "translate-x-full",
+                )}
+              />
+              {(["signin", "signup"] as Mode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === m}
+                  onClick={() => setMode(m)}
+                  className={cn(
+                    "relative z-10 min-h-10 rounded-full text-sm font-semibold transition-colors duration-200",
+                    mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {m === "signin" ? "Sign in" : "Sign up"}
+                </button>
+              ))}
+            </div>
 
-              <form onSubmit={submit} className="mt-6 space-y-4">
-                {mode === "signup" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full name</Label>
-                      <Input
+            {/* Social first: fastest path for most people */}
+            <div className="mt-6 grid grid-cols-3 gap-2.5">
+              <SocialButton provider="google" onClick={google} disabled={busy} />
+              <SocialButton provider="apple" onClick={apple} disabled={busy} />
+              <SocialButton provider="linkedin" onClick={linkedin} disabled={busy} />
+            </div>
+
+            <AuthDivider>or continue with email</AuthDivider>
+
+            <form key={mode} onSubmit={submit} className="space-y-4" noValidate={false}>
+              {mode === "signup" && (
+                <>
+                  <div className="animate-rise" style={delay(0)}>
+                    <FieldShell id="name" label="Full name">
+                      <IconInput
+                        icon={UserRound}
                         id="name"
+                        name="name"
+                        autoComplete="name"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         required
                         maxLength={100}
                         placeholder="Amina Namusoke"
                       />
-                    </div>
-                    <div className="space-y-2" role="radiogroup" aria-label="I am signing up as">
-                      <Label id="role-label">I am signing up as</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {SIGNUP_ROLES.map((r) => (
-                          <button
+                    </FieldShell>
+                  </div>
+                  <fieldset className="animate-rise space-y-2" style={delay(50)}>
+                    <legend className="text-sm font-semibold">I am signing up as</legend>
+                    <div className="grid grid-cols-2 gap-2">
+                      {SIGNUP_ROLES.map((r) => {
+                        const detail = ROLE_DETAILS[r];
+                        const Icon = detail?.icon ?? UserRound;
+                        return (
+                          <label
                             key={r}
-                            type="button"
-                            role="radio"
-                            aria-checked={role === r}
-                            aria-pressed={role === r}
-                            onClick={() => setRole(r)}
                             className={cn(
-                              "rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors",
+                              "relative flex cursor-pointer flex-col gap-1.5 rounded-2xl border p-3 transition-[border-color,background-color,box-shadow] duration-200 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
                               role === r
-                                ? "border-brass bg-brass/10 text-accent-foreground"
-                                : "border-border hover:bg-secondary",
+                                ? "border-brass bg-accent shadow-xs"
+                                : "border-border hover:border-foreground/20 hover:bg-secondary/60",
                             )}
                           >
-                            {ROLE_LABELS[r]}
-                          </button>
-                        ))}
-                      </div>
-                      {role !== "user" ? (
-                        <p className="text-xs text-muted-foreground">
-                          Next you’ll send your details and documents (such as your ID and{" "}
-                          {role === "lawyer" ? "practising certificate" : "staff identity card"}).
-                          An administrator checks them before your {ROLE_LABELS[role].toLowerCase()}{" "}
-                          account is switched on.
-                        </p>
-                      ) : null}
+                            <input
+                              type="radio"
+                              name="role"
+                              value={r}
+                              checked={role === r}
+                              onChange={() => setRole(r)}
+                              className="sr-only"
+                            />
+                            <span className="flex items-center justify-between">
+                              <span
+                                className={cn(
+                                  "grid h-8 w-8 place-items-center rounded-lg",
+                                  role === r
+                                    ? "bg-brass text-brass-foreground"
+                                    : "bg-secondary text-muted-foreground",
+                                )}
+                              >
+                                <Icon className="h-4 w-4" aria-hidden />
+                              </span>
+                              <span
+                                aria-hidden
+                                className={cn(
+                                  "h-4 w-4 rounded-full border-2 transition-colors",
+                                  role === r
+                                    ? "border-brass bg-brass shadow-[inset_0_0_0_2px_var(--card)]"
+                                    : "border-border",
+                                )}
+                              />
+                            </span>
+                            <span className="text-sm font-semibold leading-tight">
+                              {ROLE_LABELS[r]}
+                            </span>
+                            {detail && (
+                              <span className="text-[0.72rem] leading-snug text-muted-foreground">
+                                {detail.body}
+                              </span>
+                            )}
+                          </label>
+                        );
+                      })}
                     </div>
-                  </>
-                )}
+                    {role !== "user" ? (
+                      <p className="rounded-xl bg-secondary/70 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                        Next you’ll send your details and documents (such as your ID and{" "}
+                        {role === "lawyer" ? "practising certificate" : "staff identity card"}). An
+                        administrator checks them before your {ROLE_LABELS[role].toLowerCase()}{" "}
+                        account is switched on.
+                      </p>
+                    ) : null}
+                  </fieldset>
+                </>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    maxLength={255}
-                    placeholder="you@example.com"
-                  />
-                </div>
+              <div className="animate-rise" style={delay(mode === "signup" ? 100 : 0)}>
+                <EmailField id="email" value={email} onChange={setEmail} />
+              </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    {mode === "signin" && (
+              <div className="animate-rise" style={delay(mode === "signup" ? 150 : 60)}>
+                <PasswordField
+                  id="password"
+                  value={password}
+                  onChange={setPassword}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  showStrength={mode === "signup"}
+                  aside={
+                    mode === "signin" ? (
                       <button
                         type="button"
                         onClick={forgot}
-                        className="text-xs text-muted-foreground hover:text-brass"
+                        className="rounded-full px-1 text-xs font-semibold text-brass hover:underline"
                       >
                         Forgot password?
                       </button>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      placeholder="••••••••"
-                      className="pr-11"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {mode === "signup" && (
-                  <div className="flex items-start gap-2">
-                    <Checkbox
-                      id="legal-accepted"
-                      checked={legalAccepted}
-                      onCheckedChange={(checked) => setLegalAccepted(checked === true)}
-                      className="mt-0.5"
-                    />
-                    <Label htmlFor="legal-accepted" className="text-xs font-normal leading-relaxed">
-                      I agree to LegalFinder's{" "}
-                      <Link
-                        to="/terms-of-service"
-                        className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
-                        target="_blank"
-                      >
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        to="/privacy-policy"
-                        className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
-                        target="_blank"
-                      >
-                        Privacy Policy
-                      </Link>
-                      . There is no tolerance for objectionable content or abusive users.
-                    </Label>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="brass"
-                  size="lg"
-                  className="w-full"
-                  disabled={busy || (mode === "signup" && !legalAccepted)}
-                >
-                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {mode === "signin" ? "Sign in" : "Create account"}
-                </Button>
-              </form>
-
-              <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" /> or{" "}
-                <span className="h-px flex-1 bg-border" />
+                    ) : undefined
+                  }
+                />
               </div>
 
-              <Button type="button" variant="outline" size="lg" className="w-full" onClick={google}>
-                <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                  <path
-                    fill="#4285F4"
-                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z"
+              {mode === "signup" && (
+                <div className="animate-rise flex items-start gap-2.5" style={delay(200)}>
+                  <Checkbox
+                    id="legal-accepted"
+                    checked={legalAccepted}
+                    onCheckedChange={(checked) => setLegalAccepted(checked === true)}
+                    className="mt-0.5"
                   />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1 .7-2.3 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24Z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.4 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l4-3.1Z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8Z"
-                  />
-                </svg>
-                Continue with Google
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="mt-3 w-full"
-                onClick={apple}
-              >
-                <Apple className="h-4 w-4" />
-                Continue with Apple
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="mt-3 w-full"
-                onClick={linkedin}
-              >
-                <Linkedin className="h-4 w-4" />
-                Continue with LinkedIn
-              </Button>
-
-              {mode === "signin" && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="mt-3 w-full"
-                  disabled={busy}
-                  onClick={() => void signInWithPasskey()}
-                >
-                  <Fingerprint className="h-4 w-4" />
-                  Sign in with a passkey
-                </Button>
+                  <Label htmlFor="legal-accepted" className="text-xs font-normal leading-relaxed">
+                    I agree to LegalFinder's{" "}
+                    <Link
+                      to="/terms-of-service"
+                      className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
+                      target="_blank"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/privacy-policy"
+                      className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
+                      target="_blank"
+                    >
+                      Privacy Policy
+                    </Link>
+                    . There is no tolerance for objectionable content or abusive users.
+                  </Label>
+                </div>
               )}
-            </>
-          )}
 
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            By continuing you agree to LegalFinder's{" "}
-            <Link
-              to="/terms-of-service"
-              className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
-            >
-              terms
-            </Link>{" "}
-            and{" "}
-            <Link
-              to="/privacy-policy"
-              className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
-            >
-              privacy policy
-            </Link>
-            .
-          </p>
-        </div>
+              <Button
+                type="submit"
+                size="lg"
+                className="shine h-12 w-full"
+                loading={busy}
+                disabled={mode === "signup" && !legalAccepted}
+              >
+                {mode === "signin" ? "Sign in" : "Create account"}
+                {!busy && <ArrowRight aria-hidden />}
+              </Button>
+            </form>
+
+            {mode === "signin" && (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="mt-3 h-12 w-full"
+                disabled={busy}
+                onClick={() => void signInWithPasskey()}
+              >
+                {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Fingerprint />}
+                Sign in with a passkey
+              </Button>
+            )}
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              {mode === "signin" ? "New to LegalFinder? " : "Already have an account? "}
+              <button
+                type="button"
+                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                className="font-semibold text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
+              >
+                {mode === "signin" ? "Create an account" : "Sign in"}
+              </button>
+            </p>
+          </>
+        )}
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          By continuing you agree to LegalFinder's{" "}
+          <Link
+            to="/terms-of-service"
+            className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
+          >
+            terms
+          </Link>{" "}
+          and{" "}
+          <Link
+            to="/privacy-policy"
+            className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
+          >
+            privacy policy
+          </Link>
+          .
+        </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }
