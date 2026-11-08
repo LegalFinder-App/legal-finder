@@ -1,196 +1,37 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./design/tokens.css";
+
+/* Self-hosted fonts (no third-party request, no layout shift: font-display: swap). Fraunces is
+   only an italic accent face, so just its italic file ships. */
+@import "@fontsource-variable/plus-jakarta-sans/index.css";
+@import "@fontsource-variable/fraunces/opsz-italic.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
 
 @custom-variant dark (&:is(.dark *));
-
-/*
- * LegalFinder design system — "Chambers".
- * Ink navy + brass on warm archival paper. Fraunces display serif,
- * Public Sans body, IBM Plex Mono for references and case numbers.
- */
-
-@theme inline {
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-brass: var(--brass);
-  --color-brass-foreground: var(--brass-foreground);
-  --color-ink: var(--ink);
-  --color-ink-foreground: var(--ink-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-}
-
-:root {
-  /* Real insets only inside the Capacitor app / iOS Safari on a notched device — 0px
-     everywhere else, so these are safe to apply unconditionally on the web too. */
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --radius: 0.5rem;
-  --background: oklch(0.986 0.006 85);
-  --foreground: oklch(0.235 0.032 258);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.032 258);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.032 258);
-  --primary: oklch(0.263 0.055 258);
-  --primary-foreground: oklch(0.98 0.008 85);
-  --secondary: oklch(0.953 0.009 85);
-  --secondary-foreground: oklch(0.263 0.055 258);
-  --muted: oklch(0.951 0.008 85);
-  --muted-foreground: oklch(0.515 0.021 258);
-  --accent: oklch(0.943 0.02 82);
-  --accent-foreground: oklch(0.33 0.058 68);
-  --destructive: oklch(0.523 0.19 25);
-  --destructive-foreground: oklch(0.98 0.008 85);
-  --border: oklch(0.898 0.011 85);
-  --input: oklch(0.898 0.011 85);
-  --ring: oklch(0.66 0.113 74);
-  --brass: oklch(0.66 0.113 74);
-  --brass-foreground: oklch(0.21 0.03 258);
-  --ink: oklch(0.208 0.043 258);
-  --ink-foreground: oklch(0.96 0.009 85);
-  --success: oklch(0.52 0.104 158);
-  --success-foreground: oklch(0.98 0.008 85);
-  --warning: oklch(0.72 0.14 68);
-  --warning-foreground: oklch(0.24 0.04 68);
-  --chart-1: oklch(0.263 0.055 258);
-  --chart-2: oklch(0.66 0.113 74);
-  --chart-3: oklch(0.52 0.104 158);
-  --chart-4: oklch(0.45 0.09 258);
-  --chart-5: oklch(0.6 0.12 32);
-  --sidebar: oklch(0.208 0.043 258);
-  --sidebar-foreground: oklch(0.86 0.014 85);
-  --sidebar-primary: oklch(0.66 0.113 74);
-  --sidebar-primary-foreground: oklch(0.18 0.03 258);
-  --sidebar-accent: oklch(0.27 0.045 258);
-  --sidebar-accent-foreground: oklch(0.97 0.008 85);
-  --sidebar-border: oklch(0.3 0.04 258);
-  --sidebar-ring: oklch(0.66 0.113 74);
-
-  --gradient-ink: linear-gradient(
-    155deg,
-    oklch(0.24 0.05 258) 0%,
-    oklch(0.17 0.035 258) 55%,
-    oklch(0.2 0.045 268) 100%
-  );
-  --gradient-brass: linear-gradient(100deg, oklch(0.74 0.11 82), oklch(0.62 0.12 66));
-  --shadow-plate:
-    0 1px 2px oklch(0.24 0.04 258 / 0.06), 0 12px 32px -18px oklch(0.24 0.04 258 / 0.35);
-  --shadow-raised:
-    0 2px 4px oklch(0.24 0.04 258 / 0.05), 0 24px 60px -28px oklch(0.24 0.04 258 / 0.45);
-}
-
-.dark {
-  --background: oklch(0.168 0.028 258);
-  --foreground: oklch(0.95 0.008 85);
-  --card: oklch(0.213 0.034 258);
-  --card-foreground: oklch(0.95 0.008 85);
-  --popover: oklch(0.213 0.034 258);
-  --popover-foreground: oklch(0.95 0.008 85);
-  --primary: oklch(0.9 0.012 85);
-  --primary-foreground: oklch(0.2 0.035 258);
-  --secondary: oklch(0.26 0.038 258);
-  --secondary-foreground: oklch(0.95 0.008 85);
-  --muted: oklch(0.26 0.038 258);
-  --muted-foreground: oklch(0.71 0.018 258);
-  --accent: oklch(0.29 0.045 70);
-  --accent-foreground: oklch(0.93 0.03 82);
-  --destructive: oklch(0.62 0.18 25);
-  --destructive-foreground: oklch(0.98 0.008 85);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.7 0.11 76);
-  --brass: oklch(0.72 0.115 76);
-  --brass-foreground: oklch(0.18 0.03 258);
-  --ink: oklch(0.14 0.025 258);
-  --ink-foreground: oklch(0.95 0.008 85);
-  --success: oklch(0.66 0.11 158);
-  --success-foreground: oklch(0.15 0.03 158);
-  --warning: oklch(0.78 0.13 70);
-  --warning-foreground: oklch(0.2 0.04 68);
-  --chart-1: oklch(0.72 0.115 76);
-  --chart-2: oklch(0.66 0.11 158);
-  --chart-3: oklch(0.68 0.1 240);
-  --chart-4: oklch(0.8 0.09 85);
-  --chart-5: oklch(0.66 0.14 32);
-  --sidebar: oklch(0.142 0.026 258);
-  --sidebar-foreground: oklch(0.86 0.014 85);
-  --sidebar-primary: oklch(0.72 0.115 76);
-  --sidebar-primary-foreground: oklch(0.16 0.03 258);
-  --sidebar-accent: oklch(0.22 0.036 258);
-  --sidebar-accent-foreground: oklch(0.97 0.008 85);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.72 0.115 76);
-
-  --gradient-ink: linear-gradient(
-    155deg,
-    oklch(0.22 0.04 258) 0%,
-    oklch(0.14 0.026 258) 60%,
-    oklch(0.17 0.035 268) 100%
-  );
-  --shadow-plate: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px -18px oklch(0 0 0 / 0.7);
-  --shadow-raised: 0 2px 4px oklch(0 0 0 / 0.4), 0 24px 60px -28px oklch(0 0 0 / 0.8);
-}
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
 
+  html {
+    scroll-padding-top: calc(var(--header-h) + var(--safe-top) + 1rem);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv01";
+    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
-    /* Keeps scrollable content clear of a home indicator/gesture bar; 0px outside the
-       native app, so this is a no-op on the web. */
+    -moz-osx-font-smoothing: grayscale;
+    /* Keeps scrollable content clear of a home indicator/gesture bar; 0px outside a native
+       shell or notched device. */
     padding-bottom: var(--safe-bottom);
   }
 
@@ -200,25 +41,100 @@
   h4,
   .font-display {
     font-family: var(--font-display);
-    font-optical-sizing: auto;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
+  }
+
+  h1,
+  h2 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One visible focus style for anything focusable that doesn't bring its own ring. */
+  :where(a, button, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
   }
 
   ::selection {
-    background: var(--brass);
-    color: var(--brass-foreground);
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 }
+
+/* ---------- Surfaces ---------- */
 
 @utility surface-ink {
   background-image: var(--gradient-ink);
   color: var(--ink-foreground);
+  /* Bright brass on navy; deep brass would fail contrast here. */
+  --brass: oklch(0.8 0.115 82);
+  --brass-foreground: oklch(0.19 0.035 262);
+  --ring: oklch(0.8 0.115 82);
+}
+
+@utility surface-glass {
+  background-color: color-mix(in oklch, var(--card) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid color-mix(in oklch, var(--foreground) 9%, transparent);
+}
+
+@utility surface-glass-ink {
+  background-color: oklch(1 0 0 / 0.07);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid oklch(1 0 0 / 0.12);
+}
+
+@utility bg-sky {
+  background-image: var(--gradient-sky);
+}
+
+/* A faint engraved grid that fades out — texture without weight. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 75%);
+}
+
+@utility bg-grid-light {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, black 20%, transparent 70%);
 }
 
 @utility text-brass-gradient {
   background-image: var(--gradient-brass);
   background-clip: text;
+  -webkit-background-clip: text;
   color: transparent;
+}
+
+@utility shadow-xs {
+  box-shadow: var(--shadow-xs);
 }
 
 @utility shadow-plate {
@@ -229,10 +145,20 @@
   box-shadow: var(--shadow-raised);
 }
 
+@utility shadow-float {
+  box-shadow: var(--shadow-float);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
 @utility eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.18em;
+  font-family: var(--font-sans);
+  font-size: var(--text-overline);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -243,8 +169,23 @@
   border-radius: 9999px;
 }
 
-/* Safe-area utilities — keep sticky/fixed chrome clear of a device notch, status bar, or
-   home indicator. No-ops (0px) outside the native app / a notched device. */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  /* Side gutter, never thinner than a notch / rounded-corner inset in landscape. */
+  --gutter: 1rem;
+  padding-left: max(var(--gutter), var(--safe-left));
+  padding-right: max(var(--gutter), var(--safe-right));
+  @media (width >= 40rem) {
+    --gutter: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    --gutter: 2rem;
+  }
+}
+
+/* Safe-area utilities — keep sticky/fixed chrome clear of a notch or home indicator. */
 @utility pt-safe {
   padding-top: var(--safe-top);
 }
@@ -253,7 +194,155 @@
   padding-bottom: var(--safe-bottom);
 }
 
-@utility px-safe {
+@utility {
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+/* Staggered entrance: set --delay inline (e.g. style={{ "--delay": "120ms" }}). */
+@utility animate-rise {
+  animation: rise-in 700ms var(--ease-out-expo) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@utility animate-float {
+  animation: float-y 6s ease-in-out infinite;
+  animation-delay: var(--delay, 0ms);
+}
+
+@utility animate-aurora {
+  animation: aurora-drift 18s ease-in-out infinite;
+}
+
+/* Scroll reveal: useReveal() adds data-revealed once the element enters the viewport. Content
+   is only hidden when the inline head script has marked <html class="js">, so it never stays
+   invisible if scripts fail. */
+@utility reveal {
+  transition:
+    opacity 700ms var(--ease-out-expo),
+    transform 700ms var(--ease-out-expo);
+  transition-delay: var(--delay, 0ms);
+  :where(html.js) &:not([data-revealed="true"]) {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+}
+
+/* Cursor-follow glow: pair with onPointerMove={trackSpotlight} (lib/motion.ts). */
+@utility spotlight {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(
+      var(--spot-size, 520px) circle at var(--mx, 50%) var(--my, 0%),
+      var(--spot-color, oklch(0.78 0.115 80 / 0.14)),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 400ms var(--ease-standard);
+    pointer-events: none;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@utility animate-marquee {
+  animation: marquee 48s linear infinite;
+  &:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* A light sweep across the primary call to action. */
+@utility shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.35), transparent);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+  }
+  &:hover::after {
+    animation: shimmer 900ms var(--ease-standard);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  html.js .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
