@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ContentCrudTable } from "@/components/app/admin/content/content-crud-table";
-import { stationsConfig } from "@/components/app/admin/content/configs/stations";
+import { contentType } from "@/components/app/admin/content/registry";
+
+const type = contentType("stations");
 
 export const Route = createFileRoute("/_authenticated/admin/content/stations")({
-  component: () => <ContentCrudTable config={stationsConfig} />,
+  component: () => <ContentCrudTable config={type.config} type={type} />,
 });

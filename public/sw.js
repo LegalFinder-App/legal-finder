@@ -1,6 +1,6 @@
 // Bump when files under /images keep their path but change content (e.g. re-encoded photos):
 // images are cached by URL, so returning visitors would otherwise keep the old copies.
-const CACHE_NAME = "legalfinder-static-v3";
+const CACHE_NAME = "legalfinder-static-v4";
 const OFFLINE_SHELL = ["/", "/auth"];
 
 self.addEventListener("install", (event) => {
