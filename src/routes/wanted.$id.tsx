@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { wantedPersonQuery } from "@/lib/queries";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { prefetchForPage } from "@/lib/prefetch";
 
 export const Route = createFileRoute("/wanted/$id")({
   head: () => ({
@@ -17,6 +18,11 @@ export const Route = createFileRoute("/wanted/$id")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  loader: ({ context: { queryClient }, params }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(wantedPersonQuery(params.id)),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: WantedDetail,
 });
 

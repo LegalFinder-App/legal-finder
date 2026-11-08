@@ -6,6 +6,8 @@ import { EmptyState, QueryError } from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
 import { newsQuery } from "@/lib/queries";
 import { MarkdownLite } from "@/lib/markdown-lite";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/news/$slug")({
   head: () => ({
@@ -20,6 +22,11 @@ export const Route = createFileRoute("/news/$slug")({
       { property: "og:type", content: "article" },
     ],
   }),
+  loader: ({ context: { queryClient }, params }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(newsQuery(params.slug)),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: NewsDetail,
 });
 

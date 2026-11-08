@@ -7,6 +7,7 @@ import { PaginationBar, usePaginatedList } from "@/components/common/paginated-l
 import { wantedQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { prefetchForPage } from "@/lib/prefetch";
 
 export const Route = createFileRoute("/wanted")({
   head: () => ({
@@ -21,6 +22,11 @@ export const Route = createFileRoute("/wanted")({
       { property: "og:description", content: "Official notices published by police services." },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(wantedQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: WantedPage,
 });
 

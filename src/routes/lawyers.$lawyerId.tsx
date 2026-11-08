@@ -35,6 +35,8 @@ import { cn } from "@/lib/utils";
 import { matchPracticeAreaMedia, siteMediaQuery } from "@/lib/site-media";
 import { useSession } from "@/lib/session";
 import { initiatePesapalPayment } from "@/lib/payments.functions";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/lawyers/$lawyerId")({
   head: () => ({
@@ -52,6 +54,13 @@ export const Route = createFileRoute("/lawyers/$lawyerId")({
       },
     ],
   }),
+  loader: ({ context: { queryClient }, params }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(lawyerQuery(params.lawyerId)),
+      queryClient.prefetchQuery(reviewsQuery(params.lawyerId)),
+      queryClient.prefetchQuery(siteMediaQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: LawyerProfile,
 });
 

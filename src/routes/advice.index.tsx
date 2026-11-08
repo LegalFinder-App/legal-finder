@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
-import { ArticleCard } from "@/components/common/article-card";
+import { ArticleCard, ArticleCardSkeleton } from "@/components/common/article-card";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
-import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
+import { EmptyState, QueryError } from "@/components/common/bits";
 import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { adviceListQuery } from "@/lib/queries";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/advice/")({
   head: () => ({
@@ -24,6 +26,11 @@ export const Route = createFileRoute("/advice/")({
       },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(adviceListQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: AdvicePage,
 });
 
@@ -56,7 +63,11 @@ function AdvicePage() {
 
         <div className="mt-10">
           {isLoading ? (
-            <LoadingRows rows={5} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ArticleCardSkeleton key={i} />
+              ))}
+            </div>
           ) : isError ? (
             <QueryError
               message={error instanceof Error ? error.message : undefined}

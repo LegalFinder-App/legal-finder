@@ -162,3 +162,22 @@ export function ArticleCard({
     </Link>
   );
 }
+
+/** Same footprint as ArticleCard, shown while the list loads (no spinners on content). */
+export function ArticleCardSkeleton() {
+  return (
+    <div aria-hidden className="card flex h-full flex-col overflow-hidden">
+      <div className="aspect-[16/10] animate-pulse bg-muted" />
+      <div className="flex flex-1 flex-col gap-2.5 p-5">
+        <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
+        <div className="h-4 w-4/5 animate-pulse rounded-full bg-muted" />
+        <div className="h-3 w-full animate-pulse rounded-full bg-muted/70" />
+        <div className="h-3 w-2/3 animate-pulse rounded-full bg-muted/70" />
+        <div className="mt-3 flex items-center justify-between border-t border-border pt-4">
+          <div className="h-7 w-28 animate-pulse rounded-full bg-muted" />
+          <div className="h-3 w-10 animate-pulse rounded-full bg-muted" />
+        </div>
+      </div>
+    </div>
+  );
+}

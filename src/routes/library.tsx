@@ -9,6 +9,8 @@ import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { libraryQuery } from "@/lib/queries";
 import { delay } from "@/lib/motion";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/library")({
   head: () => ({
@@ -25,6 +27,11 @@ export const Route = createFileRoute("/library")({
       },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(libraryQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: LibraryPage,
 });
 

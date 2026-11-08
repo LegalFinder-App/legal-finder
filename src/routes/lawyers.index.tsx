@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { publicLawyersQuery, type Lawyer } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { prefetchForPage } from "@/lib/prefetch";
+import { siteMediaQuery } from "@/lib/site-media";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 const SORTS = [
   { id: "recommended", label: "Recommended" },
@@ -45,6 +48,12 @@ export const Route = createFileRoute("/lawyers/")({
       },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(publicLawyersQuery()),
+      queryClient.prefetchQuery(siteMediaQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: LawyersPage,
 });
 

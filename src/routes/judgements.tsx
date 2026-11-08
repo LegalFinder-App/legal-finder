@@ -10,6 +10,8 @@ import { PaginationBar, usePaginatedList } from "@/components/common/paginated-l
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { judgementsQuery } from "@/lib/queries";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/judgements")({
   head: () => ({
@@ -24,6 +26,11 @@ export const Route = createFileRoute("/judgements")({
       { property: "og:description", content: "Reported decisions with structured summaries." },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(judgementsQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: JudgementsPage,
 });
 

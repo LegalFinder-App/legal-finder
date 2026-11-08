@@ -9,6 +9,8 @@ import { PaginationBar, usePaginatedList } from "@/components/common/paginated-l
 import { Button } from "@/components/ui/button";
 import { stationsQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/stations")({
   head: () => ({
@@ -23,6 +25,11 @@ export const Route = createFileRoute("/stations")({
       { property: "og:description", content: "Nearest stations with contacts and addresses." },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(stationsQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: StationsPage,
 });
 

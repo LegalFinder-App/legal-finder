@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, dehydrate, hydrate, type DehydratedState } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
@@ -19,6 +19,15 @@ export const getRouter = () => {
     // navigate instantly, same as before — this only adds a native-feeling cross-fade/slide
     // where the API exists (including the Capacitor Android/iOS WebViews).
     defaultViewTransition: true,
+    // Queries a route loader fetched on the server (lib/prefetch.ts) travel to the browser
+    // inside the HTML and seed this QueryClient, so public pages render with their data on
+    // first paint instead of after hydration. Only successful queries are sent.
+    // Sent as a JSON string: the payload is plain Supabase rows, and the router's serialiser
+    // can't prove DehydratedState's `unknown` fields are serialisable.
+    dehydrate: () => ({ queryState: JSON.stringify(dehydrate(queryClient)) }),
+    hydrate: (dehydrated: { queryState: string }) => {
+      hydrate(queryClient, JSON.parse(dehydrated.queryState) as DehydratedState);
+    },
   });
 
   return router;

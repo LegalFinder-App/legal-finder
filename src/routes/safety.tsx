@@ -4,6 +4,8 @@ import { ShieldCheck } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { securityTipsQuery } from "@/lib/queries";
+import { prefetchForPage } from "@/lib/prefetch";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/safety")({
   head: () => ({
@@ -21,6 +23,11 @@ export const Route = createFileRoute("/safety")({
       },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(securityTipsQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: SafetyPage,
 });
 
