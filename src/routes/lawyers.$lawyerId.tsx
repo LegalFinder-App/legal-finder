@@ -37,6 +37,7 @@ import { useSession } from "@/lib/session";
 import { initiatePesapalPayment } from "@/lib/payments.functions";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/lawyers/$lawyerId")({
   head: () => ({
@@ -208,12 +209,12 @@ function LawyerProfile() {
                   </span>
                 ),
               },
-              { k: "Reviews", v: lawyer.review_count.toLocaleString() },
+              { k: "Reviews", v: formatNumber(lawyer.review_count) },
               { k: "Experience", v: `${lawyer.years_experience} yrs` },
               {
                 k: "Consultation",
                 v: lawyer.consultation_fee
-                  ? `UGX ${lawyer.consultation_fee.toLocaleString()}`
+                  ? `UGX ${formatNumber(lawyer.consultation_fee)}`
                   : "On request",
               },
             ].map((item, i) => (
@@ -297,14 +298,14 @@ function LawyerProfile() {
                 label="Consultation"
                 value={
                   lawyer.consultation_fee
-                    ? `UGX ${lawyer.consultation_fee.toLocaleString()}`
+                    ? `UGX ${formatNumber(lawyer.consultation_fee)}`
                     : "On request"
                 }
               />
               <Row
                 label="Hourly rate"
                 value={
-                  lawyer.hourly_rate ? `UGX ${lawyer.hourly_rate.toLocaleString()}` : "On request"
+                  lawyer.hourly_rate ? `UGX ${formatNumber(lawyer.hourly_rate)}` : "On request"
                 }
               />
               <Row label="Languages" value={lawyer.languages.join(", ") || "English"} />
@@ -448,7 +449,7 @@ function BookingDialog({
           <DialogTitle>Book with {lawyerName}</DialogTitle>
           <DialogDescription>
             {consultationFee && consultationFee > 0
-              ? `A UGX ${consultationFee.toLocaleString()} consultation fee applies — you'll be redirected to Pesapal to pay after booking.`
+              ? `A UGX ${formatNumber(consultationFee)} consultation fee applies — you'll be redirected to Pesapal to pay after booking.`
               : "Send a consultation request. You'll be notified once it's confirmed."}
           </DialogDescription>
         </DialogHeader>

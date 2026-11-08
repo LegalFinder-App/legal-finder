@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { wantedPersonQuery } from "@/lib/queries";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { prefetchForPage } from "@/lib/prefetch";
+import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/wanted/$id")({
   head: () => ({
@@ -118,7 +119,7 @@ function WantedDetail() {
             )}
             {data.reward ? (
               <p className="mt-2 font-mono text-sm text-brass">
-                Reward: UGX {data.reward.toLocaleString()}
+                Reward: UGX {formatNumber(data.reward)}
               </p>
             ) : null}
           </div>

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, CalendarDays, Clock, Newspaper, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/format";
 
 type Article = {
   id: string;
@@ -22,13 +23,8 @@ function readingTime(body?: string | null) {
   return Math.max(1, Math.round(words / 200));
 }
 
-function formatDate(iso?: string | null) {
-  if (!iso) return null;
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+function articleDate(iso?: string | null) {
+  return iso ? formatDate(iso) : null;
 }
 
 /**
@@ -48,7 +44,7 @@ export function ArticleCard({
   className?: string;
 }) {
   const minutes = readingTime(article.body);
-  const date = formatDate(article.published_at);
+  const date = articleDate(article.published_at);
   const label = kind === "advice" ? article.category : "News";
   const byline =
     article.author_name ?? (kind === "news" ? article.source : null) ?? "LegalFinder editorial";

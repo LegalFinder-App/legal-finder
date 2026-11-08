@@ -8,6 +8,7 @@ import { newsQuery } from "@/lib/queries";
 import { MarkdownLite } from "@/lib/markdown-lite";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/news/$slug")({
   head: () => ({
@@ -86,7 +87,7 @@ function NewsDetail() {
         </Link>
         <h1 className="mt-8 font-display text-4xl font-semibold leading-tight">{data.title}</h1>
         <p className="mt-4 font-mono text-xs text-muted-foreground">
-          {new Date(data.published_at).toLocaleDateString()} · {data.source ?? "LegalFinder"}
+          {formatDate(data.published_at)} · {data.source ?? "LegalFinder"}
         </p>
         {data.image_url && (
           <img src={data.image_url} alt="" className="mt-8 w-full rounded-xl object-cover" />

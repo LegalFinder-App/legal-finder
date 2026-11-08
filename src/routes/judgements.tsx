@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { judgementsQuery } from "@/lib/queries";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/judgements")({
   head: () => ({
@@ -138,7 +139,7 @@ function JudgementsPage() {
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                             <CalendarDays className="h-3.5 w-3.5" aria-hidden />
                             <time dateTime={j.decided_on}>
-                              {new Date(j.decided_on).toLocaleDateString(undefined, {
+                              {formatDate(j.decided_on, {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",

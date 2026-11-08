@@ -32,6 +32,7 @@ const SORTS = [
   { id: "fee", label: "Lowest fee" },
 ] as const;
 type SortId = (typeof SORTS)[number]["id"];
+const ACCEPTING = "Accepting new clients";
 
 // Display order only; "recommended" keeps the order the directory query returns.
 const sorters: Record<SortId, ((a: Lawyer, b: Lawyer) => number) | null> = {
@@ -154,16 +155,15 @@ function LawyersPage() {
         variant="block"
       />
 
-      <label className="card-inset flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 text-sm font-medium">
-        Accepting new clients
-        <input
-          type="checkbox"
-          role="switch"
-          checked={acceptingOnly}
-          onChange={(e) => setAcceptingOnly(e.target.checked)}
-          className="relative h-6 w-10 shrink-0 cursor-pointer appearance-none rounded-full bg-input transition-colors before:absolute before:left-0.5 before:top-0.5 before:h-5 before:w-5 before:rounded-full before:bg-card before:shadow-xs before:transition-transform before:content-[''] checked:bg-success checked:before:translate-x-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        />
-      </label>
+      {/* A filter, not a setting: styled like the other filter options so it can't be
+          mistaken for a control that changes an advocate's availability. */}
+      <FilterChipGroup
+        label="Availability"
+        options={[ACCEPTING]}
+        value={acceptingOnly ? [ACCEPTING] : []}
+        onChange={(v) => setAcceptingOnly(v.length > 0)}
+        variant="block"
+      />
     </>
   );
 

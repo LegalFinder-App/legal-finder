@@ -36,6 +36,7 @@ import courthouse from "@/assets/courthouse.jpg";
 import { prefetchForPage } from "@/lib/prefetch";
 import { siteMediaQuery } from "@/lib/site-media";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { formatDate, formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -127,7 +128,7 @@ function Index() {
   const topLawyer = [...list].sort((a, b) => b.rating - a.rating)[0];
   const practiceAreas = Array.from(new Set(list.flatMap((l) => l.practice_areas))).sort();
   const districts = new Set(list.map((l) => l.county).filter(Boolean)).size;
-  const stat = (n: number) => (lawyers.isLoading ? "—" : n.toLocaleString());
+  const stat = (n: number) => (lawyers.isLoading ? "—" : formatNumber(n));
 
   const pillarsRef = useReveal<HTMLDivElement>();
   const directoryRef = useReveal<HTMLDivElement>();
@@ -443,10 +444,10 @@ function Index() {
                   >
                     <time dateTime={n.published_at} className="mt-0.5 w-14 shrink-0 text-center">
                       <span className="block text-xl font-bold leading-none tabular-nums">
-                        {new Date(n.published_at).toLocaleDateString(undefined, { day: "numeric" })}
+                        {formatDate(n.published_at, { day: "numeric" })}
                       </span>
                       <span className="mt-1 block text-[0.68rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                        {new Date(n.published_at).toLocaleDateString(undefined, {
+                        {formatDate(n.published_at, {
                           month: "short",
                           year: "2-digit",
                         })}

@@ -8,6 +8,7 @@ import { wantedQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { prefetchForPage } from "@/lib/prefetch";
+import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/wanted")({
   head: () => ({
@@ -125,7 +126,7 @@ function WantedPage() {
                       {p.reward ? (
                         <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-brass">
                           <Coins className="h-3.5 w-3.5" aria-hidden />
-                          UGX {p.reward.toLocaleString()}
+                          UGX {formatNumber(p.reward)}
                         </span>
                       ) : (
                         <ArrowUpRight className="h-4 w-4 shrink-0 text-foreground" aria-hidden />

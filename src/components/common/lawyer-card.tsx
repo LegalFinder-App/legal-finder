@@ -14,6 +14,7 @@ import type { Lawyer } from "@/lib/queries";
 import { matchPracticeAreaMedia, siteMediaQuery } from "@/lib/site-media";
 import { tiltHandlers } from "@/hooks/use-tilt";
 import { cn } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
 
 /** 110000 → "110k" for the compact stat; the full amount stays in the tooltip/label. */
 function shortFee(fee: number) {
@@ -36,7 +37,7 @@ export function LawyerCard({ lawyer, className }: { lawyer: Lawyer; className?: 
   const place = [lawyer.city, lawyer.county].filter(Boolean).join(", ") || "Remote";
   const reviewed = lawyer.review_count > 0;
   const feeLabel = lawyer.consultation_fee
-    ? `UGX ${lawyer.consultation_fee.toLocaleString()} consultation fee`
+    ? `UGX ${formatNumber(lawyer.consultation_fee)} consultation fee`
     : "Consultation fee on enquiry";
 
   return (

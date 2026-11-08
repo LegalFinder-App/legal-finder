@@ -8,6 +8,7 @@ import { adviceQuery } from "@/lib/queries";
 import { MarkdownLite } from "@/lib/markdown-lite";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/advice/$slug")({
   head: () => ({
@@ -90,7 +91,7 @@ function AdviceDetail() {
         <div className="mt-6 flex items-center gap-3 border-y border-border py-4 text-sm text-muted-foreground">
           <span>{data.author_name ?? "LegalFinder editorial"}</span>
           <span>·</span>
-          <span>{new Date(data.created_at).toLocaleDateString()}</span>
+          <span>{formatDate(data.created_at)}</span>
         </div>
         {data.image_url && (
           <img src={data.image_url} alt="" className="mt-8 w-full rounded-xl object-cover" />
