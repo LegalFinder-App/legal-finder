@@ -113,6 +113,31 @@ type UserBlockRow = { blocker_id: string; blocked_id: string; created_at: string
 export type ApplicationRole = "lawyer" | "police" | "judiciary";
 export type ApplicationStatus =
   "draft" | "submitted" | "changes_requested" | "approved" | "rejected";
+export type LegalFeedSource = "judiciary" | "upf" | "ulii";
+
+export type LegalFeedItemRow = {
+  id: string;
+  source: LegalFeedSource;
+  source_id: string;
+  url: string;
+  title: string;
+  summary: string | null;
+  summary_withheld: boolean;
+  category: string | null;
+  published_at: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  removed_at: string | null;
+};
+
+type LegalFeedSyncStateRow = {
+  source: LegalFeedSource;
+  last_run_at: string | null;
+  last_success_at: string | null;
+  last_error: string | null;
+  state: Json;
+};
+
 export type RoleApplicationRow = {
   id: string;
   user_id: string;
@@ -324,6 +349,27 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      legal_feed_items: {
+        Row: LegalFeedItemRow;
+        Insert: Omit<
+          LegalFeedItemRow,
+          "id" | "first_seen_at" | "last_seen_at" | "removed_at" | "summary_withheld"
+        > & {
+          id?: string;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          removed_at?: string | null;
+          summary_withheld?: boolean;
+        };
+        Update: Partial<LegalFeedItemRow>;
+        Relationships: [];
+      };
+      legal_feed_sync_state: {
+        Row: LegalFeedSyncStateRow;
+        Insert: Partial<LegalFeedSyncStateRow> & { source: LegalFeedSource };
+        Update: Partial<LegalFeedSyncStateRow>;
         Relationships: [];
       };
       content_reports: {

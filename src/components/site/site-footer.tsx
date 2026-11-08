@@ -7,6 +7,7 @@ const QUICK_LINKS = [
   { to: "/lawyers", label: "Find an advocate" },
   { to: "/advice", label: "Legal advice" },
   { to: "/judgements", label: "Court judgements" },
+  { to: "/updates", label: "Legal updates" },
   { to: "/library", label: "E-library" },
   { to: "/news", label: "Legal news" },
   { to: "/stations", label: "Police stations" },

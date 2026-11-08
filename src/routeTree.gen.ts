@@ -24,6 +24,7 @@ import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as StationsRouteImport } from './routes/stations'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
+import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedApplyRouteImport } from './routes/_authenticated/apply'
@@ -53,6 +54,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
 import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
+import { Route as ApiCronLegalFeedRouteImport } from './routes/api.cron.legal-feed'
 import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
 import { Route as ApiMobileSplatRouteImport } from './routes/api.mobile.$'
 import { Route as ApiMobileAssistantRouteImport } from './routes/api.mobile.assistant'
@@ -151,6 +153,11 @@ const StationsRoute = StationsRouteImport.update({
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: '/terms-of-service',
   path: '/terms-of-service',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WantedRoute = WantedRouteImport.update({
@@ -303,6 +310,11 @@ const AuthenticatedCasesCaseIdRoute =
 const ApiCronComplianceCheckRoute = ApiCronComplianceCheckRouteImport.update({
   id: '/api/cron/compliance-check',
   path: '/api/cron/compliance-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronLegalFeedRoute = ApiCronLegalFeedRouteImport.update({
+  id: '/api/cron/legal-feed',
+  path: '/api/cron/legal-feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFlutterwaveWebhookRoute = ApiFlutterwaveWebhookRouteImport.update({
@@ -460,6 +472,7 @@ export interface FileRoutesByFullPath {
   '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/updates': typeof UpdatesRoute
   '/wanted': typeof WantedRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/apply': typeof AuthenticatedApplyRoute
@@ -488,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
+  '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
@@ -530,6 +544,7 @@ export interface FileRoutesByTo {
   '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/updates': typeof UpdatesRoute
   '/wanted': typeof WantedRouteWithChildren
   '/apply': typeof AuthenticatedApplyRoute
   '/assistant': typeof AuthenticatedAssistantRoute
@@ -556,6 +571,7 @@ export interface FileRoutesByTo {
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
+  '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
@@ -600,6 +616,7 @@ export interface FileRoutesById {
   '/sso-callback': typeof SsoCallbackRoute
   '/stations': typeof StationsRoute
   '/terms-of-service': typeof TermsOfServiceRoute
+  '/updates': typeof UpdatesRoute
   '/wanted': typeof WantedRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/apply': typeof AuthenticatedApplyRoute
@@ -628,6 +645,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
+  '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
@@ -672,6 +690,7 @@ export interface FileRouteTypes {
     | '/sso-callback'
     | '/stations'
     | '/terms-of-service'
+    | '/updates'
     | '/wanted'
     | '/admin'
     | '/apply'
@@ -700,6 +719,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
+    | '/api/cron/legal-feed'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
     | '/api/mobile/assistant'
@@ -742,6 +762,7 @@ export interface FileRouteTypes {
     | '/sso-callback'
     | '/stations'
     | '/terms-of-service'
+    | '/updates'
     | '/wanted'
     | '/apply'
     | '/assistant'
@@ -768,6 +789,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/cases/$caseId'
     | '/api/cron/compliance-check'
+    | '/api/cron/legal-feed'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
     | '/api/mobile/assistant'
@@ -811,6 +833,7 @@ export interface FileRouteTypes {
     | '/sso-callback'
     | '/stations'
     | '/terms-of-service'
+    | '/updates'
     | '/wanted'
     | '/_authenticated/admin'
     | '/_authenticated/apply'
@@ -839,6 +862,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/verifications'
     | '/_authenticated/cases/$caseId'
     | '/api/cron/compliance-check'
+    | '/api/cron/legal-feed'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
     | '/api/mobile/assistant'
@@ -883,6 +907,7 @@ export interface RootRouteChildren {
   SsoCallbackRoute: typeof SsoCallbackRoute
   StationsRoute: typeof StationsRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
+  UpdatesRoute: typeof UpdatesRoute
   WantedRoute: typeof WantedRouteWithChildren
   AdviceSlugRoute: typeof AdviceSlugRoute
   LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
@@ -892,6 +917,7 @@ export interface RootRouteChildren {
   LawyersIndexRoute: typeof LawyersIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
   ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
+  ApiCronLegalFeedRoute: typeof ApiCronLegalFeedRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
   ApiMobileSplatRoute: typeof ApiMobileSplatRoute
   ApiMobileAssistantRoute: typeof ApiMobileAssistantRoute
@@ -1015,6 +1041,13 @@ declare module '@tanstack/react-router' {
       path: '/terms-of-service'
       fullPath: '/terms-of-service'
       preLoaderRoute: typeof TermsOfServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wanted': {
@@ -1218,6 +1251,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/compliance-check'
       fullPath: '/api/cron/compliance-check'
       preLoaderRoute: typeof ApiCronComplianceCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/legal-feed': {
+      id: '/api/cron/legal-feed'
+      path: '/api/cron/legal-feed'
+      fullPath: '/api/cron/legal-feed'
+      preLoaderRoute: typeof ApiCronLegalFeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/flutterwave/webhook': {
@@ -1519,6 +1559,7 @@ const rootRouteChildren: RootRouteChildren = {
   SsoCallbackRoute: SsoCallbackRoute,
   StationsRoute: StationsRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
+  UpdatesRoute: UpdatesRoute,
   WantedRoute: WantedRouteWithChildren,
   AdviceSlugRoute: AdviceSlugRoute,
   LawyersLawyerIdRoute: LawyersLawyerIdRoute,
@@ -1528,6 +1569,7 @@ const rootRouteChildren: RootRouteChildren = {
   LawyersIndexRoute: LawyersIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
   ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
+  ApiCronLegalFeedRoute: ApiCronLegalFeedRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
   ApiMobileSplatRoute: ApiMobileSplatRoute,
   ApiMobileAssistantRoute: ApiMobileAssistantRoute,
