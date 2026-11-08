@@ -22,7 +22,7 @@ export function HearingCalendar() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
-      <div className="rounded-lg border border-border bg-card p-3 shadow-plate">
+      <div className="card p-3">
         <Calendar
           mode="single"
           selected={selectedDay}
@@ -58,7 +58,7 @@ export function HearingCalendar() {
             />
           ) : (
             dayHearings.map((hearing) => (
-              <div key={hearing.id} className="rounded-lg border border-border bg-card p-4">
+              <div key={hearing.id} className="card p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-display font-semibold">{hearing.subject}</p>
                   <StatusPill value={hearing.status} />

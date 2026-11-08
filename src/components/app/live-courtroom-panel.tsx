@@ -37,7 +37,7 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
   const roomUrl = `${trialRoomBase.replace(/\/$/, "")}/${roomSlug}`;
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-plate">
+    <section className="card p-5">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
         <div>
           <p className="eyebrow text-brass">Court operations</p>
@@ -99,7 +99,7 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
           )}
         </div>
 
-        <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+        <div className="space-y-3 card p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-display text-base font-semibold">Hearing workspace</p>

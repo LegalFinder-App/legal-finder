@@ -98,10 +98,7 @@ function IncidentTriage() {
           <EmptyState icon={<ShieldAlert className="h-8 w-8" />} title="No reports in the queue" />
         ) : (
           rows.map((report) => (
-            <div
-              key={report.id}
-              className="rounded-lg border border-border bg-card p-5 shadow-plate"
-            >
+            <div key={report.id} className="card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-mono text-xs text-brass">{report.reference}</p>

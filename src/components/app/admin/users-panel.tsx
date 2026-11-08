@@ -198,7 +198,7 @@ export function UsersPanel() {
             return (
               <div
                 key={profile.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-card p-4 shadow-plate"
+                className="flex flex-wrap items-center justify-between gap-4 card p-4"
               >
                 <div className="min-w-0">
                   <p className="truncate font-display font-semibold">

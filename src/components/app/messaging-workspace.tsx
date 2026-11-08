@@ -120,7 +120,7 @@ export function MessagingWorkspace() {
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <aside className="rounded-xl border border-border bg-card p-4 shadow-plate">
+        <aside className="card p-4">
           <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
             <div>
               <h2 className="font-display text-lg font-semibold">Conversations</h2>
@@ -175,7 +175,7 @@ export function MessagingWorkspace() {
           </div>
         </aside>
 
-        <section className="flex min-h-[70vh] flex-col rounded-xl border border-border bg-card shadow-plate">
+        <section className="flex min-h-[70vh] flex-col card">
           <div className="border-b border-border p-5">
             <div className="flex items-start justify-between gap-4">
               <div>

@@ -160,7 +160,7 @@ export function AdminOverview() {
         </div>
       ) : (
         <div className="mt-10 grid gap-8 lg:grid-cols-2">
-          <section className="rounded-lg border border-border bg-card p-5 shadow-plate">
+          <section className="card p-5">
             <SectionHeading eyebrow="Growth" title="Signups, last 6 months" />
             <ChartContainer config={signupsConfig} className="mt-4 aspect-auto h-56 w-full">
               <LineChart data={signupSeries} margin={{ left: 0, right: 12 }}>
@@ -179,7 +179,7 @@ export function AdminOverview() {
             </ChartContainer>
           </section>
 
-          <section className="rounded-lg border border-border bg-card p-5 shadow-plate">
+          <section className="card p-5">
             <SectionHeading eyebrow="Caseload" title="Cases by status" />
             {caseStatusSeries.length === 0 ? (
               <p className="mt-8 text-center text-sm text-muted-foreground">
@@ -204,7 +204,7 @@ export function AdminOverview() {
             )}
           </section>
 
-          <section className="rounded-lg border border-border bg-card p-5 shadow-plate">
+          <section className="card p-5">
             <SectionHeading eyebrow="Revenue" title="Completed payments, last 6 months" />
             <ChartContainer config={revenueConfig} className="mt-4 aspect-auto h-56 w-full">
               <LineChart data={revenueSeries} margin={{ left: 0, right: 12 }}>
@@ -223,7 +223,7 @@ export function AdminOverview() {
             </ChartContainer>
           </section>
 
-          <section className="rounded-lg border border-border bg-card p-5 shadow-plate">
+          <section className="card p-5">
             <SectionHeading eyebrow="Activity" title="Audit events, last 14 days" />
             <ChartContainer config={auditConfig} className="mt-4 aspect-auto h-56 w-full">
               <BarChart data={auditSeries} margin={{ left: 0, right: 12 }}>
@@ -242,7 +242,7 @@ export function AdminOverview() {
             </ChartContainer>
           </section>
 
-          <section className="rounded-lg border border-border bg-card p-5 shadow-plate lg:col-span-2">
+          <section className="card p-5 lg:col-span-2">
             <SectionHeading eyebrow="Performance" title="Top advocates" />
             {advocatePerformance.length === 0 ? (
               <p className="mt-8 text-center text-sm text-muted-foreground">

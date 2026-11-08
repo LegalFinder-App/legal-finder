@@ -29,7 +29,7 @@ export function AiConsentGate({
   if (consent.loading) return frame(<Skeleton className="h-40 w-full" />);
 
   return frame(
-    <div className="rounded-xl border border-border bg-card p-6 shadow-plate">
+    <div className="card p-5 sm:p-6">
       <div className="flex items-center gap-3">
         <Sparkles className="h-5 w-5 shrink-0 text-brass" />
         <h2 className="font-display text-lg font-semibold">Before you use AI features</h2>

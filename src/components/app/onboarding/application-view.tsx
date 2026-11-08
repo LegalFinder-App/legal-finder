@@ -113,7 +113,7 @@ function RolePicker({ onPick }: { onPick: (role: ApplicationRole) => void }) {
             key={role}
             type="button"
             onClick={() => onPick(role)}
-            className="flex w-full items-center gap-4 rounded-xl border border-border bg-card p-5 text-left shadow-plate hover:border-brass/60"
+            className="flex w-full items-center gap-4 card card-interactive p-5 text-left"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brass/10 text-brass">
               <Icon className="h-5 w-5" />
@@ -134,7 +134,7 @@ function RolePicker({ onPick }: { onPick: (role: ApplicationRole) => void }) {
 function Approved({ role }: { role: ApplicationRole }) {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-8 text-center shadow-plate">
+    <div className="flex flex-col items-center gap-3 card p-6 sm:p-8 text-center">
       <BadgeCheck className="h-9 w-9 text-success" />
       <p className="font-display text-xl font-semibold">
         Your {REQUIREMENTS[role].noun} account is active
@@ -294,7 +294,7 @@ function ApplicationForm({
         onChange={onFile}
       />
 
-      <section className="rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="card p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <h2 className="font-display text-xl font-semibold">{req.title}</h2>
           <span
@@ -337,7 +337,7 @@ function ApplicationForm({
         )}
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Your details</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {req.fields.map((field) => {
@@ -375,7 +375,7 @@ function ApplicationForm({
         </div>
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Documents</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           A clear photo or a PDF, up to 10 MB each.

@@ -16,10 +16,7 @@ export function LawyerCard({ lawyer, className }: { lawyer: Lawyer; className?: 
     <Link
       to="/lawyers/$lawyerId"
       params={{ lawyerId: lawyer.id }}
-      className={cn(
-        "group relative flex h-full min-w-0 flex-col rounded-3xl border border-border bg-card p-5 shadow-plate transition-[transform,box-shadow,border-color] duration-300 ease-(--ease-out-expo) hover:-translate-y-1 hover:border-foreground/15 hover:shadow-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        className,
-      )}
+      className={cn("group card card-interactive flex h-full min-w-0 flex-col p-5", className)}
     >
       <div className="flex items-start gap-3.5">
         <div className="relative shrink-0">
@@ -145,10 +142,7 @@ export function LawyerCard({ lawyer, className }: { lawyer: Lawyer; className?: 
 /** Same footprint as LawyerCard, for loading states (no spinners on content). */
 export function LawyerCardSkeleton() {
   return (
-    <div
-      className="flex h-full flex-col rounded-3xl border border-border bg-card p-5 shadow-plate"
-      aria-hidden
-    >
+    <div className="card flex h-full flex-col p-5" aria-hidden>
       <div className="flex items-start gap-3.5">
         <div className="h-14 w-14 animate-pulse rounded-full bg-muted" />
         <div className="flex-1 space-y-2 pt-1">

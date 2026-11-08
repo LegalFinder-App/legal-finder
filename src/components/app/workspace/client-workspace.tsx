@@ -127,7 +127,7 @@ export function ClientWorkspace() {
             />
           ) : (
             (notifications.data ?? []).slice(0, 5).map((n) => (
-              <div key={n.id} className="rounded-lg border border-border bg-card p-5 shadow-plate">
+              <div key={n.id} className="card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-display font-semibold">{n.title}</p>

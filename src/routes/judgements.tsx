@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Gavel, FileDown, SlidersHorizontal } from "lucide-react";
+import { CalendarDays, FileDown, FileText, Gavel, Landmark, SlidersHorizontal } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
@@ -119,38 +119,58 @@ function JudgementsPage() {
               <EmptyState icon={<Gavel className="h-8 w-8" />} title="No judgements found" />
             ) : (
               <>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-2">
                   {pageItems.map((j) => (
-                    <article
-                      key={j.id}
-                      className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-plate"
-                    >
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground">
-                        <span className="text-brass">{j.case_number}</span>
-                        {j.decided_on && <span>{new Date(j.decided_on).toLocaleDateString()}</span>}
+                    <article key={j.id} className="card flex min-w-0 flex-col p-5 sm:p-6">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-[0.72rem] font-semibold text-accent-foreground">
+                          <Landmark className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                          <span className="truncate">{j.court}</span>
+                        </span>
+                        {j.decided_on && (
+                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                            <CalendarDays className="h-3.5 w-3.5" aria-hidden />
+                            <time dateTime={j.decided_on}>
+                              {new Date(j.decided_on).toLocaleDateString(undefined, {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </time>
+                          </span>
+                        )}
                       </div>
-                      <h2 className="mt-2 font-display text-lg font-semibold leading-snug">
+                      <h2 className="mt-4 text-[1.0625rem] font-bold leading-snug tracking-tight sm:text-lg">
                         {j.title}
                       </h2>
-                      <p className="mt-1 text-sm text-muted-foreground">{j.court}</p>
+                      <p className="mt-1.5 font-mono text-xs text-brass">{j.case_number}</p>
                       {j.judge && (
-                        <p className="mt-1 text-sm text-muted-foreground">Before {j.judge}</p>
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Gavel className="h-3.5 w-3.5 shrink-0" aria-hidden /> Before {j.judge}
+                        </p>
                       )}
                       {j.summary && (
                         <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-muted-foreground">
                           {j.summary}
                         </p>
                       )}
-                      {j.file_url && (
-                        <a
-                          href={j.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-brass hover:underline"
-                        >
-                          <FileDown className="h-4 w-4" /> Download full text
-                        </a>
-                      )}
+                      <div aria-hidden className="min-h-5 flex-1" />
+                      <div className="border-t border-border pt-4">
+                        {j.file_url ? (
+                          <a
+                            href={j.file_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="press inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/88 sm:w-auto sm:px-5"
+                          >
+                            <FileDown className="h-4 w-4" aria-hidden /> Download full text
+                          </a>
+                        ) : (
+                          <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <FileText className="h-3.5 w-3.5" aria-hidden /> Summary only
+                          </p>
+                        )}
+                      </div>
                     </article>
                   ))}
                 </div>

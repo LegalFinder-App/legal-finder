@@ -98,10 +98,7 @@ export function VerificationsPanel() {
             />
           ) : (
             (lawyers.data ?? []).map((lawyer) => (
-              <div
-                key={lawyer.id}
-                className="rounded-lg border border-border bg-card p-5 shadow-plate"
-              >
+              <div key={lawyer.id} className="card p-5">
                 <div className="flex items-start gap-3">
                   <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-border bg-secondary">
                     {lawyer.photo_url ? (

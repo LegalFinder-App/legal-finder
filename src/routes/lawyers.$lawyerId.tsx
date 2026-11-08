@@ -186,7 +186,7 @@ function LawyerProfile() {
           </div>
 
           <dl
-            className="animate-rise mt-10 grid grid-cols-2 overflow-hidden rounded-3xl border border-border bg-card shadow-plate sm:grid-cols-4"
+            className="animate-rise mt-10 grid grid-cols-2 overflow-hidden card sm:grid-cols-4"
             style={delay(220)}
           >
             {[
@@ -264,10 +264,7 @@ function LawyerProfile() {
                 <p className="text-sm text-muted-foreground">No reviews yet.</p>
               ) : (
                 (reviews ?? []).map((r) => (
-                  <div
-                    key={r.id}
-                    className="rounded-3xl border border-border bg-card p-5 shadow-xs"
-                  >
+                  <div key={r.id} className="card p-5">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{r.author_name}</p>
                       <Stars value={r.rating} />
@@ -284,7 +281,7 @@ function LawyerProfile() {
         </div>
 
         <aside className="space-y-5">
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-plate lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
+          <div className="card p-5 sm:p-6 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
             <p className="eyebrow text-muted-foreground">Engagement</p>
             <dl className="mt-4 space-y-3 text-sm">
               <Row
@@ -309,7 +306,7 @@ function LawyerProfile() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-xs">
+          <div className="card p-5 sm:p-6">
             <p className="eyebrow text-muted-foreground">Contact</p>
             <div className="mt-4 space-y-3 text-sm">
               {lawyer.email && (
@@ -602,7 +599,7 @@ function ReviewForm({ lawyerId }: { lawyerId: string }) {
   };
 
   return (
-    <form onSubmit={submit} className="mt-6 rounded-lg border border-border bg-card p-5">
+    <form onSubmit={submit} className="mt-6 card p-5">
       <p className="font-display font-semibold">Leave a review</p>
       <button type="button" className="mt-3 flex gap-1" aria-hidden="true" tabIndex={-1}>
         <Stars value={rating} />

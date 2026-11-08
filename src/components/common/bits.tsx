@@ -109,8 +109,12 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-plate">
-      <div className="flex items-start justify-between gap-3">
+    <div className="card overflow-hidden p-5">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gold/15 blur-2xl"
+      />
+      <div className="relative flex items-start justify-between gap-3">
         <p className="eyebrow text-muted-foreground">{label}</p>
         {icon && (
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-brass [&_svg]:h-4 [&_svg]:w-4">
@@ -118,7 +122,9 @@ export function StatCard({
           </span>
         )}
       </div>
-      <p className="mt-2 font-display text-3xl font-bold tracking-tight tabular-nums">{value}</p>
+      <p className="relative mt-2 font-display text-3xl font-bold tracking-tight tabular-nums">
+        {value}
+      </p>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
@@ -128,10 +134,7 @@ export function LoadingRows({ rows = 4 }: { rows?: number }) {
   return (
     <div className="space-y-3" role="status" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
-        <div
-          key={i}
-          className="flex h-20 items-center gap-4 rounded-2xl border border-border bg-card px-5"
-        >
+        <div key={i} className="flex h-20 items-center gap-4 card px-5">
           <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
           <div className="flex-1 space-y-2">
             <div className="h-3.5 w-1/3 animate-pulse rounded-full bg-muted" />

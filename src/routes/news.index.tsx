@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArticleCard } from "@/components/common/article-card";
 import { useQuery } from "@tanstack/react-query";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
-import { cn } from "@/lib/utils";
 import { newsListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/news/")({
@@ -46,48 +46,13 @@ function NewsPage() {
           <EmptyState title="No news published yet" />
         ) : (
           <>
-            <Link
-              to="/news/$slug"
-              params={{ slug: lead.slug ?? lead.id }}
-              className={cn(
-                "group grid overflow-hidden rounded-xl border border-border bg-card shadow-plate",
-                lead.image_url ? "gap-8 lg:grid-cols-2" : "gap-0",
-              )}
-            >
-              {lead.image_url && (
-                <img src={lead.image_url} alt="" className="h-full min-h-64 w-full object-cover" />
-              )}
-              <div className="flex flex-col justify-center p-8">
-                <p className="eyebrow text-brass">Lead story</p>
-                <h2 className="mt-3 font-display text-3xl font-semibold leading-tight group-hover:text-brass">
-                  {lead.title}
-                </h2>
-                <p className="mt-3 text-muted-foreground">{lead.summary}</p>
-                <p className="mt-5 font-mono text-xs text-muted-foreground">
-                  {new Date(lead.published_at).toLocaleDateString()} ·{" "}
-                  {lead.source ?? "LegalFinder"}
-                </p>
-              </div>
-            </Link>
+            <ArticleCard article={lead} kind="news" variant="feature" />
 
             {rest.length > 0 && (
               <>
-                <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                   {pageItems.map((n) => (
-                    <Link
-                      key={n.id}
-                      to="/news/$slug"
-                      params={{ slug: n.slug ?? n.id }}
-                      className="group rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-plate"
-                    >
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {new Date(n.published_at).toLocaleDateString()}
-                      </p>
-                      <h3 className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-brass">
-                        {n.title}
-                      </h3>
-                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
-                    </Link>
+                    <ArticleCard key={n.id} article={n} kind="news" />
                   ))}
                 </div>
                 <PaginationBar

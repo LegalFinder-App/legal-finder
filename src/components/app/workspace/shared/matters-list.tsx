@@ -33,7 +33,7 @@ export function MattersList({
           key={c.id}
           to="/cases/$caseId"
           params={{ caseId: c.id }}
-          className="block rounded-lg border border-border bg-card p-5 hover:border-brass/50"
+          className="block card card-interactive p-5"
         >
           <div className="flex items-center justify-between gap-3">
             <p className="font-mono text-xs text-brass">{c.reference}</p>

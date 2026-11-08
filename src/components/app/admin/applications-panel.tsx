@@ -135,7 +135,7 @@ function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: strin
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5 shadow-plate">
+    <div className="card p-5">
       <div className="flex items-start justify-between gap-3">
         <p className="font-display font-semibold">
           {name} · {req.noun}

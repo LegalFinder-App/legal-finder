@@ -86,7 +86,7 @@ export function CompliancePanel({ userId }: { userId: string | undefined }) {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-lg border border-border bg-card p-5">
+      <div className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-display font-semibold">Bar license</p>
@@ -118,10 +118,7 @@ export function CompliancePanel({ userId }: { userId: string | undefined }) {
           <p className="text-sm text-muted-foreground">{totalHours} hour(s) logged</p>
         </div>
 
-        <form
-          onSubmit={addCpdRecord}
-          className="mt-3 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4"
-        >
+        <form onSubmit={addCpdRecord} className="mt-3 flex flex-wrap items-end gap-3 card p-4">
           <div className="min-w-[10rem] flex-1 space-y-1.5">
             <Label htmlFor="cpd-title">Activity</Label>
             <Input
@@ -170,10 +167,7 @@ export function CompliancePanel({ userId }: { userId: string | undefined }) {
             />
           ) : (
             (cpdRecords.data ?? []).map((record) => (
-              <div
-                key={record.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
-              >
+              <div key={record.id} className="flex items-center justify-between gap-3 card p-4">
                 <div>
                   <p className="text-sm font-semibold">{record.title}</p>
                   <p className="text-xs text-muted-foreground">

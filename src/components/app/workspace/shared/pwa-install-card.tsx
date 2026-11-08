@@ -5,7 +5,7 @@ export function PwaInstallCard() {
   const { canInstall, promptInstall } = usePwaInstall();
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5 shadow-plate">
+    <div className="card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-display text-base font-semibold">Installable app shell</p>

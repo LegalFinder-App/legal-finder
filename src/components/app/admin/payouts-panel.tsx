@@ -70,7 +70,7 @@ export function PayoutsPanel() {
           payouts.map((payment) => (
             <div
               key={payment.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
+              className="flex flex-wrap items-center justify-between gap-3 card p-4"
             >
               <div>
                 <p className="font-display text-sm font-semibold">

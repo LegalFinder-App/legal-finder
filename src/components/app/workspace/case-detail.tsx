@@ -83,10 +83,7 @@ function DeadlinesPanel({ caseId, userId }: { caseId: string; userId: string | u
 
   return (
     <div>
-      <form
-        onSubmit={addDeadline}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4"
-      >
+      <form onSubmit={addDeadline} className="flex flex-wrap items-end gap-3 card p-4">
         <div className="min-w-[10rem] flex-1 space-y-1.5">
           <Label htmlFor="deadline-title">Deadline</Label>
           <Input
@@ -143,10 +140,7 @@ function DeadlinesPanel({ caseId, userId }: { caseId: string; userId: string | u
           />
         ) : (
           (deadlines.data ?? []).map((d) => (
-            <div
-              key={d.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
-            >
+            <div key={d.id} className="flex flex-wrap items-center justify-between gap-3 card p-4">
               <div>
                 <p className="font-display font-semibold">{d.title}</p>
                 <p className="mt-1 text-xs capitalize text-muted-foreground">
@@ -237,7 +231,7 @@ function UpdatesTimeline({
           />
         ) : (
           (updates.data ?? []).map((u) => (
-            <div key={u.id} className="rounded-lg border border-border bg-card p-4">
+            <div key={u.id} className="card p-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold">{u.author_name || "Unknown"}</p>
                 <p className="text-xs text-muted-foreground">
@@ -324,7 +318,7 @@ export function CaseDetail({ caseId }: { caseId: string }) {
       )}
 
       {c.status === "closed" && (
-        <div className="mt-6 flex items-center gap-3 rounded-lg border border-border bg-card p-4">
+        <div className="mt-6 flex items-center gap-3 card p-4">
           <p className="text-sm font-medium">Outcome</p>
           <Select
             value={c.outcome ?? undefined}

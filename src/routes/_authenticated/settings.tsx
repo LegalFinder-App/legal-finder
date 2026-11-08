@@ -99,7 +99,7 @@ function SettingsPage() {
         Manage your profile, notifications, and appearance.
       </p>
 
-      <section className="mt-10 rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="mt-10 card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Profile</h2>
         <div className="mt-4">
           <AvatarUploadCard
@@ -135,7 +135,7 @@ function SettingsPage() {
       </section>
 
       {primaryRole === "lawyer" && (
-        <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+        <section className="mt-8 card p-5 sm:p-6">
           <h2 className="font-display text-lg font-semibold">Payout details</h2>
           <div className="mt-4">
             <PayoutDetailsCard lawyerUserId={user?.id} />
@@ -143,14 +143,14 @@ function SettingsPage() {
         </section>
       )}
 
-      <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="mt-8 card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Passkeys</h2>
         <div className="mt-4">
           <PasskeyManager />
         </div>
       </section>
 
-      <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="mt-8 card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Notifications</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Register this device to receive push notifications for new messages and case updates.
@@ -160,7 +160,7 @@ function SettingsPage() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="mt-8 card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Privacy</h2>
         <div className="mt-4 flex items-start justify-between gap-4">
           <div>
@@ -179,7 +179,7 @@ function SettingsPage() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-plate">
+      <section className="mt-8 card p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold">Appearance</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Choose how LegalFinder looks on this device.
@@ -204,7 +204,7 @@ function SettingsPage() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-xl border border-destructive/40 bg-card p-6 shadow-plate">
+      <section className="mt-8 card border-destructive/40 p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold text-destructive">Danger zone</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Permanently delete your account and sign-in access. This cannot be undone.

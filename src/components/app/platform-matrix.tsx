@@ -25,7 +25,7 @@ const TARGETS = [
 
 export function PlatformMatrix() {
   return (
-    <section className="rounded-[2rem] border border-border bg-card p-5 shadow-plate sm:p-8">
+    <section className="card rounded-[2rem] p-5 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
         <div>
           <p className="eyebrow text-brass">Where you can use LegalFinder</p>
@@ -44,7 +44,7 @@ export function PlatformMatrix() {
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {TARGETS.map((target) => (
-          <div key={target.title} className="rounded-2xl border border-border bg-background/60 p-5">
+          <div key={target.title} className="card-inset p-5">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-brass">
               <target.icon className="h-5 w-5" aria-hidden />
             </span>

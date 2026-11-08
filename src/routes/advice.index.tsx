@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArticleCard } from "@/components/common/article-card";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
@@ -65,33 +66,9 @@ function AdvicePage() {
             <EmptyState title="Nothing published yet" />
           ) : (
             <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                 {pageItems.map((a) => (
-                  <Link
-                    key={a.id}
-                    to="/advice/$slug"
-                    params={{ slug: a.slug ?? a.id }}
-                    className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-plate transition-all hover:-translate-y-0.5 hover:shadow-raised"
-                  >
-                    {a.image_url && (
-                      <img
-                        src={a.image_url}
-                        alt=""
-                        loading="lazy"
-                        className="h-40 w-full object-cover"
-                      />
-                    )}
-                    <div className="flex flex-1 flex-col p-5">
-                      <p className="eyebrow text-brass">{a.category}</p>
-                      <h2 className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-brass">
-                        {a.title}
-                      </h2>
-                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{a.summary}</p>
-                      <p className="mt-auto pt-4 text-xs text-muted-foreground">
-                        {a.author_name ?? "LegalFinder editorial"}
-                      </p>
-                    </div>
-                  </Link>
+                  <ArticleCard key={a.id} article={a} kind="advice" />
                 ))}
               </div>
               <PaginationBar

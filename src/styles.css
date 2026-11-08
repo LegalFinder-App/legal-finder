@@ -153,6 +153,66 @@
   box-shadow: var(--shadow-glow);
 }
 
+/* ---------- Cards: one definition for every card on the site ---------- */
+
+@utility card {
+  position: relative;
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 8px);
+  box-shadow: var(--shadow-card);
+}
+
+/* Clickable cards. Hover lift only where there is a real pointer, so a tap on a phone never
+   leaves a card stuck "raised". */
+@utility card-interactive {
+  cursor: pointer;
+  transition-property: transform, box-shadow, border-color, background-color;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out-expo);
+  -webkit-tap-highlight-color: transparent;
+  @media (hover: hover) {
+    &:hover {
+      transform: translate3d(0, -3px, 0);
+      box-shadow: var(--shadow-card-hover);
+      border-color: color-mix(in oklch, var(--foreground) 16%, transparent);
+    }
+  }
+  &:active {
+    transform: translate3d(0, -1px, 0) scale(0.995);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+}
+
+/* A row or panel nested inside a card. */
+@utility card-inset {
+  background-color: color-mix(in oklch, var(--background) 70%, var(--card));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Image at the top of a card: fixed ratio (no layout shift), gentle zoom on hover. */
+@utility card-media {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+  & > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 900ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    :where(.group):hover & > img {
+      transform: scale(1.05);
+    }
+  }
+}
+
 @utility eyebrow {
   font-family: var(--font-sans);
   font-size: var(--text-overline);

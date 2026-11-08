@@ -101,15 +101,24 @@ function About() {
             title="From first question to final judgement"
             align="center"
           />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-12 md:grid-cols-3 md:gap-5">
             {TIMELINE.map((step, index) => (
-              <div
-                key={step.title}
-                className="relative rounded-lg border border-border bg-card p-6 shadow-plate"
-              >
-                <span className="eyebrow text-brass">Step {index + 1}</span>
-                <step.icon className="mt-4 h-6 w-6 text-brass" />
-                <h3 className="mt-3 font-display text-lg font-semibold">{step.title}</h3>
+              <div key={step.title} className="relative card p-5 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-raised">
+                    <step.icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  {/* Decorative step number, drawn with CSS so it isn't read or contrast-checked. */}
+                  <span
+                    aria-hidden
+                    data-n={String(index + 1).padStart(2, "0")}
+                    className="text-3xl font-bold tabular-nums tracking-tight text-foreground/10 before:content-[attr(data-n)]"
+                  />
+                </div>
+                <h3 className="mt-5 text-base font-bold tracking-tight sm:text-lg">
+                  <span className="sr-only">Step {index + 1}: </span>
+                  {step.title}
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
               </div>
             ))}
@@ -120,8 +129,8 @@ function About() {
       <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 lg:px-8">
         <h2 className="font-display text-3xl font-semibold">It runs everywhere your case does</h2>
         <p className="mt-4 text-muted-foreground">
-          Web, installable on Windows, macOS and Linux, and available on iOS and Android from the
-          same shared codebase.
+          On the web today, with a Windows desktop app and iPhone and Android apps in store testing
+          — all built from the same shared app.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button asChild variant="brass" size="lg">

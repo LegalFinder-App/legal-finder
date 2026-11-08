@@ -100,10 +100,7 @@ function ReportPage() {
         description="Your report goes to the police workspace with a reference you can follow. Emergencies should always be phoned in first."
       />
       <div className="mx-auto max-w-2xl px-4 py-14 sm:px-6">
-        <form
-          onSubmit={submit}
-          className="space-y-5 rounded-xl border border-border bg-card p-7 shadow-plate"
-        >
+        <form onSubmit={submit} className="space-y-5 card p-5 sm:p-7">
           <div className="space-y-2">
             <Label>Category</Label>
             <div className="flex flex-wrap gap-2">

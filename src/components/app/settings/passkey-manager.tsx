@@ -53,10 +53,7 @@ export function PasskeyManager() {
       {passkeys.length > 0 && (
         <div className="mt-4 space-y-2">
           {passkeys.map((passkey) => (
-            <div
-              key={passkey.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3"
-            >
+            <div key={passkey.id} className="flex items-center justify-between gap-3 card p-3">
               <div className="flex items-center gap-2 min-w-0">
                 <Fingerprint className="h-4 w-4 shrink-0 text-brass" />
                 <div className="min-w-0">

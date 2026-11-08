@@ -88,7 +88,7 @@ export function PracticeAnalytics({ userId }: { userId: string | undefined }) {
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <section className="rounded-lg border border-border bg-card p-5 shadow-plate">
+        <section className="card p-5">
           <SectionHeading eyebrow="Revenue" title="Completed payments, last 6 months" />
           <ChartContainer config={revenueConfig} className="mt-4 aspect-auto h-56 w-full">
             <LineChart data={revenueSeries} margin={{ left: 0, right: 12 }}>
@@ -107,7 +107,7 @@ export function PracticeAnalytics({ userId }: { userId: string | undefined }) {
           </ChartContainer>
         </section>
 
-        <section className="rounded-lg border border-border bg-card p-5 shadow-plate">
+        <section className="card p-5">
           <SectionHeading eyebrow="Outcomes" title="Closed cases by outcome" />
           {outcomeSeries.length === 0 ? (
             <p className="mt-8 text-center text-sm text-muted-foreground">No closed matters yet.</p>

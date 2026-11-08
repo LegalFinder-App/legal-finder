@@ -59,7 +59,7 @@ function Contact() {
               description: "If nothing opens, email support@legalfinder.co directly.",
             });
           }}
-          className="space-y-4 rounded-xl border border-border bg-card p-7 shadow-plate"
+          className="space-y-4 card p-5 sm:p-7"
         >
           <div className="space-y-2">
             <Label htmlFor="n">Name</Label>

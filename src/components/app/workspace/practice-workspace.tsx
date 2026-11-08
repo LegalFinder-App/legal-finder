@@ -86,7 +86,7 @@ function CasePipeline() {
           </div>
           <div className="mt-3 space-y-3">
             {column.items.map((c) => (
-              <div key={c.id} className="rounded-lg border border-border bg-card p-4 shadow-plate">
+              <div key={c.id} className="card p-4">
                 <Link to="/cases/$caseId" params={{ caseId: c.id }} className="block">
                   <p className="font-mono text-xs text-brass">{c.reference}</p>
                   <p className="mt-1 font-display text-sm font-semibold hover:underline">
@@ -153,7 +153,7 @@ function ClientList({ cases }: { cases: CaseRow[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {(clients.data ?? []).map((client) => (
-        <div key={client.id} className="rounded-lg border border-border bg-card p-4 shadow-plate">
+        <div key={client.id} className="card p-4">
           <p className="font-display font-semibold">{client.full_name || "Unnamed client"}</p>
           <p className="mt-1 text-sm text-muted-foreground">{client.email}</p>
           <p className="mt-2 text-xs text-muted-foreground">

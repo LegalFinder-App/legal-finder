@@ -474,7 +474,7 @@ export function AuditTrail() {
                           >
                             <meta.icon className={cn("h-3.5 w-3.5", meta.iconColor)} />
                           </span>
-                          <div className="rounded-lg border border-border bg-card shadow-plate transition-shadow hover:shadow-raised">
+                          <div className="card">
                             <AccordionTrigger className="px-5 py-4 hover:no-underline">
                               <div className="flex flex-1 flex-wrap items-center justify-between gap-3 pr-2 text-left">
                                 <div className="flex items-center gap-3">

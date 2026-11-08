@@ -45,13 +45,22 @@ function SafetyPage() {
         ) : (data ?? []).length === 0 ? (
           <EmptyState icon={<ShieldCheck className="h-8 w-8" />} title="No tips published yet" />
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2">
-            {(data ?? []).map((t) => (
-              <div key={t.id} className="rounded-lg border border-border bg-card p-6 shadow-plate">
-                <ShieldCheck className="h-5 w-5 text-brass" />
-                <h2 className="mt-4 font-display text-lg font-semibold">{t.title}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.body}</p>
-              </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+            {(data ?? []).map((t, i) => (
+              <article key={t.id} className="card flex min-w-0 gap-4 p-5 sm:p-6">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-success/10 text-success">
+                  <ShieldCheck className="h-5 w-5" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+                    Tip {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h2 className="mt-1 text-base font-bold leading-snug tracking-tight">
+                    {t.title}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.body}</p>
+                </div>
+              </article>
             ))}
           </div>
         )}

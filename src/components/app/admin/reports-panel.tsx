@@ -154,7 +154,7 @@ export function ReportsPanel() {
           />
         ) : (
           (reports.data ?? []).map((r) => (
-            <div key={r.id} className="rounded-lg border border-border bg-card p-5 shadow-plate">
+            <div key={r.id} className="card p-5">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-display font-semibold">
                   {KIND[r.target_type] ?? r.target_type}: {REASONS[r.reason] ?? r.reason}

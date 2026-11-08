@@ -74,7 +74,7 @@ export function AssistantWorkspace() {
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <section className="flex h-[70vh] flex-col rounded-xl border border-border bg-card shadow-plate">
+        <section className="flex h-[70vh] flex-col card">
           <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-5">
             {messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
@@ -169,10 +169,7 @@ export function AssistantWorkspace() {
               <EmptyState title="No advocates match yet" />
             ) : (
               (lawyers.data ?? []).slice(0, 3).map((lawyer) => (
-                <div
-                  key={lawyer.id}
-                  className="rounded-lg border border-border bg-card p-4 shadow-plate"
-                >
+                <div key={lawyer.id} className="card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-display font-semibold">{lawyer.full_name}</p>
@@ -187,7 +184,7 @@ export function AssistantWorkspace() {
             )}
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4 shadow-plate">
+          <div className="card p-4">
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-brass" />
               <p className="font-semibold">Latest advice</p>
@@ -202,7 +199,7 @@ export function AssistantWorkspace() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4 shadow-plate">
+          <div className="card p-4">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-brass" />
               <p className="font-semibold">Security tips</p>
@@ -217,7 +214,7 @@ export function AssistantWorkspace() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4 shadow-plate">
+          <div className="card p-4">
             <div className="flex items-center gap-2">
               <Gavel className="h-4 w-4 text-brass" />
               <p className="font-semibold">Recent judgements and news</p>

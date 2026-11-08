@@ -129,7 +129,7 @@ export function DocumentVault({
           />
         ) : (
           rows.map((document) => (
-            <div key={document.id} className="rounded-lg border border-border bg-card p-5">
+            <div key={document.id} className="card p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-display font-semibold">{document.name}</p>

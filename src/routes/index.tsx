@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { ArticleCard } from "@/components/common/article-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -290,31 +291,32 @@ function Index() {
           </div>
           <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PILLARS.map((p, i) => (
-              <Link
+              <div
                 key={p.title}
-                to={p.to}
-                onPointerMove={trackSpotlight}
                 style={delay(i * 70)}
-                className={cn(
-                  "reveal spotlight group flex flex-col sm:min-h-56 overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-plate transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-foreground/15 hover:shadow-raised sm:p-7",
-                  "wide" in p && p.wide && "lg:col-span-2",
-                )}
+                className={cn("reveal min-w-0", "wide" in p && p.wide && "lg:col-span-2")}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
-                    <p.icon className="h-5 w-5" aria-hidden />
-                  </span>
-                  <span className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                    <ArrowUpRight className="h-4 w-4" aria-hidden />
-                  </span>
-                </div>
-                <h3 className="mt-6 text-h4 font-bold sm:mt-auto sm:pt-8">{p.title}</h3>
-                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  {p.body}
-                </p>
-                {i === 0 && list.length > 0 && <AvatarRow lawyers={list} />}
-                {i === 5 && <AssistantPreview />}
-              </Link>
+                <Link
+                  to={p.to}
+                  onPointerMove={trackSpotlight}
+                  className="card card-interactive spotlight group flex h-full flex-col overflow-hidden p-5 sm:min-h-56 sm:p-7"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
+                      <p.icon className="h-5 w-5" aria-hidden />
+                    </span>
+                    <span className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                      <ArrowUpRight className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                  <h3 className="mt-6 text-h4 font-bold sm:mt-auto sm:pt-8">{p.title}</h3>
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                    {p.body}
+                  </p>
+                  {i === 0 && list.length > 0 && <AvatarRow lawyers={list} />}
+                  {i === 5 && <AssistantPreview />}
+                </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -339,7 +341,7 @@ function Index() {
               {STEPS.map((s, i) => (
                 <li
                   key={s.title}
-                  className="reveal relative flex flex-col items-center rounded-3xl border border-border bg-card/80 p-6 text-center shadow-plate backdrop-blur md:border-0 md:bg-transparent md:shadow-none md:backdrop-blur-none"
+                  className="reveal relative flex flex-col items-center rounded-[calc(var(--radius)+8px)] border border-border bg-card/80 p-5 text-center shadow-[var(--shadow-card)] backdrop-blur md:border-0 md:bg-transparent md:shadow-none md:backdrop-blur-none"
                   style={delay(i * 120)}
                 >
                   <span className="relative grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-raised">
@@ -391,7 +393,7 @@ function Index() {
       <section className="container-page pb-16 sm:pb-20 lg:pb-28">
         <div
           ref={portalsRef}
-          className="grid gap-12 rounded-[2rem] border border-border bg-card p-5 shadow-plate sm:p-8 lg:grid-cols-2 lg:items-center lg:gap-16 lg:p-12"
+          className="card grid gap-12 rounded-[2rem] p-4 sm:p-8 lg:grid-cols-2 lg:items-center lg:gap-16 lg:p-12"
         >
           <div className="reveal relative">
             <img
@@ -423,11 +425,7 @@ function Index() {
             </div>
             <ul className="mt-8 grid gap-2.5">
               {PORTALS.map((p, i) => (
-                <li
-                  key={p.role}
-                  className="reveal flex gap-4 rounded-2xl border border-border bg-background/60 p-4 transition-colors hover:bg-secondary/60"
-                  style={delay(i * 60)}
-                >
+                <li key={p.role} className="reveal card-inset flex gap-4 p-4" style={delay(i * 60)}>
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-success/12 text-success">
                     <BadgeCheck className="h-[1.1rem] w-[1.1rem]" aria-hidden />
                   </span>
@@ -454,34 +452,9 @@ function Index() {
             </div>
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(advice.data ?? []).slice(0, 4).map((a, i) => (
-                <Link
-                  key={a.id}
-                  to="/advice/$slug"
-                  params={{ slug: a.slug ?? a.id }}
-                  style={delay(i * 70)}
-                  className="reveal group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-plate transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-raised"
-                >
-                  {a.image_url && (
-                    <div className="aspect-[16/9] overflow-hidden bg-muted">
-                      <img
-                        src={a.image_url}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        width={640}
-                        height={360}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    </div>
-                  )}
-                  <div className="flex flex-1 flex-col p-5">
-                    <p className="eyebrow text-brass">{a.category}</p>
-                    <h3 className="mt-2 font-bold leading-snug tracking-tight group-hover:text-brass">
-                      {a.title}
-                    </h3>
-                    <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{a.summary}</p>
-                  </div>
-                </Link>
+                <div key={a.id} className="reveal min-w-0" style={delay(i * 70)}>
+                  <ArticleCard article={a} kind="advice" />
+                </div>
               ))}
             </div>
           </div>
@@ -489,7 +462,7 @@ function Index() {
             <div className="reveal">
               <SectionHeading eyebrow="Newsroom" title="Latest updates" />
             </div>
-            <ul className="mt-8 divide-y divide-border rounded-3xl border border-border bg-card px-5 shadow-plate">
+            <ul className="card mt-8 divide-y divide-border px-5">
               {(news.data ?? []).slice(0, 5).map((n, i) => (
                 <li key={n.id} className="reveal" style={delay(i * 60)}>
                   <Link

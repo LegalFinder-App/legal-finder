@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LocateFixed, Mail, MapPin, Phone } from "lucide-react";
+import { LocateFixed, Mail, MapPin, Phone, Shield } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { Button } from "@/components/ui/button";
 import { stationsQuery } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/stations")({
   head: () => ({
@@ -142,45 +143,63 @@ function StationsPage() {
           <EmptyState title="No stations found" />
         ) : (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {pageItems.map((s) => (
-                <div
-                  key={s.id}
-                  className="rounded-lg border border-border bg-card p-6 shadow-plate"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h2 className="font-display text-lg font-semibold">{s.name}</h2>
+                <article key={s.id} className="card flex min-w-0 flex-col p-5 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-info/10 text-info">
+                      <Shield className="h-5 w-5" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base font-bold leading-snug tracking-tight">{s.name}</h2>
+                      {s.county && <p className="eyebrow mt-1 text-brass">{s.county}</p>}
+                    </div>
                     {s.distanceKm != null && (
-                      <span className="shrink-0 rounded-full bg-brass/15 px-2 py-0.5 font-mono text-[0.65rem] text-brass">
+                      <span className="shrink-0 rounded-full bg-success/12 px-2.5 py-0.5 text-[0.7rem] font-semibold tabular-nums text-success">
                         {s.distanceKm < 1 ? "<1 km" : `${s.distanceKm.toFixed(1)} km`}
                       </span>
                     )}
                   </div>
-                  {s.county && <p className="eyebrow mt-1 text-brass">{s.county}</p>}
-                  <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-                    {s.address && (
-                      <p className="flex items-start gap-2">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brass" /> {s.address}
-                      </p>
-                    )}
-                    {s.phone && (
-                      <a
-                        href={`tel:${s.phone}`}
-                        className="flex items-center gap-2 hover:text-brass"
-                      >
-                        <Phone className="h-4 w-4 text-brass" /> {s.phone}
-                      </a>
-                    )}
-                    {s.email && (
-                      <a
-                        href={`mailto:${s.email}`}
-                        className="flex items-center gap-2 hover:text-brass"
-                      >
-                        <Mail className="h-4 w-4 text-brass" /> {s.email}
-                      </a>
-                    )}
-                  </div>
-                </div>
+                  {s.address && (
+                    <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {s.address}
+                    </p>
+                  )}
+                  {s.phone && (
+                    <p className="mt-2 flex items-center gap-2 text-sm tabular-nums text-muted-foreground">
+                      <Phone className="h-4 w-4 shrink-0" aria-hidden /> {s.phone}
+                    </p>
+                  )}
+                  <div aria-hidden className="min-h-5 flex-1" />
+                  {(s.phone || s.email) && (
+                    <div className="grid grid-cols-2 gap-2 border-t border-border pt-4">
+                      {s.phone && (
+                        <a
+                          href={`tel:${s.phone}`}
+                          aria-label={`Call ${s.name} on ${s.phone}`}
+                          className={cn(
+                            "press inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/88",
+                            !s.email && "col-span-2",
+                          )}
+                        >
+                          <Phone className="h-4 w-4" aria-hidden /> Call
+                        </a>
+                      )}
+                      {s.email && (
+                        <a
+                          href={`mailto:${s.email}`}
+                          aria-label={`Email ${s.name}`}
+                          className={cn(
+                            "press inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-semibold hover:bg-secondary",
+                            !s.phone && "col-span-2",
+                          )}
+                        >
+                          <Mail className="h-4 w-4" aria-hidden /> Email
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </article>
               ))}
             </div>
             <PaginationBar

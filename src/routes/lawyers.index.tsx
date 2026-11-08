@@ -98,7 +98,7 @@ function LawyersPage() {
         variant="block"
       />
 
-      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 text-sm font-medium">
+      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 card px-4 text-sm font-medium">
         Accepting new clients
         <input
           type="checkbox"

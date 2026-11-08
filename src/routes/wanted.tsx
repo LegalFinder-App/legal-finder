@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Coins, MapPin } from "lucide-react";
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { LoadingRows, EmptyState, QueryError } from "@/components/common/bits";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
-import { Badge } from "@/components/ui/badge";
 import { wantedQuery } from "@/lib/queries";
+import { cn } from "@/lib/utils";
 import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/wanted")({
@@ -24,10 +24,10 @@ export const Route = createFileRoute("/wanted")({
   component: WantedPage,
 });
 
-const TONE: Record<string, "destructive" | "warning" | "muted"> = {
-  high: "destructive",
-  medium: "warning",
-  low: "muted",
+const RISK_ON_PHOTO: Record<string, string> = {
+  high: "bg-[oklch(0.5_0.19_25)] text-white",
+  medium: "bg-[oklch(0.82_0.14_80)] text-[oklch(0.25_0.06_60)]",
+  low: "bg-white text-[oklch(0.25_0.04_262)]",
 };
 
 function WantedPage() {
@@ -70,30 +70,37 @@ function WantedPage() {
           <EmptyState icon={<AlertTriangle className="h-8 w-8" />} title="No active notices" />
         ) : (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {pageItems.map((p) => (
                 <Link
                   key={p.id}
                   to="/wanted/$id"
                   params={{ id: p.id }}
-                  className="group overflow-hidden rounded-lg border border-border bg-card shadow-plate transition-all hover:-translate-y-0.5 hover:shadow-raised"
+                  className="group card card-interactive flex min-w-0 flex-col overflow-hidden"
                 >
-                  <div className="aspect-4/3 bg-secondary">
+                  <div className="card-media aspect-4/3">
                     {p.photo_url ? (
-                      <img src={p.photo_url} alt={p.name} className="h-full w-full object-cover" />
+                      <img src={p.photo_url} alt={p.name} loading="lazy" decoding="async" />
                     ) : (
                       <div className="grid h-full place-items-center text-muted-foreground">
-                        <AlertTriangle className="h-8 w-8" />
+                        <AlertTriangle className="h-8 w-8" aria-hidden />
                       </div>
                     )}
+                    {/* Solid colours: tinted badges disappear against a photo. */}
+                    <span
+                      className={cn(
+                        "absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.7rem] font-bold capitalize shadow-xs",
+                        RISK_ON_PHOTO[p.danger_level] ?? RISK_ON_PHOTO.low,
+                      )}
+                    >
+                      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
+                      {p.danger_level} risk
+                    </span>
                   </div>
-                  <div className="p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <h2 className="font-display text-lg font-semibold group-hover:text-brass">
-                        {p.name}
-                      </h2>
-                      <Badge variant={TONE[p.danger_level] ?? "muted"}>{p.danger_level} risk</Badge>
-                    </div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <h2 className="text-[1.0625rem] font-bold leading-snug tracking-tight transition-colors group-hover:text-brass">
+                      {p.name}
+                    </h2>
                     {p.alias && <p className="text-sm text-muted-foreground">a.k.a. {p.alias}</p>}
                     {p.offence && <p className="mt-3 text-sm font-medium">{p.offence}</p>}
                     {p.description && (
@@ -101,13 +108,22 @@ function WantedPage() {
                         {p.description}
                       </p>
                     )}
-                    <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
-                      <span>{p.last_seen ? `Last seen: ${p.last_seen}` : "Location unknown"}</span>
+                    <div aria-hidden className="min-h-4 flex-1" />
+                    <div className="flex items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+                      <span className="inline-flex min-w-0 items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span className="truncate">
+                          {p.last_seen ? `Last seen: ${p.last_seen}` : "Location unknown"}
+                        </span>
+                      </span>
                       {p.reward ? (
-                        <span className="font-mono text-brass">
+                        <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-brass">
+                          <Coins className="h-3.5 w-3.5" aria-hidden />
                           UGX {p.reward.toLocaleString()}
                         </span>
-                      ) : null}
+                      ) : (
+                        <ArrowUpRight className="h-4 w-4 shrink-0 text-foreground" aria-hidden />
+                      )}
                     </div>
                   </div>
                 </Link>
