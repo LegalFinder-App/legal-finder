@@ -6,14 +6,12 @@ import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
-  CalendarCheck,
   Gavel,
   Landmark,
   Library,
   MessageSquare,
   Scale,
   ScrollText,
-  Search,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -21,6 +19,7 @@ import {
 } from "lucide-react";
 import { PublicLayout } from "@/components/site/public-layout";
 import { HeroVisual } from "@/components/site/hero-visual";
+import { HowItWorks } from "@/components/site/how-it-works";
 import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard, LawyerCardSkeleton } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
@@ -93,24 +92,6 @@ const PILLARS = [
   },
 ] as const;
 
-const STEPS = [
-  {
-    icon: Search,
-    title: "Search verified advocates",
-    body: "Narrow by practice area, district and fee, and compare ratings and reviews.",
-  },
-  {
-    icon: CalendarCheck,
-    title: "Message or book",
-    body: "Start a conversation or book a consultation straight from the advocate's profile.",
-  },
-  {
-    icon: Scale,
-    title: "Follow your matter",
-    body: "Hearing dates, notes and documents stay in one place from filing to judgement.",
-  },
-] as const;
-
 const PORTALS = [
   { role: "Clients", body: "Find help, book consultations, track matters and store documents." },
   { role: "Advocates", body: "Manage your practice, clients, appointments and case pipeline." },
@@ -133,7 +114,6 @@ function Index() {
   const stat = (n: number) => (lawyers.isLoading ? "—" : n.toLocaleString());
 
   const pillarsRef = useReveal<HTMLDivElement>();
-  const stepsRef = useReveal<HTMLDivElement>();
   const directoryRef = useReveal<HTMLDivElement>();
   const portalsRef = useReveal<HTMLDivElement>();
   const readingRef = useReveal<HTMLDivElement>();
@@ -322,44 +302,7 @@ function Index() {
         </div>
       </section>
 
-      {/* ---------- How it works ---------- */}
-      <section className="border-y border-border bg-sky">
-        <div ref={stepsRef} className="container-page py-16 sm:py-20 lg:py-24">
-          <div className="reveal">
-            <SectionHeading
-              eyebrow="How it works"
-              title="From question to courtroom in three steps"
-              align="center"
-            />
-          </div>
-          <div className="relative mt-14">
-            <div
-              aria-hidden
-              className="absolute left-[16.6%] right-[16.6%] top-7 hidden h-px bg-[linear-gradient(90deg,transparent,var(--border)_15%,var(--border)_85%,transparent)] md:block"
-            />
-            <ol className="relative grid gap-5 md:grid-cols-3 md:gap-6">
-              {STEPS.map((s, i) => (
-                <li
-                  key={s.title}
-                  className="reveal relative flex flex-col items-center rounded-[calc(var(--radius)+8px)] border border-border bg-card/80 p-5 text-center shadow-[var(--shadow-card)] backdrop-blur md:border-0 md:bg-transparent md:shadow-none md:backdrop-blur-none"
-                  style={delay(i * 120)}
-                >
-                  <span className="relative grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-raised">
-                    <s.icon className="h-6 w-6" aria-hidden />
-                    <span className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-gold text-[0.7rem] font-bold text-ink ring-4 ring-background">
-                      {i + 1}
-                    </span>
-                  </span>
-                  <h3 className="mt-5 text-h4 font-bold">{s.title}</h3>
-                  <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                    {s.body}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
 
       {/* ---------- Featured advocates ---------- */}
       <section className="container-page py-16 sm:py-20 lg:py-28">
