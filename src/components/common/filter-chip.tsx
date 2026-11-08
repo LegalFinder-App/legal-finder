@@ -83,18 +83,15 @@ function Chip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "text-sm transition-colors",
+        "press text-sm",
         variant === "pill"
-          ? "rounded-full border px-4 py-1.5"
-          : "rounded-md px-2.5 py-1.5 text-left",
+          ? "inline-flex min-h-10 items-center rounded-full border px-4"
+          : "inline-flex min-h-10 items-center rounded-full border px-3.5 text-left lg:min-h-9 lg:w-full lg:rounded-xl lg:border-transparent",
         active
-          ? cn(
-              "font-semibold text-accent-foreground",
-              variant === "pill" ? "border-brass bg-brass/15" : "bg-brass/15",
-            )
+          ? "border-primary bg-primary font-semibold text-primary-foreground shadow-xs"
           : cn(
-              "text-muted-foreground hover:bg-secondary",
-              variant === "pill" ? "border-border" : "hover:text-foreground",
+              "border-border bg-card text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+              variant === "block" && "lg:bg-transparent lg:hover:bg-secondary",
             ),
       )}
     >

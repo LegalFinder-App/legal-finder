@@ -1,23 +1,39 @@
 import { cn } from "@/lib/utils";
 
-export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
+/** The LegalFinder emblem (public/images/brand) beside the wordmark. */
+export function Logo({
+  className,
+  compact = false,
+  size = "md",
+}: {
+  className?: string;
+  compact?: boolean;
+  size?: "md" | "lg";
+}) {
+  const px = size === "lg" ? 48 : 36;
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <span className="relative grid h-9 w-9 place-items-center rounded-md bg-brass/15 ring-1 ring-brass/40">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-          <path
-            d="M12 3v18M5 21h14M4.5 8h15M7.2 8l-3 6a3.2 3.2 0 0 0 6 0l-3-6Zm9.6 0-3 6a3.2 3.2 0 0 0 6 0l-3-6Z"
-            stroke="currentColor"
-            className="text-brass"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx="12" cy="4.2" r="1.5" className="fill-brass" />
-        </svg>
-      </span>
-      {!compact && (
-        <span className="font-display text-[1.15rem] font-semibold leading-none tracking-tight">
+      <img
+        src="/images/brand/emblem-80.webp"
+        srcSet="/images/brand/emblem-80.webp 80w, /images/brand/emblem-160.webp 160w"
+        sizes={`${px}px`}
+        width={px}
+        height={px}
+        alt=""
+        aria-hidden="true"
+        decoding="async"
+        className="shrink-0 rounded-full shadow-xs ring-1 ring-black/5"
+        style={{ width: px, height: px }}
+      />
+      {compact ? (
+        <span className="sr-only">LegalFinder</span>
+      ) : (
+        <span
+          className={cn(
+            "font-display font-bold leading-none tracking-[-0.03em]",
+            size === "lg" ? "text-[1.4rem]" : "text-[1.15rem]",
+          )}
+        >
           Legal<span className="text-brass">Finder</span>
         </span>
       )}
