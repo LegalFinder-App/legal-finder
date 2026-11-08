@@ -21,6 +21,7 @@ const NAV = [
   { to: "/lawyers", label: "Advocates" },
   { to: "/advice", label: "Advice" },
   { to: "/judgements", label: "Judgements" },
+  { to: "/updates", label: "Updates" },
   { to: "/library", label: "Library" },
   { to: "/news", label: "News" },
   { to: "/about", label: "About" },
@@ -57,7 +58,7 @@ export function SiteHeader() {
               <li key={item.to}>
                 <Link
                   to={item.to}
-                  className="block rounded-full px-4 py-1.5 text-[0.875rem] font-medium text-muted-foreground transition-colors duration-200 hover:text-foreground"
+                  className="block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[0.8125rem] font-medium xl:px-4 xl:text-[0.875rem] text-muted-foreground transition-colors duration-200 hover:text-foreground"
                   activeProps={{
                     className: "bg-primary !text-primary-foreground shadow-xs",
                     "aria-current": "page",
