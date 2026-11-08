@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { ArticleCard } from "@/components/common/article-card";
+import { ArticleCard, ArticleCardSkeleton } from "@/components/common/article-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -11,10 +11,12 @@ import {
   Library,
   MessageSquare,
   Scale,
+  Search,
   ScrollText,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { PublicLayout } from "@/components/site/public-layout";
@@ -23,12 +25,17 @@ import { HowItWorks } from "@/components/site/how-it-works";
 import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard, LawyerCardSkeleton } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
+import { MetalButton } from "@/components/ui/metal-button";
+import { LiquidButton } from "@/components/ui/liquid-button";
 import { PlatformMatrix } from "@/components/app/platform-matrix";
 import { adviceListQuery, newsListQuery, publicLawyersQuery, quotesQuery } from "@/lib/queries";
 import { useReveal } from "@/hooks/use-reveal";
 import { delay, trackSpotlight } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import courthouse from "@/assets/courthouse.jpg";
+import { prefetchForPage } from "@/lib/prefetch";
+import { siteMediaQuery } from "@/lib/site-media";
+import { appSettingsQuery } from "@/lib/app-settings";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -47,6 +54,15 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  loader: ({ context: { queryClient } }) =>
+    prefetchForPage([
+      queryClient.prefetchQuery(publicLawyersQuery()),
+      queryClient.prefetchQuery(adviceListQuery),
+      queryClient.prefetchQuery(newsListQuery),
+      queryClient.prefetchQuery(quotesQuery),
+      queryClient.prefetchQuery(siteMediaQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]),
   component: Index,
 });
 
@@ -172,16 +188,16 @@ function Index() {
                 className="animate-rise mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
                 style={delay(240)}
               >
-                <Button asChild variant="brass" size="xl" className="shine w-full sm:w-auto">
+                <MetalButton asChild variant="gold" size="xl" wrapperClassName="w-full sm:w-auto">
                   <Link to="/lawyers">
-                    Find an advocate <ArrowRight />
+                    <Search aria-hidden /> Find an advocate <ArrowRight aria-hidden />
                   </Link>
-                </Button>
-                <Button asChild variant="outlineInk" size="xl" className="w-full sm:w-auto">
+                </MetalButton>
+                <LiquidButton asChild size="xl" className="w-full sm:w-auto">
                   <Link to="/auth" search={{ mode: "signup" }}>
-                    Create free account
+                    <UserPlus aria-hidden /> Create free account
                   </Link>
-                </Button>
+                </LiquidButton>
               </div>
 
               <div className="animate-rise mt-10 flex items-center gap-4" style={delay(320)}>
@@ -394,6 +410,8 @@ function Index() {
               <SectionHeading eyebrow="Legal advice" title="Know where you stand" />
             </div>
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {advice.isLoading &&
+                Array.from({ length: 4 }).map((_, i) => <ArticleCardSkeleton key={i} />)}
               {(advice.data ?? []).slice(0, 4).map((a, i) => (
                 <div key={a.id} className="reveal min-w-0" style={delay(i * 70)}>
                   <ArticleCard article={a} kind="advice" />
@@ -406,6 +424,16 @@ function Index() {
               <SectionHeading eyebrow="Newsroom" title="Latest updates" />
             </div>
             <ul className="card mt-8 divide-y divide-border px-5">
+              {news.isLoading &&
+                Array.from({ length: 4 }).map((_, i) => (
+                  <li key={i} aria-hidden className="flex items-start gap-4 py-5">
+                    <div className="h-10 w-14 shrink-0 animate-pulse rounded-lg bg-muted" />
+                    <div className="flex-1 space-y-2 pt-1">
+                      <div className="h-3.5 w-4/5 animate-pulse rounded-full bg-muted" />
+                      <div className="h-3 w-3/5 animate-pulse rounded-full bg-muted/70" />
+                    </div>
+                  </li>
+                ))}
               {(news.data ?? []).slice(0, 5).map((n, i) => (
                 <li key={n.id} className="reveal" style={delay(i * 60)}>
                   <Link
@@ -487,14 +515,14 @@ function Index() {
             every document in one secure vault.
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild variant="brass" size="xl" className="shine">
+            <MetalButton asChild variant="gold" size="xl" wrapperClassName="w-full sm:w-auto">
               <Link to="/auth" search={{ mode: "signup" }}>
-                Get started <ArrowRight />
+                Get started <ArrowRight aria-hidden />
               </Link>
-            </Button>
-            <Button asChild variant="outlineInk" size="xl">
+            </MetalButton>
+            <LiquidButton asChild size="xl" className="w-full sm:w-auto">
               <Link to="/contact">Contact the team</Link>
-            </Button>
+            </LiquidButton>
           </div>
         </div>
       </section>

@@ -43,45 +43,43 @@ export function SiteFooter() {
       <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
 
       <div className="container-page">
-        {/* Brand row */}
-        <div className="flex flex-col gap-6 border-b border-ink-foreground/10 py-10 sm:py-12 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+        {/* All columns side by side: brand · quick links · contact · verify on desktop;
+            brand on top, then quick links and contact two-up on phones. */}
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 py-12 min-[360px]:grid-cols-2 sm:gap-x-10 sm:py-14 xl:grid-cols-[1.2fr_1.45fr_1fr_1.25fr] xl:gap-x-12">
+          <div className="min-[360px]:col-span-2 xl:col-span-1">
             <Link
               to="/"
               aria-label="LegalFinder home"
-              className="w-fit rounded-full text-ink-foreground"
+              className="inline-flex w-fit rounded-full text-ink-foreground"
             >
               <Logo size="lg" />
             </Link>
-            <p className="max-w-md text-sm leading-relaxed text-ink-foreground/70">
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink-foreground/70">
               Uganda's justice platform — verified advocates, court judgements, police services and
               plain-language legal guidance in one place.
             </p>
+            <Link
+              to="/contact"
+              className="group mt-4 inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-brass"
+            >
+              Contact the team
+              <ArrowRight
+                className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                aria-hidden
+              />
+            </Link>
           </div>
-          <Link
-            to="/contact"
-            className="group inline-flex min-h-11 w-fit shrink-0 items-center gap-2 text-sm font-semibold text-brass"
-          >
-            Contact the team
-            <ArrowRight
-              className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-              aria-hidden
-            />
-          </Link>
-        </div>
 
-        {/* Columns */}
-        <div className="grid grid-cols-1 gap-x-10 gap-y-10 py-10 sm:py-12 md:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1.15fr] lg:gap-x-12">
           <nav aria-labelledby="footer-quick-links">
             <h2 id="footer-quick-links" className="eyebrow text-brass">
               Quick links
             </h2>
-            <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-1 sm:gap-x-8">
+            <ul className="mt-5 grid grid-cols-1 gap-x-6 gap-y-0.5 sm:grid-cols-2">
               {QUICK_LINKS.map((l) => (
                 <li key={l.to}>
                   <Link
                     to={l.to}
-                    className="inline-flex min-h-9 items-center text-sm text-ink-foreground/70 transition-colors hover:text-ink-foreground"
+                    className="inline-flex min-h-9 items-center whitespace-nowrap text-sm text-ink-foreground/70 transition-colors hover:text-ink-foreground"
                   >
                     {l.label}
                   </Link>
@@ -100,10 +98,13 @@ export function SiteFooter() {
               <li>
                 <a
                   href={`mailto:${SUPPORT_EMAIL}`}
-                  className="flex items-start gap-2.5 break-all transition-colors hover:text-ink-foreground"
+                  aria-label={`Email ${SUPPORT_EMAIL}`}
+                  className="flex items-start gap-2.5 [overflow-wrap:anywhere] transition-colors hover:text-ink-foreground"
                 >
                   <Mail className="mt-0.5 h-4 w-4 shrink-0 text-brass" aria-hidden />
-                  {SUPPORT_EMAIL}
+                  {/* The full address doesn't fit the half-width column on phones. */}
+                  <span className="sm:hidden">Email us</span>
+                  <span className="hidden sm:inline">{SUPPORT_EMAIL}</span>
                 </a>
               </li>
               <li>
@@ -130,7 +131,7 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          <div className="md:col-span-2 lg:col-span-1">
+          <div className="min-[360px]:col-span-2 xl:col-span-1">
             <h2 className="eyebrow text-brass">Verify independently</h2>
             <div className="relative mt-5 overflow-hidden rounded-3xl border border-ink-foreground/12 bg-ink-foreground/[0.04] p-2 shadow-[inset_0_1px_0_oklch(1_0_0/0.06)]">
               <img

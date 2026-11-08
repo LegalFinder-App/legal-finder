@@ -15,6 +15,7 @@ import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
 import appCss from "../styles.css?url";
 import jakartaLatin from "@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url";
 import { Toaster } from "@/components/ui/sonner";
+import { LiquidGlassFilter, enableLiquidGlassRefraction } from "@/components/ui/liquid-button";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useHideNativeSplashScreen, useNativeBackButton, useNativeStatusBar } from "@/lib/native";
@@ -145,6 +146,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <ClerkProvider taskUrls={{ "setup-mfa": "/session-tasks/setup-mfa" }}>
           {children}
         </ClerkProvider>
+        <LiquidGlassFilter />
         <Scripts />
       </body>
     </html>
@@ -182,5 +184,6 @@ function NativeAppEffects() {
   useNativeStatusBar(resolvedTheme);
   useNativeBackButton(router);
   useHideNativeSplashScreen();
+  useEffect(() => enableLiquidGlassRefraction(), []);
   return null;
 }
