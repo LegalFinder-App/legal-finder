@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { heroFx } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 const HOLD_MS = 5200;
@@ -113,7 +114,8 @@ export function ParticleText({ children, className }: { children: string; classN
       }
 
       const data = o.getImageData(0, 0, off.width, off.height).data;
-      let step = fontSize >= 56 ? 2 : 1.5;
+      // Fine dust: a speck every 1.25–1.5 px, capped so phones keep 60 fps.
+      let step = fontSize >= 56 ? 1.5 : 1.25;
       const pick = () => {
         const pts: number[] = [];
         const stride = step * dpr;
@@ -126,8 +128,8 @@ export function ParticleText({ children, className }: { children: string; classN
         return pts;
       };
       let pts = pick();
-      while (pts.length / 2 > 9000 && step < 4) {
-        step += 0.5;
+      while (pts.length / 2 > 14000 && step < 4) {
+        step += 0.25;
         pts = pick();
       }
 
@@ -152,8 +154,10 @@ export function ParticleText({ children, className }: { children: string; classN
         p.tx[i] = tx;
         p.ty[i] = ty;
         // Scattered position: blown off to the left in a loose, slightly rising stream.
-        p.sx[i] = tx - (70 + Math.random() * (padX + textW * 0.45));
-        p.sy[i] = ty + (Math.random() - 0.62) * fontSize * 1.4;
+        // Scattered position: a long, thin trail blown off to the left, thicker near the text.
+        const reach = Math.random() ** 0.7;
+        p.sx[i] = tx - (40 + reach * (padX + textW * 0.65));
+        p.sy[i] = ty + (Math.random() - 0.5) * fontSize * (0.25 + reach * 0.35);
         p.delay[i] = along * SWEEP_S + Math.random() * 0.18;
         p.wobble[i] = Math.random() * Math.PI * 2;
         p.gold[i] = Math.random() < 0.16 ? 1 : 0;
@@ -167,21 +171,27 @@ export function ParticleText({ children, className }: { children: string; classN
       if (!p) return true;
       ctx.clearRect(0, 0, cw, ch);
       let done = true;
+      // Specks fade as they drift: three opacity bands, drawn per colour to keep state changes few.
       for (const gold of [0, 1]) {
         ctx.fillStyle = gold ? GOLD : p.color;
-        for (let i = 0; i < p.count; i++) {
-          if (p.gold[i] !== gold) continue;
-          const k = Math.min(1, Math.max(0, (t - p.delay[i]) / FLIGHT_S));
-          if (k < 1) done = false;
-          // 0 = in place, 1 = scattered
-          const s = mode === "out" ? easeIn(k) : 1 - easeOut(k);
-          const sway = Math.sin(p.wobble[i] + t * 6) * 6 * s;
-          const x = p.tx[i] + (p.sx[i] - p.tx[i]) * s;
-          const y = p.ty[i] + (p.sy[i] - p.ty[i]) * s + sway;
-          const size = p.size * (1 - s * 0.35);
-          ctx.fillRect(x, y, size, size);
+        for (let band = 0; band < 3; band++) {
+          ctx.globalAlpha = band === 0 ? 1 : band === 1 ? 0.7 : 0.38;
+          for (let i = 0; i < p.count; i++) {
+            if (p.gold[i] !== gold) continue;
+            const k = Math.min(1, Math.max(0, (t - p.delay[i]) / FLIGHT_S));
+            if (k < 1) done = false;
+            // 0 = in place, 1 = scattered
+            const s = mode === "out" ? easeIn(k) : 1 - easeOut(k);
+            if ((s < 0.34 ? 0 : s < 0.67 ? 1 : 2) !== band) continue;
+            const sway = Math.sin(p.wobble[i] + t * 5) * 3 * s;
+            const x = p.tx[i] + (p.sx[i] - p.tx[i]) * s;
+            const y = p.ty[i] + (p.sy[i] - p.ty[i]) * s + sway;
+            const size = p.size * (1 - s * 0.45);
+            ctx.fillRect(x, y, size, size);
+          }
         }
       }
+      ctx.globalAlpha = 1;
       return done;
     };
 
@@ -205,6 +215,11 @@ export function ParticleText({ children, className }: { children: string; classN
         timer = window.setTimeout(cycle, 800);
         return;
       }
+      if (heroFx.typing) {
+        timer = window.setTimeout(cycle, 300);
+        return;
+      }
+      heroFx.dust = true;
       // Hand over from the crisp text to particles in the same place, then blow them away.
       draw("out", 0);
       canvas.style.opacity = "1";
@@ -214,6 +229,7 @@ export function ParticleText({ children, className }: { children: string; classN
           play("in", () => {
             text.style.opacity = "1";
             canvas.style.opacity = "0";
+            heroFx.dust = false;
             timer = window.setTimeout(cycle, HOLD_MS);
           });
         }, GAP_MS);
@@ -240,6 +256,7 @@ export function ParticleText({ children, className }: { children: string; classN
           window.clearTimeout(timer);
           text.style.opacity = "1";
           canvas.style.opacity = "0";
+          heroFx.dust = false;
           timer = window.setTimeout(cycle, HOLD_MS);
         }
         build();
@@ -255,6 +272,7 @@ export function ParticleText({ children, className }: { children: string; classN
 
     return () => {
       disposed = true;
+      heroFx.dust = false;
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
       window.clearTimeout(resizeTimer);
