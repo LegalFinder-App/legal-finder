@@ -259,6 +259,57 @@
   padding-right: var(--safe-right);
 }
 
+/* Interactive profile card with a cursor-driven 3D tilt (--rx/--ry from useTilt) and a gold
+   glow that traces the border under the cursor (--mx/--my). Both only on real pointers. */
+@utility tilt-card {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    translate3d(0, var(--lift, 0px), 0);
+  transition:
+    transform 350ms var(--ease-out-expo),
+    box-shadow var(--duration-slow) var(--ease-out-expo),
+    border-color var(--duration-slow) var(--ease-out-expo);
+  -webkit-tap-highlight-color: transparent;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    padding: 1px;
+    border-radius: inherit;
+    background: radial-gradient(
+      260px circle at var(--mx, 50%) var(--my, 0%),
+      oklch(0.8 0.13 80 / 0.9),
+      oklch(0.8 0.13 80 / 0.15) 45%,
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-standard);
+    pointer-events: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      --lift: -4px;
+      box-shadow: var(--shadow-card-hover);
+      border-color: color-mix(in oklch, var(--foreground) 14%, transparent);
+    }
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+  &:active {
+    --lift: -1px;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+}
+
 /* ---------- Premium buttons (see components/ui/metal-button.tsx, liquid-button.tsx) ----------
    Every decorative layer is a pseudo-element, so the button can be a <button> or wrap a <Link>
    (asChild) and stays valid HTML with the label always on top. */
