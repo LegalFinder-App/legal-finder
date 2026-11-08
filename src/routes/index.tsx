@@ -22,6 +22,7 @@ import {
 import { PublicLayout } from "@/components/site/public-layout";
 import { HeroVisual } from "@/components/site/hero-visual";
 import { HowItWorks } from "@/components/site/how-it-works";
+import { ParticleText } from "@/components/site/particle-text";
 import { SectionHeading } from "@/components/common/bits";
 import { LawyerCard, LawyerCardSkeleton } from "@/components/common/lawyer-card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,6 @@ import { adviceListQuery, newsListQuery, publicLawyersQuery, quotesQuery } from 
 import { useReveal } from "@/hooks/use-reveal";
 import { delay, trackSpotlight } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import courthouse from "@/assets/courthouse.jpg";
 import { prefetchForPage } from "@/lib/prefetch";
 import { siteMediaQuery } from "@/lib/site-media";
 import { appSettingsQuery } from "@/lib/app-settings";
@@ -171,7 +171,7 @@ function Index() {
                 className="animate-rise mt-6 text-display font-bold text-ink-foreground"
                 style={delay(80)}
               >
-                Find the right advocate.{" "}
+                <ParticleText>Find the right advocate.</ParticleText>{" "}
                 <span className="block pb-1 font-serif font-normal italic tracking-[-0.025em] text-brass-gradient">
                   Follow your case to the end.
                 </span>
@@ -356,16 +356,41 @@ function Index() {
           className="card grid gap-12 rounded-[2rem] p-4 sm:p-8 lg:grid-cols-2 lg:items-center lg:gap-16 lg:p-12"
         >
           <div className="reveal relative">
-            <img
-              src={courthouse}
-              alt="Courthouse colonnade at dawn"
-              loading="lazy"
-              decoding="async"
-              width={800}
-              height={1000}
-              className="aspect-[4/3] w-full rounded-3xl object-cover shadow-raised lg:aspect-[4/5]"
-            />
-            <figure className="absolute inset-x-3 -bottom-6 rounded-2xl border border-border bg-card/95 p-5 shadow-float backdrop-blur sm:inset-x-auto sm:-right-4 sm:max-w-xs">
+            {/* Lady Justice on a lit stage: navy backdrop, a warm spotlight and a floor glow. */}
+            <div className="group relative isolate aspect-[4/3] w-full overflow-hidden rounded-3xl surface-ink shadow-raised sm:aspect-[5/4] lg:aspect-[4/5] dark:ring-1 dark:ring-white/10">
+              <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-50" />
+              <div
+                aria-hidden
+                className="absolute inset-x-0 top-0 -z-10 h-full bg-[radial-gradient(60%_55%_at_50%_38%,oklch(0.78_0.115_80/0.38),transparent_70%)]"
+              />
+              <div
+                aria-hidden
+                className="animate-aurora absolute left-1/2 top-1/3 -z-10 h-2/3 w-2/3 -translate-x-1/2 rounded-full bg-[oklch(0.78_0.115_80/0.16)] blur-[70px]"
+              />
+              <div
+                aria-hidden
+                className="absolute bottom-[3%] left-1/2 -z-10 h-[9%] w-[62%] -translate-x-1/2 sm:bottom-[18%] sm:left-[44%] lg:bottom-[15%] rounded-[100%] bg-[radial-gradient(closest-side,oklch(0.78_0.115_80/0.45),transparent)] blur-md"
+              />
+              <picture>
+                <source
+                  type="image/avif"
+                  srcSet="/images/site/lady-justice-320.avif 320w, /images/site/lady-justice-463.avif 463w"
+                  sizes="(min-width: 1024px) 18rem, (min-width: 640px) 15rem, 45vw"
+                />
+                <img
+                  src="/images/site/lady-justice-463.webp"
+                  srcSet="/images/site/lady-justice-320.webp 320w, /images/site/lady-justice-463.webp 463w"
+                  sizes="(min-width: 1024px) 18rem, (min-width: 640px) 15rem, 45vw"
+                  alt="Bronze statue of Lady Justice holding the scales and a sword"
+                  loading="lazy"
+                  decoding="async"
+                  width={463}
+                  height={954}
+                  className="absolute bottom-[5%] left-1/2 h-[90%] w-auto max-w-none -translate-x-1/2 sm:bottom-[21%] sm:left-[44%] sm:h-[75%] lg:bottom-[18%] lg:h-[79%] object-contain drop-shadow-[0_24px_40px_oklch(0.1_0.03_262/0.7)] transition-transform duration-700 ease-(--ease-out-expo) group-hover:-translate-y-1.5"
+                />
+              </picture>
+            </div>
+            <figure className="relative mt-3 rounded-2xl border border-border bg-card/95 p-5 shadow-float backdrop-blur sm:absolute sm:-bottom-6 sm:-right-4 sm:mt-0 sm:max-w-xs">
               <Landmark className="h-5 w-5 text-brass" aria-hidden />
               <blockquote className="mt-3 text-sm leading-relaxed">
                 {quote?.text ?? "Justice delayed is justice denied."}
