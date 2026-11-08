@@ -6,51 +6,51 @@ const TARGETS = [
   {
     icon: Smartphone,
     title: "iOS and Android",
-    body: "Package the app for store distribution with native permissions, push notifications and signed releases.",
+    body: "Native apps for iPhone and Android phones — the same account, matters and messages. Currently in store testing.",
     tag: "Mobile apps",
   },
   {
     icon: Laptop2,
     title: "Windows, macOS and Linux",
-    body: "Ship a desktop shell with auto-update, file access and offline cache support.",
+    body: "A desktop app for Windows, built from the same app as the phones. macOS and Linux builds are planned.",
     tag: "Desktop apps",
   },
   {
     icon: Tablet,
     title: "Browser and PWA",
-    body: "Keep the shared web app installable and offline-ready for the fastest universal deployment path.",
+    body: "Works in any modern browser, and can be installed from the address bar like an app.",
     tag: "Web app",
   },
 ] as const;
 
 export function PlatformMatrix() {
   return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-plate">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
+    <section className="rounded-[2rem] border border-border bg-card p-5 shadow-plate sm:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
         <div>
           <p className="eyebrow text-brass">Where you can use LegalFinder</p>
-          <h2 className="mt-1 font-display text-xl font-semibold">
-            One account, wherever you work from
-          </h2>
+          <h2 className="mt-2 text-h3 font-bold">One account, wherever you work from</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             The same account and case history follow you across web, mobile and desktop, built from
             a single shared app core.
           </p>
         </div>
-        <Button variant="brass" size="sm" asChild>
+        <Button size="lg" asChild>
           <Link to="/dashboard">
             Open shared app <Download className="h-4 w-4" />
           </Link>
         </Button>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
         {TARGETS.map((target) => (
-          <div key={target.title} className="rounded-lg border border-border bg-secondary/25 p-4">
-            <target.icon className="h-5 w-5 text-brass" />
-            <p className="mt-3 font-display text-base font-semibold">{target.title}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{target.body}</p>
-            <p className="mt-3 text-xs font-semibold text-brass">{target.tag}</p>
+          <div key={target.title} className="rounded-2xl border border-border bg-background/60 p-5">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-brass">
+              <target.icon className="h-5 w-5" aria-hidden />
+            </span>
+            <p className="mt-4 font-bold tracking-tight">{target.title}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{target.body}</p>
+            <p className="mt-4 eyebrow text-brass">{target.tag}</p>
           </div>
         ))}
       </div>

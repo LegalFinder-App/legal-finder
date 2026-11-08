@@ -8,7 +8,7 @@ import { SearchInput } from "@/components/common/search-input";
 import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { libraryQuery } from "@/lib/queries";
-import library from "@/assets/library.jpg";
+import { delay } from "@/lib/motion";
 
 export const Route = createFileRoute("/library")({
   head: () => ({
@@ -48,28 +48,53 @@ function LibraryPage() {
 
   return (
     <PublicLayout>
-      <section className="relative isolate overflow-hidden surface-ink">
-        <img
-          src={library}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-20"
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <p className="eyebrow text-brass">E-library</p>
-          <h1 className="mt-3 max-w-2xl font-display text-4xl font-semibold text-ink-foreground lg:text-5xl">
-            The texts every case starts from
-          </h1>
-          <p className="mt-4 max-w-xl text-ink-foreground/65">
-            Constitutions, statutes, procedure rules and practice manuals — collected, tagged and
-            free to read.
-          </p>
-          <div className="mt-8">
-            <SearchInput
-              value={q}
-              onChange={setQ}
-              label="Search the library"
-              placeholder="Search by title, author or description"
+      <section className="container-page pt-2">
+        <div className="relative isolate overflow-hidden rounded-[2rem] surface-ink shadow-float dark:ring-1 dark:ring-white/10">
+          <picture>
+            <source
+              type="image/avif"
+              srcSet="/images/site/library-640.avif 640w, /images/site/library-1024.avif 1024w, /images/site/library-1600.avif 1600w, /images/site/library-2400.avif 2400w"
+              sizes="(min-width: 1280px) 1216px, 100vw"
             />
+            <img
+              src="/images/site/library-1600.webp"
+              srcSet="/images/site/library-640.webp 640w, /images/site/library-1024.webp 1024w, /images/site/library-1600.webp 1600w, /images/site/library-2400.webp 2400w"
+              sizes="(min-width: 1280px) 1216px, 100vw"
+              alt=""
+              width={1600}
+              height={1067}
+              fetchPriority="high"
+              className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45"
+            />
+          </picture>
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,oklch(0.16_0.035_262/0.95)_0%,oklch(0.16_0.035_262/0.75)_45%,oklch(0.16_0.035_262/0.25)_100%)]"
+          />
+          <div className="px-6 py-14 sm:px-10 lg:px-14 lg:py-20">
+            <p className="animate-rise eyebrow text-brass">E-library</p>
+            <h1
+              className="animate-rise mt-3 max-w-2xl text-h1 font-bold text-ink-foreground"
+              style={delay(60)}
+            >
+              The texts every case starts from
+            </h1>
+            <p
+              className="animate-rise mt-4 max-w-xl text-lead text-ink-foreground/75"
+              style={delay(120)}
+            >
+              Constitutions, statutes, procedure rules and practice manuals — collected, tagged and
+              free to read.
+            </p>
+            <div className="animate-rise mt-8" style={delay(180)}>
+              <SearchInput
+                value={q}
+                onChange={setQ}
+                tone="ink"
+                label="Search the library"
+                placeholder="Search by title, author or description"
+              />
+            </div>
           </div>
         </div>
       </section>

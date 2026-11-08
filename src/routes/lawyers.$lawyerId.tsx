@@ -3,12 +3,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
 import {
+  ArrowLeft,
   BadgeCheck,
   CalendarDays,
   Mail,
   MapPin,
   MessageSquare,
   Phone,
+  Star,
   UserRound,
 } from "lucide-react";
 import { PublicLayout } from "@/components/site/public-layout";
@@ -28,6 +30,8 @@ import {
 } from "@/components/ui/dialog";
 import { lawyerQuery, reviewsQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
+import { delay } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import { matchPracticeAreaMedia, siteMediaQuery } from "@/lib/site-media";
 import { useSession } from "@/lib/session";
 import { initiatePesapalPayment } from "@/lib/payments.functions";
@@ -63,7 +67,7 @@ function LawyerProfile() {
     return (
       <PublicLayout>
         <div className="mx-auto max-w-5xl px-4 py-24">
-          <div className="h-64 animate-pulse rounded-xl bg-muted" />
+          <div className="h-64 animate-pulse rounded-3xl bg-muted" />
         </div>
       </PublicLayout>
     );
@@ -89,68 +93,132 @@ function LawyerProfile() {
 
   return (
     <PublicLayout>
-      <section className="surface-ink">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-14 sm:px-6 lg:flex-row lg:items-end lg:px-8 lg:py-20">
-          <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-ink-foreground/10 ring-1 ring-brass/30">
-            {lawyer.photo_url ? (
-              <img
-                src={lawyer.photo_url}
-                alt={lawyer.full_name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span
-                className="grid h-full w-full place-items-center text-brass"
-                aria-label="Profile photo unavailable"
-              >
-                <UserRound className="h-12 w-12" aria-hidden="true" />
-              </span>
-            )}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <p className="eyebrow text-brass">{lawyer.firm ?? "Independent practice"}</p>
+      <section className="relative isolate -mt-[calc(var(--header-h)+var(--safe-top))] overflow-hidden bg-sky pt-[calc(var(--header-h)+var(--safe-top))]">
+        <div aria-hidden className="absolute inset-0 -z-10 bg-grid-light" />
+        <div
+          aria-hidden
+          className="absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full bg-gold/20 blur-3xl dark:bg-gold/10"
+        />
+        <div className="container-page max-w-6xl py-10 sm:py-14 lg:py-16">
+          <Link
+            to="/lawyers"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-card/80 px-4 text-sm font-medium text-muted-foreground shadow-xs backdrop-blur transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden /> All advocates
+          </Link>
+          <div className="mt-8 flex flex-col items-center gap-6 text-center lg:flex-row lg:items-end lg:gap-8 lg:text-left">
+            <div className="animate-rise relative shrink-0">
+              <div className="h-32 w-32 overflow-hidden rounded-full bg-card shadow-raised ring-4 ring-card sm:h-36 sm:w-36">
+                {lawyer.photo_url ? (
+                  <img
+                    src={lawyer.photo_url}
+                    alt={lawyer.full_name}
+                    width={144}
+                    height={144}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span
+                    className="grid h-full w-full place-items-center text-muted-foreground"
+                    aria-label="Profile photo unavailable"
+                  >
+                    <UserRound className="h-12 w-12" aria-hidden="true" />
+                  </span>
+                )}
+              </div>
               {lawyer.verified && (
-                <span className="inline-flex items-center gap-1 text-xs text-brass">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Verified
+                <span className="absolute bottom-1 right-1 grid h-8 w-8 place-items-center rounded-full bg-card shadow-plate">
+                  <BadgeCheck className="h-6 w-6 fill-success text-card" aria-hidden />
                 </span>
               )}
             </div>
-            <h1 className="mt-2 font-display text-4xl font-semibold text-ink-foreground">
-              {lawyer.full_name}
-            </h1>
-            <p className="mt-2 text-ink-foreground/65">{lawyer.headline}</p>
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-foreground/60">
-              <span className="inline-flex items-center gap-1.5">
-                <Stars value={lawyer.rating} /> {lawyer.rating.toFixed(1)} ({lawyer.review_count})
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-4 w-4" />
+            <div className="animate-rise min-w-0 flex-1" style={delay(80)}>
+              <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                <p className="eyebrow text-brass">{lawyer.firm ?? "Independent practice"}</p>
+                {lawyer.verified && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success/12 px-2.5 py-0.5 text-xs font-semibold text-success">
+                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Verified
+                  </span>
+                )}
+              </div>
+              <h1 className="mt-2 text-h1 font-bold">{lawyer.full_name}</h1>
+              {lawyer.headline && (
+                <p className="mt-2 text-lead text-muted-foreground">{lawyer.headline}</p>
+              )}
+              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" aria-hidden />
                 {[lawyer.city, lawyer.county].filter(Boolean).join(", ") || "Remote"}
-              </span>
-              <span>{lawyer.years_experience} years in practice</span>
+                {lawyer.languages.length > 0 && (
+                  <>
+                    <span aria-hidden>·</span>
+                    {lawyer.languages.join(", ")}
+                  </>
+                )}
+              </p>
+            </div>
+            <div className="animate-rise w-full sm:w-auto" style={delay(160)}>
+              <BookingDialog
+                lawyerUserId={lawyer.user_id}
+                lawyerName={lawyer.full_name}
+                acceptingClients={lawyer.accepting_clients}
+                consultationFee={lawyer.consultation_fee}
+              />
             </div>
           </div>
-          <BookingDialog
-            lawyerUserId={lawyer.user_id}
-            lawyerName={lawyer.full_name}
-            acceptingClients={lawyer.accepting_clients}
-            consultationFee={lawyer.consultation_fee}
-          />
+
+          <dl
+            className="animate-rise mt-10 grid grid-cols-2 overflow-hidden rounded-3xl border border-border bg-card shadow-plate sm:grid-cols-4"
+            style={delay(220)}
+          >
+            {[
+              {
+                k: "Rating",
+                v: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Star className="h-5 w-5 fill-gold text-gold" aria-hidden />
+                    {lawyer.review_count > 0 ? lawyer.rating.toFixed(1) : "New"}
+                  </span>
+                ),
+              },
+              { k: "Reviews", v: lawyer.review_count.toLocaleString() },
+              { k: "Experience", v: `${lawyer.years_experience} yrs` },
+              {
+                k: "Consultation",
+                v: lawyer.consultation_fee
+                  ? `UGX ${lawyer.consultation_fee.toLocaleString()}`
+                  : "On request",
+              },
+            ].map((item, i) => (
+              <div
+                key={item.k}
+                className={cn(
+                  "px-5 py-4 text-center sm:py-5",
+                  i % 2 === 1 && "border-l border-border",
+                  i >= 2 && "border-t border-border sm:border-t-0",
+                  i === 2 && "sm:border-l",
+                )}
+              >
+                <dt className="text-xs font-medium text-muted-foreground">{item.k}</dt>
+                <dd className="mt-1 truncate text-lg font-bold tracking-tight tabular-nums sm:text-xl">
+                  {item.v}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.6fr_1fr] lg:px-8">
+      <div className="container-page grid max-w-6xl gap-10 py-12 lg:grid-cols-[1.6fr_1fr] lg:gap-12 lg:py-16">
         <div className="space-y-12">
           <div>
-            <h2 className="font-display text-2xl font-semibold">About</h2>
+            <h2 className="text-h4 font-bold">About</h2>
             <p className="mt-4 whitespace-pre-line leading-relaxed text-muted-foreground">
               {lawyer.bio ?? "This advocate has not added a biography yet."}
             </p>
           </div>
 
           <div>
-            <h2 className="font-display text-2xl font-semibold">Practice areas</h2>
+            <h2 className="text-h4 font-bold">Practice areas</h2>
             <div className="mt-4 flex items-center gap-4">
               {practiceIllustration && (
                 <img
@@ -171,13 +239,16 @@ function LawyerProfile() {
           </div>
 
           <div>
-            <h2 className="font-display text-2xl font-semibold">Client reviews</h2>
+            <h2 className="text-h4 font-bold">Client reviews</h2>
             <div className="mt-5 space-y-4">
               {(reviews ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">No reviews yet.</p>
               ) : (
                 (reviews ?? []).map((r) => (
-                  <div key={r.id} className="rounded-lg border border-border bg-card p-5">
+                  <div
+                    key={r.id}
+                    className="rounded-3xl border border-border bg-card p-5 shadow-xs"
+                  >
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{r.author_name}</p>
                       <Stars value={r.rating} />
@@ -194,7 +265,7 @@ function LawyerProfile() {
         </div>
 
         <aside className="space-y-5">
-          <div className="rounded-lg border border-border bg-card p-6 shadow-plate">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-plate lg:sticky lg:top-[calc(var(--header-h)+1.5rem)]">
             <p className="eyebrow text-muted-foreground">Engagement</p>
             <dl className="mt-4 space-y-3 text-sm">
               <Row
@@ -219,7 +290,7 @@ function LawyerProfile() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-xs">
             <p className="eyebrow text-muted-foreground">Contact</p>
             <div className="mt-4 space-y-3 text-sm">
               {lawyer.email && (

@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Download, Menu, X } from "lucide-react";
+import { ArrowRight, Download, Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/app/shell/theme-toggle";
 import { useSession, ROLE_HOME } from "@/lib/session";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
+import { useScrolled } from "@/hooks/use-scrolled";
+import { cn } from "@/lib/utils";
+import { delay } from "@/lib/motion";
 
 const NAV = [
   { to: "/lawyers", label: "Advocates" },
@@ -18,48 +28,69 @@ const NAV = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const scrolled = useScrolled();
   const { user, primaryRole, loading } = useSession();
   const { canInstall, promptInstall } = usePwaInstall();
+  const signedIn = !loading && !!user;
 
   return (
-    <header className="sticky top-0 z-50 surface-ink border-b border-ink-foreground/10 pt-safe backdrop-blur">
-      <div className="mx-auto flex min-h-16 max-w-7xl items-center gap-6 px-4 px-safe sm:px-6 lg:px-8">
-        <Link to="/" className="text-ink-foreground">
+    <header
+      className={cn(
+        "sticky top-0 z-50 pt-safe transition-[background-color,box-shadow,border-color] duration-300",
+        "border-b border-transparent",
+        scrolled &&
+          "border-border/70 bg-background/75 shadow-xs backdrop-blur-xl backdrop-saturate-150",
+      )}
+    >
+      <div className="container-page flex h-(--header-h) items-center gap-4">
+        <Link
+          to="/"
+          className="press shrink-0 rounded-full text-foreground"
+          aria-label="LegalFinder home"
+        >
           <Logo />
         </Link>
 
-        <nav className="ml-4 hidden items-center gap-1 lg:flex">
-          {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="rounded-md px-3 py-2 text-sm font-medium text-ink-foreground/70 transition-colors hover:bg-ink-foreground/10 hover:text-ink-foreground"
-              activeProps={{ className: "text-brass bg-ink-foreground/10" }}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav aria-label="Main" className="mx-auto hidden lg:block">
+          <ul className="flex items-center gap-0.5 rounded-full border border-border/70 bg-card/70 p-1 shadow-xs backdrop-blur">
+            {NAV.map((item) => (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  className="block rounded-full px-4 py-1.5 text-[0.875rem] font-medium text-muted-foreground transition-colors duration-200 hover:text-foreground"
+                  activeProps={{
+                    className: "bg-primary !text-primary-foreground shadow-xs",
+                    "aria-current": "page",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 lg:flex">
-          <ThemeToggle ink />
+        <div className="ml-auto hidden items-center gap-2 lg:ml-0 lg:flex">
+          <ThemeToggle />
           {canInstall && (
-            <Button variant="outlineInk" size="sm" onClick={() => void promptInstall()}>
-              Install app <Download className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={() => void promptInstall()}>
+              <Download /> Install
             </Button>
           )}
-          {!loading && user ? (
-            <Button asChild variant="brass" size="sm">
-              <Link to={ROLE_HOME[primaryRole]}>Open workspace</Link>
+          {signedIn ? (
+            <Button asChild size="sm" className="shine">
+              <Link to={ROLE_HOME[primaryRole]}>
+                Open workspace <ArrowRight />
+              </Link>
             </Button>
           ) : (
             <>
-              <Button asChild variant="outlineInk" size="sm">
+              <Button asChild variant="ghost" size="sm">
                 <Link to="/auth">Sign in</Link>
               </Button>
-              <Button asChild variant="brass" size="sm">
+              <Button asChild size="sm" className="shine">
                 <Link to="/auth" search={{ mode: "signup" }}>
-                  Create account
+                  Get started
                 </Link>
               </Button>
             </>
@@ -67,56 +98,73 @@ export function SiteHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-1 lg:hidden">
-          <ThemeToggle ink />
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Toggle navigation"
-            className="grid h-9 w-9 place-items-center rounded-md text-ink-foreground/80 hover:bg-ink-foreground/10"
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <ThemeToggle />
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Open menu">
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-sm">
+              <div className="flex h-(--header-h) items-center border-b border-border px-5 pt-safe">
+                <SheetTitle asChild>
+                  <span>
+                    <Logo />
+                  </span>
+                </SheetTitle>
+                <SheetDescription className="sr-only">Site navigation</SheetDescription>
+              </div>
+              <nav aria-label="Mobile" className="flex-1 overflow-y-auto px-3 py-4">
+                <ul className="grid gap-1">
+                  {NAV.map((item, i) => (
+                    <li key={item.to} className="animate-rise" style={delay(60 + i * 40)}>
+                      <Link
+                        to={item.to}
+                        onClick={() => setOpen(false)}
+                        className="flex min-h-12 items-center justify-between rounded-2xl px-4 text-lg font-semibold tracking-tight text-foreground transition-colors hover:bg-secondary"
+                        activeProps={{
+                          className: "bg-secondary text-brass",
+                          "aria-current": "page",
+                        }}
+                      >
+                        {item.label}
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <div className="grid gap-2 border-t border-border p-4 pb-[calc(1rem+var(--safe-bottom))]">
+                {canInstall && (
+                  <Button variant="outline" size="lg" onClick={() => void promptInstall()}>
+                    <Download /> Install app
+                  </Button>
+                )}
+                {signedIn ? (
+                  <Button asChild size="lg">
+                    <Link to={ROLE_HOME[primaryRole]} onClick={() => setOpen(false)}>
+                      Open workspace <ArrowRight />
+                    </Link>
+                  </Button>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button asChild variant="outline" size="lg">
+                      <Link to="/auth" onClick={() => setOpen(false)}>
+                        Sign in
+                      </Link>
+                    </Button>
+                    <Button asChild size="lg">
+                      <Link to="/auth" search={{ mode: "signup" }} onClick={() => setOpen(false)}>
+                        Get started
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {open && (
-        <div className="border-t border-ink-foreground/10 lg:hidden">
-          <nav className="mx-auto grid max-w-7xl gap-1 px-4 py-4 sm:px-6">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-ink-foreground/80 hover:bg-ink-foreground/10"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="mt-3 flex gap-2">
-              {user ? (
-                <Button asChild variant="brass" className="flex-1">
-                  <Link to={ROLE_HOME[primaryRole]} onClick={() => setOpen(false)}>
-                    Open workspace
-                  </Link>
-                </Button>
-              ) : (
-                <>
-                  <Button asChild variant="outlineInk" className="flex-1">
-                    <Link to="/auth" onClick={() => setOpen(false)}>
-                      Sign in
-                    </Link>
-                  </Button>
-                  <Button asChild variant="brass" className="flex-1">
-                    <Link to="/auth" search={{ mode: "signup" }} onClick={() => setOpen(false)}>
-                      Create account
-                    </Link>
-                  </Button>
-                </>
-              )}
-            </div>
-          </nav>
-        </div>
-      )}
     </header>
   );
 }

@@ -113,8 +113,8 @@ function StationsPage() {
           {geo.status !== "granted" && (
             <Button
               type="button"
-              variant="outlineInk"
-              size="sm"
+              variant="outline"
+              size="lg"
               onClick={geo.request}
               disabled={geo.status === "locating" || geo.status === "unsupported"}
             >
@@ -124,7 +124,7 @@ function StationsPage() {
           )}
         </div>
         {geo.status === "denied" && (
-          <p className="mt-3 text-xs text-ink-foreground/50">
+          <p className="mt-3 text-xs text-muted-foreground">
             Location access was denied — showing all stations instead.
           </p>
         )}
