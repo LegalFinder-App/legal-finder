@@ -5,10 +5,12 @@ import {
   ArrowUpRight,
   BookOpen,
   CalendarRange,
-  Clock,
+  FileText,
+  Gavel,
   Landmark,
   Library,
   ListChecks,
+  Scale,
   ScrollText,
   Tags,
 } from "lucide-react";
@@ -18,6 +20,7 @@ import { ListingToolbar, StatStrip } from "@/components/common/listing-toolbar";
 import { SearchInput } from "@/components/common/search-input";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { libraryQuery } from "@/lib/queries";
+import { JUDICIARY_LINKS, ULII_LEGISLATION_URL, uliiSearchUrl } from "@/lib/legal-feed/meta";
 import { delay } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { prefetchForPage } from "@/lib/prefetch";
@@ -261,11 +264,31 @@ function LibraryPage() {
                             <span className="sr-only"> (opens in a new tab)</span>
                           </a>
                         ) : (
-                          <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" aria-hidden /> Full text coming soon
-                          </p>
+                          <a
+                            href={uliiSearchUrl(i.title)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="press inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                          >
+                            Official text <ArrowUpRight className="h-4 w-4" aria-hidden />
+                            <span className="sr-only"> on ULII (opens in a new tab)</span>
+                          </a>
                         )}
-                        <span className={cn("text-xs font-semibold", kind.text)}>{kind.label}</span>
+                        {i.file_url ? (
+                          <a
+                            href={uliiSearchUrl(i.title)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex min-h-10 items-center gap-1 text-xs font-semibold text-brass hover:underline"
+                          >
+                            <Scale className="h-3.5 w-3.5" aria-hidden /> On ULII
+                            <span className="sr-only"> (opens in a new tab)</span>
+                          </a>
+                        ) : (
+                          <span className={cn("text-xs font-semibold", kind.text)}>
+                            {kind.label}
+                          </span>
+                        )}
                       </div>
                     </article>
                   );
@@ -280,8 +303,86 @@ function LibraryPage() {
             </>
           )}
         </div>
+
+        <OfficialCollections />
       </div>
     </PublicLayout>
+  );
+}
+
+const COLLECTIONS = [
+  {
+    icon: ScrollText,
+    title: "Laws of Uganda",
+    body: "Acts, statutory instruments and the Constitution, as published by ULII.",
+    href: ULII_LEGISLATION_URL,
+    source: "ulii.org",
+  },
+  {
+    icon: Gavel,
+    title: "Court judgments",
+    body: "Decisions of the Supreme Court, Court of Appeal and High Court.",
+    href: "/judgements",
+    source: "LegalFinder",
+  },
+  {
+    icon: FileText,
+    title: "Court forms",
+    body: "Official forms for filing in Uganda's courts, from the Judiciary.",
+    href: JUDICIARY_LINKS.courtForms,
+    source: "judiciary.go.ug",
+  },
+] as const;
+
+/** Where the official texts live: links out, nothing copied (docs/SOURCES.md). */
+function OfficialCollections() {
+  return (
+    <section aria-labelledby="collections-title" className="mt-16 sm:mt-20">
+      <p className="eyebrow text-brass">Official sources</p>
+      <h2 id="collections-title" className="mt-2 text-h3 font-bold tracking-tight">
+        Go straight to the official collections
+      </h2>
+      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+        The authoritative texts are published by ULII and the Judiciary of Uganda. These open their
+        own pages.
+      </p>
+      <ul className="mt-6 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+        {COLLECTIONS.map((c) => {
+          const external = c.href.startsWith("http");
+          return (
+            <li key={c.title} className="min-w-0">
+              <a
+                href={c.href}
+                {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
+                className="card card-interactive group relative flex h-full flex-col overflow-hidden p-5 sm:p-6"
+              >
+                <span
+                  aria-hidden
+                  className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[oklch(0.78_0.115_80/0.12)] blur-2xl"
+                />
+                <span className="grid h-11 w-11 place-items-center rounded-2xl surface-ink">
+                  <c.icon className="h-5 w-5 text-brass" aria-hidden />
+                </span>
+                <span className="mt-4 block text-lg font-bold tracking-tight group-hover:text-brass">
+                  {c.title}
+                </span>
+                <span className="mt-1.5 block flex-1 text-sm leading-relaxed text-muted-foreground">
+                  {c.body}
+                </span>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brass">
+                  {c.source}
+                  <ArrowUpRight
+                    className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
+                </span>
+                {external && <span className="sr-only"> (opens in a new tab)</span>}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

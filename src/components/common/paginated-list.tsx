@@ -8,6 +8,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { cn } from "@/lib/utils";
+
+// On phones Previous/Next show only their arrows; the words stay for screen readers.
+const COMPACT = "px-2.5 max-sm:[&>span]:sr-only sm:px-3";
 
 /** Client-side paging over an already-fetched array — no query/backend changes. */
 export function usePaginatedList<T>(items: T[], pageSize: number) {
@@ -55,7 +59,7 @@ export function PaginationBar({
 
   return (
     <Pagination className={className}>
-      <PaginationContent>
+      <PaginationContent className="flex-wrap justify-center">
         <PaginationItem>
           <PaginationPrevious
             href="#"
@@ -66,7 +70,7 @@ export function PaginationBar({
             // Unavailable on the first page: announced as disabled and skipped by Tab.
             aria-disabled={page === 1 || undefined}
             tabIndex={page === 1 ? -1 : undefined}
-            className={page === 1 ? "pointer-events-none opacity-50" : undefined}
+            className={cn(COMPACT, page === 1 && "pointer-events-none opacity-50")}
           />
         </PaginationItem>
         {pageWindow(page, totalPages).map((entry, index) =>
@@ -98,7 +102,7 @@ export function PaginationBar({
             }}
             aria-disabled={page === totalPages || undefined}
             tabIndex={page === totalPages ? -1 : undefined}
-            className={page === totalPages ? "pointer-events-none opacity-50" : undefined}
+            className={cn(COMPACT, page === totalPages && "pointer-events-none opacity-50")}
           />
         </PaginationItem>
       </PaginationContent>

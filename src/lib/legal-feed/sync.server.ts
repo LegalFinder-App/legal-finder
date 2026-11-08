@@ -13,6 +13,7 @@ import {
   parseJudiciaryArticle,
   parseJudiciaryListing,
   type ParsedItem,
+  UPF_ADVISORY_SLUGS,
   type UpfCategory,
   type UpfPost,
 } from "./parse";
@@ -102,28 +103,59 @@ async function markRemoved(
 
 /* ---------------- Uganda Police Force ---------------- */
 
+const UPF_API = "https://upf.go.ug/wp-json/wp/v2";
+const UPF_FIELDS = "_fields=id,date_gmt,link,title,excerpt,categories";
+
+/**
+ * Safety and road advisories are sparse and quickly pushed out of the latest-posts window by
+ * press releases, so they get one small request of their own (for the Advice page).
+ */
+async function syncUpfAdvisories(categories: UpfCategory[]) {
+  const ids = categories.filter((c) => UPF_ADVISORY_SLUGS.includes(c.slug)).map((c) => c.id);
+  if (ids.length === 0) return { fetched: 0, upserted: 0 };
+  const res = await politeGet(
+    `${UPF_API}/posts?per_page=20&categories=${ids.join(",")}&${UPF_FIELDS}`,
+  );
+  if (res.status !== 200) return { fetched: 0, upserted: 0 };
+  const catMap = new Map(categories.map((c) => [c.id, c]));
+  const raw = JSON.parse(res.body) as UpfPost[];
+  const items = raw.map((p) => mapUpfPost(p, catMap)).filter((i): i is ParsedItem => i !== null);
+  return { fetched: raw.length, upserted: await upsertItems(items) };
+}
+
 async function syncUpf(state: SourceState): Promise<{ result: SourceResult; state: SourceState }> {
-  const base = "https://upf.go.ug/wp-json/wp/v2";
-  const postsUrl = `${base}/posts?per_page=40&_fields=id,date_gmt,link,title,excerpt,categories`;
+  // Categories change rarely; refresh them at most once a week.
+  let categories = (state.categories as UpfCategory[] | undefined) ?? [];
+  const catAge = Date.now() - Number(state.categoriesAt ?? 0);
+  const categoriesFresh = categories.length === 0 || catAge > 7 * 24 * 3600_000;
+  if (categoriesFresh) {
+    const cats = await politeGet(`${UPF_API}/categories?per_page=100&_fields=id,slug,name`);
+    if (cats.status === 200) categories = JSON.parse(cats.body) as UpfCategory[];
+  }
+  const categoryState = {
+    categories: categories as unknown as Json,
+    categoriesAt: categoriesFresh ? Date.now() : (state.categoriesAt ?? Date.now()),
+  };
+  const advisories = await syncUpfAdvisories(categories);
+
+  const postsUrl = `${UPF_API}/posts?per_page=40&${UPF_FIELDS}`;
   const posts = await politeGet(postsUrl, {
     etag: typeof state.etag === "string" ? state.etag : undefined,
     lastModified: typeof state.lastModified === "string" ? state.lastModified : undefined,
   });
   if (posts.status === 304) {
     return {
-      result: { source: "upf", fetched: 0, upserted: 0, removed: 0, skipped: "not modified" },
-      state,
+      result: {
+        source: "upf",
+        fetched: advisories.fetched,
+        upserted: advisories.upserted,
+        removed: 0,
+        skipped: "latest posts not modified",
+      },
+      state: { ...state, ...categoryState },
     };
   }
   if (posts.status !== 200) throw new Error(`UPF posts: HTTP ${posts.status}`);
-
-  // Categories change rarely; refresh them at most once a week.
-  let categories = (state.categories as UpfCategory[] | undefined) ?? [];
-  const catAge = Date.now() - Number(state.categoriesAt ?? 0);
-  if (categories.length === 0 || catAge > 7 * 24 * 3600_000) {
-    const cats = await politeGet(`${base}/categories?per_page=100&_fields=id,slug,name`);
-    if (cats.status === 200) categories = JSON.parse(cats.body) as UpfCategory[];
-  }
   const catMap = new Map(categories.map((c) => [c.id, c]));
 
   const raw = JSON.parse(posts.body) as UpfPost[];
@@ -139,14 +171,13 @@ async function syncUpf(state: SourceState): Promise<{ result: SourceResult; stat
     dates[0] ?? null,
   );
   return {
-    result: { source: "upf", fetched: raw.length, upserted, removed },
-    state: {
-      etag: posts.etag,
-      lastModified: posts.lastModified,
-      categories: categories as unknown as Json,
-      categoriesAt:
-        categories === state.categories ? (state.categoriesAt ?? Date.now()) : Date.now(),
+    result: {
+      source: "upf",
+      fetched: raw.length + advisories.fetched,
+      upserted: upserted + advisories.upserted,
+      removed,
     },
+    state: { etag: posts.etag, lastModified: posts.lastModified, ...categoryState },
   };
 }
 

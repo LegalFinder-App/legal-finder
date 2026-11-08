@@ -39,6 +39,8 @@ export const UPF_CATEGORIES: Record<string, string> = {
   "regional-international-cooperation": "Cooperation",
 };
 const UPF_SKIP = new Set(["sports"]);
+/** Safety and road advisories; they win over broader categories so the Advice page finds them. */
+export const UPF_ADVISORY_SLUGS = ["public-saftey", "public-safety", "traffic-alert"];
 
 export function mapUpfPost(post: UpfPost, categories: Map<number, UpfCategory>): ParsedItem | null {
   const slugs = (post.categories ?? [])
@@ -46,7 +48,11 @@ export function mapUpfPost(post: UpfPost, categories: Map<number, UpfCategory>):
     .filter((s): s is string => Boolean(s));
   if (slugs.some((s) => UPF_SKIP.has(s))) return null;
   if (!/^https:\/\/(www\.)?upf\.go\.ug\//.test(post.link)) return null;
-  const category = slugs.map((s) => UPF_CATEGORIES[s]).find(Boolean) ?? "News";
+  const advisory = slugs.find((s) => UPF_ADVISORY_SLUGS.includes(s));
+  const category =
+    (advisory && UPF_CATEGORIES[advisory]) ??
+    slugs.map((s) => UPF_CATEGORIES[s]).find(Boolean) ??
+    "News";
   const title = tidyTitle(htmlToText(post.title.rendered));
   const { summary, withheld } = summarize(htmlToText(post.excerpt?.rendered ?? ""), { title });
   const dateGmt = post.date_gmt ?? null;

@@ -130,6 +130,24 @@ describe("Uganda Police Force mapping", () => {
     });
   });
 
+  it("files a post as a safety advisory even when a broader category comes first", () => {
+    const withPolicing = new Map(cats).set(23, {
+      id: 23,
+      slug: "community-policing",
+      name: "Community Policing",
+    });
+    const item = mapUpfPost(
+      {
+        id: 7,
+        link: "https://upf.go.ug/road-safety/",
+        title: { rendered: "Road Safety Campaigns Extended" },
+        categories: [23, 5],
+      },
+      withPolicing,
+    );
+    expect(item?.category).toBe("Traffic alert");
+  });
+
   it("skips sports and off-site links", () => {
     const base = { id: 1, link: "https://upf.go.ug/x/", title: { rendered: "Match" } };
     expect(mapUpfPost({ ...base, categories: [9] }, cats)).toBeNull();

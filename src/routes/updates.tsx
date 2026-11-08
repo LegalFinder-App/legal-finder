@@ -1,11 +1,8 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ArrowUpRight,
   BookOpenText,
-  CalendarDays,
-  Flag,
   Gavel,
   Landmark,
   Newspaper,
@@ -19,17 +16,9 @@ import { EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
 import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
-import { Button } from "@/components/ui/button";
-import {
-  legalFeedQuery,
-  reportConcernHref,
-  SOURCE_META,
-  ULII_ATTRIBUTION,
-  ULII_COURTS,
-  uliiCourtUrl,
-  uliiSearchUrl,
-  type LegalFeedItem,
-} from "@/lib/legal-feed/meta";
+import { FeedCard, FeedCardSkeleton } from "@/components/common/feed-card";
+import { UliiJudgmentsPanel } from "@/components/common/ulii-panel";
+import { legalFeedQuery, SOURCE_META } from "@/lib/legal-feed/meta";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate } from "@/lib/format";
@@ -171,11 +160,11 @@ function UpdatesPage() {
 
           <div className="mt-6">
             {tab === "judgments" ? (
-              <JudgmentsPanel initialQuery={q} />
+              <UliiJudgmentsPanel initialQuery={q} />
             ) : isLoading ? (
               <div className="grid gap-4" role="status" aria-label="Loading updates">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <UpdateSkeleton key={i} />
+                  <FeedCardSkeleton key={i} />
                 ))}
               </div>
             ) : isError ? (
@@ -209,7 +198,7 @@ function UpdatesPage() {
                       className="animate-rise"
                       style={delay(Math.min(i, 6) * 50)}
                     >
-                      <UpdateCard item={item} />
+                      <FeedCard item={item} />
                     </li>
                   ))}
                 </ol>
@@ -288,166 +277,6 @@ function UpdatesPage() {
         </aside>
       </div>
     </PublicLayout>
-  );
-}
-
-function UpdateCard({ item }: { item: LegalFeedItem }) {
-  const meta = SOURCE_META[item.source];
-  const SourceIcon = item.source === "judiciary" ? Landmark : Shield;
-  return (
-    <article className="card group relative p-5 transition-[box-shadow,border-color] duration-300 hover:border-foreground/15 hover:shadow-[var(--shadow-card-hover)] sm:p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.72rem] font-semibold",
-            item.source === "judiciary"
-              ? "bg-accent text-accent-foreground"
-              : "bg-info/10 text-info",
-          )}
-        >
-          <SourceIcon className="h-3.5 w-3.5" aria-hidden />
-          {meta.short}
-        </span>
-        {item.category && (
-          <span className="rounded-full border border-border px-2.5 py-0.5 text-[0.72rem] font-medium text-muted-foreground">
-            {item.category}
-          </span>
-        )}
-        {item.published_at && (
-          <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-            <time dateTime={item.published_at}>{formatDate(item.published_at)}</time>
-          </span>
-        )}
-      </div>
-
-      <h3 className="mt-3 text-[1.0625rem] font-bold leading-snug tracking-tight sm:text-lg">
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noreferrer"
-          className="transition-colors after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] group-hover:text-brass"
-        >
-          {item.title}
-          <span className="sr-only"> (opens {meta.host} in a new tab)</span>
-        </a>
-      </h3>
-
-      {item.summary ? (
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.summary}</p>
-      ) : item.summary_withheld ? (
-        <p className="mt-2 text-sm italic leading-relaxed text-muted-foreground">
-          Summary withheld to protect the people involved — read the official statement.
-        </p>
-      ) : null}
-
-      <div className="relative z-10 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex min-h-9 items-center gap-1.5 text-sm font-semibold hover:text-brass"
-        >
-          Read on {meta.host}
-          <ArrowUpRight className="h-4 w-4" aria-hidden />
-        </a>
-        <a
-          href={reportConcernHref(item)}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
-        >
-          <Flag className="h-3.5 w-3.5" aria-hidden /> Report a concern
-        </a>
-      </div>
-    </article>
-  );
-}
-
-function UpdateSkeleton() {
-  return (
-    <div className="card p-5 sm:p-6" aria-hidden>
-      <div className="flex gap-2">
-        <div className="h-6 w-20 animate-pulse rounded-full bg-muted" />
-        <div className="h-6 w-28 animate-pulse rounded-full bg-muted" />
-      </div>
-      <div className="mt-4 h-5 w-4/5 animate-pulse rounded-full bg-muted" />
-      <div className="mt-3 h-3.5 w-full animate-pulse rounded-full bg-muted/70" />
-      <div className="mt-2 h-3.5 w-2/3 animate-pulse rounded-full bg-muted/70" />
-      <div className="mt-5 h-9 w-40 animate-pulse rounded-full bg-muted" />
-    </div>
-  );
-}
-
-function JudgmentsPanel({ initialQuery }: { initialQuery: string }) {
-  const [query, setQuery] = useState(initialQuery);
-  const search = (e: FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) window.open(uliiSearchUrl(query), "_blank", "noopener,noreferrer");
-  };
-  return (
-    <div className="space-y-5">
-      <section className="card overflow-hidden">
-        <div className="relative isolate surface-ink p-6 sm:p-8">
-          <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-50" />
-          <p className="eyebrow text-brass">Court judgments</p>
-          <h2 className="mt-2 text-h4 font-bold text-ink-foreground">
-            Read judgments on ULII, Uganda's free law library
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-foreground/75">
-            Search reported decisions from every superior court. Results open on ULII in a new tab.
-          </p>
-          <form onSubmit={search} className="mt-5 flex flex-col gap-2 sm:flex-row" role="search">
-            <label htmlFor="ulii-q" className="sr-only">
-              Search judgments on ULII
-            </label>
-            <div className="relative flex-1">
-              <Search
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-foreground/50"
-                aria-hidden
-              />
-              <input
-                id="ulii-q"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g. land title, bail, election petition"
-                className="h-12 w-full rounded-full border pl-11 pr-4 text-base text-ink-foreground placeholder:text-ink-foreground/50 surface-glass-ink focus:border-brass focus:outline-none focus:ring-[3px] focus:ring-brass/25 sm:text-sm"
-              />
-            </div>
-            <Button type="submit" variant="brass" size="lg" className="h-12">
-              Search ULII <ArrowUpRight />
-            </Button>
-          </form>
-        </div>
-      </section>
-
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {ULII_COURTS.map((c, i) => (
-          <li key={c.code} className="animate-rise" style={delay(i * 50)}>
-            <a
-              href={uliiCourtUrl(c.code)}
-              target="_blank"
-              rel="noreferrer"
-              className="card card-interactive group flex h-full items-center gap-4 p-4"
-            >
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-accent text-brass">
-                <Gavel className="h-5 w-5" aria-hidden />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-bold tracking-tight group-hover:text-brass">
-                  {c.name}
-                </span>
-                <span className="block text-xs text-muted-foreground">{c.note}</span>
-              </span>
-              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brass">
-                View on ULII <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs text-muted-foreground">
-        {ULII_ATTRIBUTION}. Links open ULII's own pages; LegalFinder does not copy ULII content.
-      </p>
-    </div>
   );
 }
 

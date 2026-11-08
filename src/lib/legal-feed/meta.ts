@@ -32,6 +32,34 @@ export const legalFeedQuery = queryOptions({
   staleTime: 5 * 60_000,
 });
 
+/** Police safety and road advisories (collected by their own request; see sync.server.ts). */
+export const safetyAdvisoriesQuery = queryOptions({
+  queryKey: ["legal-feed", "advisories"],
+  queryFn: async (): Promise<LegalFeedItem[]> =>
+    unwrap(
+      await supabase
+        .from("legal_feed_items")
+        .select(
+          "id, source, url, title, summary, summary_withheld, category, published_at, last_seen_at",
+        )
+        .eq("source", "upf")
+        .in("category", ["Public safety", "Traffic alert"])
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .limit(12),
+    ) as LegalFeedItem[],
+  staleTime: 5 * 60_000,
+});
+
+/** Judiciary pages LegalFinder links to (no content is copied from them). */
+export const JUDICIARY_LINKS = {
+  knowYourRights: "https://judiciary.go.ug/data/smenu/29/Know+Your+Rights.html",
+  faqs: "https://judiciary.go.ug/data/faqs/16/3/FAQs.html",
+  courtForms: "https://judiciary.go.ug/data/dpublications/10/Releases_publications.html",
+  news: "https://judiciary.go.ug/data/press/news.html",
+} as const;
+
+export const ULII_LEGISLATION_URL = "https://ulii.org/en/legislation/";
+
 export const SOURCE_META = {
   judiciary: {
     name: "Judiciary of Uganda",
