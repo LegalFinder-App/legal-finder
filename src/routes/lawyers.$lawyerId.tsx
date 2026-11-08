@@ -66,9 +66,28 @@ function LawyerProfile() {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="mx-auto max-w-5xl px-4 py-24">
-          <div className="h-64 animate-pulse rounded-3xl bg-muted" />
-        </div>
+        {/* Same footprint as the loaded header, so nothing jumps when the profile arrives. */}
+        <section
+          role="status"
+          aria-label="Loading profile"
+          className="relative isolate -mt-[calc(var(--header-h)+var(--safe-top))] min-h-dvh overflow-hidden bg-sky pt-[calc(var(--header-h)+var(--safe-top))]"
+        >
+          <div aria-hidden className="absolute inset-0 -z-10 bg-grid-light" />
+          <div className="container-page max-w-6xl py-10 sm:py-14 lg:py-16">
+            <div className="h-10 w-36 animate-pulse rounded-full bg-muted" />
+            <div className="mt-8 flex flex-col items-center gap-6 lg:flex-row lg:items-end lg:gap-8">
+              <div className="h-32 w-32 shrink-0 animate-pulse rounded-full bg-muted sm:h-36 sm:w-36" />
+              <div className="flex w-full flex-1 flex-col items-center gap-3 lg:items-start">
+                <div className="h-3 w-32 animate-pulse rounded-full bg-muted" />
+                <div className="h-10 w-64 animate-pulse rounded-full bg-muted" />
+                <div className="h-5 w-56 animate-pulse rounded-full bg-muted" />
+                <div className="h-4 w-48 animate-pulse rounded-full bg-muted" />
+              </div>
+              <div className="h-12 w-full animate-pulse rounded-full bg-muted sm:w-56" />
+            </div>
+            <div className="mt-10 h-[9.5rem] animate-pulse rounded-3xl bg-muted sm:h-[5.75rem]" />
+          </div>
+        </section>
       </PublicLayout>
     );
   }
@@ -556,7 +575,7 @@ function ReviewForm({ lawyerId }: { lawyerId: string }) {
   if (!user) {
     return (
       <p className="mt-6 text-sm text-muted-foreground">
-        <Link to="/auth" className="text-brass underline-offset-4 hover:underline">
+        <Link to="/auth" className="text-brass underline decoration-brass/40 underline-offset-4 hover:decoration-brass">
           Sign in
         </Link>{" "}
         to leave a review.

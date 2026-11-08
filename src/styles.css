@@ -194,7 +194,7 @@
   padding-bottom: var(--safe-bottom);
 }
 
-@utility {
+@utility px-safe {
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
 }

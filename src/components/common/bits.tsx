@@ -39,8 +39,9 @@ export function SectionHeading({
 export function Stars({ value, className }: { value: number; className?: string }) {
   return (
     <span
+      role="img"
       className={cn("inline-flex items-center gap-0.5", className)}
-      aria-label={`${value} of 5`}
+      aria-label={`${value} out of 5 stars`}
     >
       {[1, 2, 3, 4, 5].map((i) => (
         <Star

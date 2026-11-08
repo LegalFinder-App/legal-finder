@@ -564,13 +564,13 @@ function AuthPage() {
                       required
                       minLength={6}
                       placeholder="••••••••"
-                      className="pr-10"
+                      className="pr-11"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -589,7 +589,7 @@ function AuthPage() {
                       I agree to LegalFinder's{" "}
                       <Link
                         to="/terms-of-service"
-                        className="text-brass hover:underline"
+                        className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
                         target="_blank"
                       >
                         Terms of Service
@@ -597,7 +597,7 @@ function AuthPage() {
                       and{" "}
                       <Link
                         to="/privacy-policy"
-                        className="text-brass hover:underline"
+                        className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass"
                         target="_blank"
                       >
                         Privacy Policy
@@ -686,11 +686,11 @@ function AuthPage() {
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
             By continuing you agree to LegalFinder's{" "}
-            <Link to="/terms-of-service" className="text-brass hover:underline">
+            <Link to="/terms-of-service" className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass">
               terms
             </Link>{" "}
             and{" "}
-            <Link to="/privacy-policy" className="text-brass hover:underline">
+            <Link to="/privacy-policy" className="text-brass underline decoration-brass/40 underline-offset-2 hover:decoration-brass">
               privacy policy
             </Link>
             .
