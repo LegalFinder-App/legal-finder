@@ -4,13 +4,13 @@ import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 export const Route = createFileRoute("/terms-of-service")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — LegalFinder" },
+      { title: "LegalFinder | Terms of Service" },
       {
         name: "description",
         content:
           "The terms governing your use of LegalFinder — the advocate directory, case management, payments, and public-interest legal information services.",
       },
-      { property: "og:title", content: "Terms of Service — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Terms of Service" },
       { property: "og:description", content: "The terms governing your use of LegalFinder." },
       { name: "robots", content: "index, follow" },
     ],

@@ -15,13 +15,13 @@ import { appSettingsQuery } from "@/lib/app-settings";
 export const Route = createFileRoute("/stations")({
   head: () => ({
     meta: [
-      { title: "Police stations directory — LegalFinder" },
+      { title: "LegalFinder | Police stations" },
       {
         name: "description",
         content:
           "Find the nearest police station with contact details, address and district coverage.",
       },
-      { property: "og:title", content: "Police stations directory — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Police stations" },
       { property: "og:description", content: "Nearest stations with contacts and addresses." },
     ],
   }),

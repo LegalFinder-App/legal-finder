@@ -84,14 +84,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { title: "LegalFinder — Find trusted legal help" },
+      { title: "LegalFinder | Find trusted legal help" },
       {
         name: "description",
         content:
           "LegalFinder connects people with verified advocates, courts, police services and legal knowledge on every device.",
       },
       { name: "author", content: "LegalFinder" },
-      { property: "og:title", content: "LegalFinder — Find trusted legal help" },
+      { property: "og:title", content: "LegalFinder | Find trusted legal help" },
       {
         property: "og:description",
         content:

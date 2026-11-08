@@ -3,7 +3,7 @@ import { ApplicationPage } from "@/components/app/onboarding/application-view";
 import { isApplicationRole, type ApplicationRole } from "@/lib/onboarding";
 
 export const Route = createFileRoute("/_authenticated/apply")({
-  head: () => ({ meta: [{ title: "Professional account — LegalFinder" }] }),
+  head: () => ({ meta: [{ title: "LegalFinder | Professional account" }] }),
   validateSearch: (search: Record<string, unknown>): { role?: ApplicationRole } =>
     isApplicationRole(search.role) ? { role: search.role } : {},
   component: ApplyPage,

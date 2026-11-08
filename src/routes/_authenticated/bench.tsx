@@ -3,6 +3,7 @@ import { BenchWorkspace } from "@/components/app/workspace/bench-workspace";
 import { requireRoles } from "@/lib/rbac";
 
 export const Route = createFileRoute("/_authenticated/bench")({
+  head: () => ({ meta: [{ title: "LegalFinder | Bench" }] }),
   beforeLoad: requireRoles(["judiciary", "admin"]),
   component: BenchWorkspace,
 });

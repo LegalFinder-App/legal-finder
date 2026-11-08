@@ -11,23 +11,37 @@ import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/advice/$slug")({
-  head: () => ({
+  // Prefetch for the page, then hand the record's name to head() for the tab title.
+  loader: async ({ context: { queryClient }, params }) => {
+    await prefetchForPage([
+      queryClient.prefetchQuery(adviceQuery(params.slug)),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]);
+    const record = queryClient.getQueryData(adviceQuery(params.slug).queryKey) as
+      { title?: string | null } | null | undefined;
+    return { pageTitle: record?.title ?? null };
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Legal guide — LegalFinder" },
+      {
+        title: loaderData?.pageTitle
+          ? `LegalFinder | ${loaderData.pageTitle}`
+          : "LegalFinder | Legal guide",
+      },
       {
         name: "description",
         content: "A plain-language legal guide from the LegalFinder advice library.",
       },
-      { property: "og:title", content: "Legal guide — LegalFinder" },
+      {
+        property: "og:title",
+        content: loaderData?.pageTitle
+          ? `LegalFinder | ${loaderData.pageTitle}`
+          : "LegalFinder | Legal guide",
+      },
       { property: "og:description", content: "A plain-language legal guide from LegalFinder." },
       { property: "og:type", content: "article" },
     ],
   }),
-  loader: ({ context: { queryClient }, params }) =>
-    prefetchForPage([
-      queryClient.prefetchQuery(adviceQuery(params.slug)),
-      queryClient.prefetchQuery(appSettingsQuery),
-    ]),
   component: AdviceDetail,
 });
 

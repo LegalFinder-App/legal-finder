@@ -4,13 +4,13 @@ import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — LegalFinder" },
+      { title: "LegalFinder | Privacy Policy" },
       {
         name: "description",
         content:
           "How LegalFinder collects, uses, shares, and protects your personal data across the web, desktop, and mobile applications.",
       },
-      { property: "og:title", content: "Privacy Policy — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Privacy Policy" },
       { property: "og:description", content: "How LegalFinder handles your personal data." },
       { name: "robots", content: "index, follow" },
     ],

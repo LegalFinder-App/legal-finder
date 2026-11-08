@@ -13,9 +13,9 @@ import { formatNumber } from "@/lib/format";
 export const Route = createFileRoute("/wanted/$id")({
   head: () => ({
     meta: [
-      { title: "Public notice — LegalFinder" },
+      { title: "LegalFinder | Public notice" },
       { name: "description", content: "Official public notice published by police services." },
-      { property: "og:title", content: "Public notice — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Public notice" },
       { name: "robots", content: "noindex" },
     ],
   }),

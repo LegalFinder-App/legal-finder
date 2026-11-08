@@ -39,13 +39,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/updates")({
   head: () => ({
     meta: [
-      { title: "Legal updates — LegalFinder" },
+      { title: "LegalFinder | Updates" },
       {
         name: "description",
         content:
           "Headlines from the Judiciary of Uganda and the Uganda Police Force in one feed, with links to the originals and to judgments on ULII.",
       },
-      { property: "og:title", content: "Legal updates — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Updates" },
       {
         property: "og:description",
         content: "Court and police news from official Ugandan sources, in one feed.",

@@ -21,13 +21,13 @@ export const Route = createFileRoute("/report")({
   }),
   head: () => ({
     meta: [
-      { title: "Report an incident — LegalFinder" },
+      { title: "LegalFinder | Report an incident" },
       {
         name: "description",
         content:
           "File an incident report to police services, anonymously if you need to, and track its status.",
       },
-      { property: "og:title", content: "Report an incident — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Report an incident" },
       { property: "og:description", content: "File a report and track its status." },
     ],
   }),

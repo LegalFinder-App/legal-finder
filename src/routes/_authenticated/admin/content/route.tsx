@@ -6,6 +6,7 @@ import { contentCountsQuery } from "@/components/app/admin/content/content-count
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/content")({
+  head: () => ({ meta: [{ title: "LegalFinder | Admin · Content" }] }),
   component: ContentLayout,
 });
 

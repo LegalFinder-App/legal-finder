@@ -32,7 +32,7 @@ import { useTheme, type ThemePreference } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — LegalFinder" }] }),
+  head: () => ({ meta: [{ title: "LegalFinder | Settings" }] }),
   component: SettingsPage,
 });
 

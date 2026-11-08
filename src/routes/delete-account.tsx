@@ -8,13 +8,13 @@ import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 export const Route = createFileRoute("/delete-account")({
   head: () => ({
     meta: [
-      { title: "Delete your account — LegalFinder" },
+      { title: "LegalFinder | Delete account" },
       {
         name: "description",
         content:
           "How to delete your LegalFinder account from the app or the website, what is removed, and what is kept.",
       },
-      { property: "og:title", content: "Delete your account — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Delete account" },
       {
         property: "og:description",
         content: "How to delete your LegalFinder account, what is removed, and what is kept.",

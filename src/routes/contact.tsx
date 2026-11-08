@@ -11,13 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact LegalFinder" },
+      { title: "LegalFinder | Contact" },
       {
         name: "description",
         content:
           "Get in touch with the LegalFinder team for support, partnerships or verification queries.",
       },
-      { property: "og:title", content: "Contact LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Contact" },
       { property: "og:description", content: "Support, partnerships and verification queries." },
     ],
   }),

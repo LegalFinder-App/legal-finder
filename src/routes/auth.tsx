@@ -72,13 +72,13 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — LegalFinder" },
+      { title: "LegalFinder | Sign in" },
       {
         name: "description",
         content:
           "Access your LegalFinder workspace as a client, advocate, police officer, judicial officer or administrator.",
       },
-      { property: "og:title", content: "Sign in — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Sign in" },
       { property: "og:description", content: "Access your LegalFinder workspace." },
       { name: "robots", content: "noindex" },
     ],

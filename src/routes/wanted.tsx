@@ -13,13 +13,13 @@ import { formatNumber } from "@/lib/format";
 export const Route = createFileRoute("/wanted")({
   head: () => ({
     meta: [
-      { title: "Public notices & wanted persons — LegalFinder" },
+      { title: "LegalFinder | Public notices" },
       {
         name: "description",
         content:
           "Official public notices published by police services, including persons of interest.",
       },
-      { property: "og:title", content: "Public notices — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Public notices" },
       { property: "og:description", content: "Official notices published by police services." },
     ],
   }),

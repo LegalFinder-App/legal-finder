@@ -46,13 +46,13 @@ const sorters: Record<SortId, ((a: Lawyer, b: Lawyer) => number) | null> = {
 export const Route = createFileRoute("/lawyers/")({
   head: () => ({
     meta: [
-      { title: "Advocate directory — LegalFinder" },
+      { title: "LegalFinder | Advocates" },
       {
         name: "description",
         content:
           "Search Uganda Law Council-verified advocates by practice area, district, language and consultation fee. Read reviews and book directly.",
       },
-      { property: "og:title", content: "Advocate directory — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Advocates" },
       {
         property: "og:description",
         content: "Uganda Law Council-verified advocates by practice area, district and fee.",

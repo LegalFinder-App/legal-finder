@@ -8,13 +8,13 @@ import courthouse from "@/assets/courthouse.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About LegalFinder" },
+      { title: "LegalFinder | About" },
       {
         name: "description",
         content:
           "LegalFinder is a public-interest platform connecting people with verified advocates, courts and police services.",
       },
-      { property: "og:title", content: "About LegalFinder" },
+      { property: "og:title", content: "LegalFinder | About" },
       {
         property: "og:description",
         content: "A public-interest platform for the whole justice system.",

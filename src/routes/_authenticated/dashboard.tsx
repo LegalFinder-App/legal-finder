@@ -5,6 +5,7 @@ import { useApplying } from "@/components/app/onboarding/use-applying";
 import { LoadingRows } from "@/components/common/bits";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({ meta: [{ title: "LegalFinder | Dashboard" }] }),
   component: Dashboard,
 });
 

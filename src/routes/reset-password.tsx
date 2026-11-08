@@ -17,9 +17,9 @@ export const Route = createFileRoute("/reset-password")({
   }),
   head: () => ({
     meta: [
-      { title: "Reset password — LegalFinder" },
+      { title: "LegalFinder | Reset password" },
       { name: "description", content: "Choose a new password for your LegalFinder account." },
-      { property: "og:title", content: "Reset password — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Reset password" },
       { property: "og:description", content: "Choose a new password for your account." },
       { name: "robots", content: "noindex" },
     ],

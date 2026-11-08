@@ -10,13 +10,13 @@ import { appSettingsQuery } from "@/lib/app-settings";
 export const Route = createFileRoute("/safety")({
   head: () => ({
     meta: [
-      { title: "Safety & security tips — LegalFinder" },
+      { title: "LegalFinder | Safety" },
       {
         name: "description",
         content:
           "Practical safety guidance: what to do during an arrest, how to protect evidence, and how to stay safe.",
       },
-      { property: "og:title", content: "Safety & security tips — LegalFinder" },
+      { property: "og:title", content: "LegalFinder | Safety" },
       {
         property: "og:description",
         content: "Practical guidance for staying safe and protecting your rights.",

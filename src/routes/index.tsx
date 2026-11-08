@@ -41,13 +41,13 @@ import { formatDate, formatNumber } from "@/lib/format";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LegalFinder — Verified advocates, cases & legal knowledge" },
+      { title: "LegalFinder | Verified advocates & legal help in Uganda" },
       {
         name: "description",
         content:
           "Search verified advocates, track your cases, book consultations, read court judgements and get plain-language legal guidance — on any device.",
       },
-      { property: "og:title", content: "LegalFinder — Verified advocates & legal knowledge" },
+      { property: "og:title", content: "LegalFinder | Verified advocates & legal help in Uganda" },
       {
         property: "og:description",
         content:

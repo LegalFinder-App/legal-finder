@@ -11,23 +11,37 @@ import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/news/$slug")({
-  head: () => ({
+  // Prefetch for the page, then hand the record's name to head() for the tab title.
+  loader: async ({ context: { queryClient }, params }) => {
+    await prefetchForPage([
+      queryClient.prefetchQuery(newsQuery(params.slug)),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]);
+    const record = queryClient.getQueryData(newsQuery(params.slug).queryKey) as
+      { title?: string | null } | null | undefined;
+    return { pageTitle: record?.title ?? null };
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Legal news — LegalFinder" },
+      {
+        title: loaderData?.pageTitle
+          ? `LegalFinder | ${loaderData.pageTitle}`
+          : "LegalFinder | News",
+      },
       {
         name: "description",
         content: "A news report from the LegalFinder justice-sector newsroom.",
       },
-      { property: "og:title", content: "Legal news — LegalFinder" },
+      {
+        property: "og:title",
+        content: loaderData?.pageTitle
+          ? `LegalFinder | ${loaderData.pageTitle}`
+          : "LegalFinder | News",
+      },
       { property: "og:description", content: "A report from the LegalFinder newsroom." },
       { property: "og:type", content: "article" },
     ],
   }),
-  loader: ({ context: { queryClient }, params }) =>
-    prefetchForPage([
-      queryClient.prefetchQuery(newsQuery(params.slug)),
-      queryClient.prefetchQuery(appSettingsQuery),
-    ]),
   component: NewsDetail,
 });
 

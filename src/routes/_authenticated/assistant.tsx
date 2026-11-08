@@ -8,6 +8,7 @@ import { appSettingsQuery } from "@/lib/app-settings";
 import { ROLE_HOME, useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
+  head: () => ({ meta: [{ title: "LegalFinder | AI assistant" }] }),
   component: Page,
 });
 

@@ -40,28 +40,42 @@ import { appSettingsQuery } from "@/lib/app-settings";
 import { formatNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/lawyers/$lawyerId")({
-  head: () => ({
+  // Prefetch for the page, then hand the record's name to head() for the tab title.
+  loader: async ({ context: { queryClient }, params }) => {
+    await prefetchForPage([
+      queryClient.prefetchQuery(lawyerQuery(params.lawyerId)),
+      queryClient.prefetchQuery(reviewsQuery(params.lawyerId)),
+      queryClient.prefetchQuery(siteMediaQuery),
+      queryClient.prefetchQuery(appSettingsQuery),
+    ]);
+    const record = queryClient.getQueryData(lawyerQuery(params.lawyerId).queryKey) as
+      { full_name?: string | null } | null | undefined;
+    return { pageTitle: record?.full_name ?? null };
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Advocate profile — LegalFinder" },
+      {
+        title: loaderData?.pageTitle
+          ? `LegalFinder | ${loaderData.pageTitle}`
+          : "LegalFinder | Advocate profile",
+      },
       {
         name: "description",
         content:
           "Review an advocate's experience, practice areas, fees and client reviews, then book a consultation.",
       },
-      { property: "og:title", content: "Advocate profile — LegalFinder" },
+      {
+        property: "og:title",
+        content: loaderData?.pageTitle
+          ? `LegalFinder | ${loaderData.pageTitle}`
+          : "LegalFinder | Advocate profile",
+      },
       {
         property: "og:description",
         content: "Experience, practice areas, fees and client reviews.",
       },
     ],
   }),
-  loader: ({ context: { queryClient }, params }) =>
-    prefetchForPage([
-      queryClient.prefetchQuery(lawyerQuery(params.lawyerId)),
-      queryClient.prefetchQuery(reviewsQuery(params.lawyerId)),
-      queryClient.prefetchQuery(siteMediaQuery),
-      queryClient.prefetchQuery(appSettingsQuery),
-    ]),
   component: LawyerProfile,
 });
 

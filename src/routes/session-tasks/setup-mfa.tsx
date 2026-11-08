@@ -10,7 +10,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 export const Route = createFileRoute("/session-tasks/setup-mfa")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "Secure your account — LegalFinder" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "LegalFinder | Secure your account" }, { name: "robots", content: "noindex" }],
   }),
   component: SetupMfaTask,
 });
