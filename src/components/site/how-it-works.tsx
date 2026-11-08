@@ -38,7 +38,9 @@ const STEPS = [
  * vertical timeline on phones). Each card carries a small illustrated preview of that step —
  * decorative, so hidden from assistive tech.
  */
-export function HowItWorks() {
+type Advocate = { id: string; full_name: string; photo_url: string | null };
+
+export function HowItWorks({ advocates = [] }: { advocates?: Advocate[] }) {
   const ref = useReveal<HTMLDivElement>();
 
   return (
@@ -88,7 +90,7 @@ export function HowItWorks() {
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
                 <div aria-hidden className="min-h-5 flex-1" />
                 <div aria-hidden className="card-inset overflow-hidden p-3.5">
-                  <step.preview />
+                  <step.preview advocates={advocates} />
                 </div>
               </article>
             </li>
@@ -111,7 +113,11 @@ export function HowItWorks() {
   );
 }
 
-function SearchPreview() {
+/** Real verified advocates from the directory (photos only — decorative, aria-hidden above). */
+function SearchPreview({ advocates }: { advocates: Advocate[] }) {
+  const withPhotos = advocates.filter((a) => a.photo_url);
+  const shown = withPhotos.slice(0, 4);
+  const extra = advocates.length - shown.length;
   return (
     <div className="space-y-2.5">
       <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs shadow-xs">
@@ -120,12 +126,38 @@ function SearchPreview() {
         <span className="text-muted-foreground">· Kampala</span>
         <span className="ml-auto h-3.5 w-px animate-pulse bg-foreground/60" />
       </div>
-      <div className="flex items-center justify-between">
-        <div className="flex -space-x-2">
-          {["bg-[oklch(0.7_0.08_60)]", "bg-[oklch(0.55_0.06_40)]", "bg-[oklch(0.45_0.05_30)]"].map(
-            (c) => (
-              <span key={c} className={`h-6 w-6 rounded-full ring-2 ring-card ${c}`} />
-            ),
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center">
+          <div className="flex -space-x-2.5">
+            {shown.length > 0
+              ? shown.map((a) => (
+                  <img
+                    key={a.id}
+                    src={a.photo_url ?? ""}
+                    alt=""
+                    width={32}
+                    height={32}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-8 w-8 rounded-full object-cover shadow-xs ring-2 ring-card"
+                  />
+                ))
+              : Array.from({ length: 3 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="h-8 w-8 animate-pulse rounded-full bg-muted ring-2 ring-card"
+                  />
+                ))}
+            {extra > 0 && (
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-[0.65rem] font-bold text-primary-foreground ring-2 ring-card">
+                +{extra}
+              </span>
+            )}
+          </div>
+          {advocates.length > 0 && (
+            <span className="ml-2.5 text-[0.7rem] font-medium text-muted-foreground">
+              {advocates.length} verified
+            </span>
           )}
         </div>
         <span className="inline-flex items-center gap-1 rounded-full bg-success/12 px-2 py-0.5 text-[0.68rem] font-semibold text-success">
@@ -136,7 +168,7 @@ function SearchPreview() {
   );
 }
 
-function BookPreview() {
+function BookPreview(_: { advocates: Advocate[] }) {
   return (
     <div className="space-y-2.5">
       <div className="flex items-start gap-2">
@@ -162,7 +194,7 @@ function BookPreview() {
   );
 }
 
-function TrackPreview() {
+function TrackPreview(_: { advocates: Advocate[] }) {
   const stages = [
     { label: "Filed", state: "done" },
     { label: "Hearing", state: "now" },

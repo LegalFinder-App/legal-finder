@@ -319,7 +319,7 @@ function Index() {
         </div>
       </section>
 
-      <HowItWorks />
+      <HowItWorks advocates={list} />
 
       {/* ---------- Featured advocates ---------- */}
       <section className="container-page py-16 sm:py-20 lg:py-28">
