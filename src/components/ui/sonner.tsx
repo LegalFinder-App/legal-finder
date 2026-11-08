@@ -1,10 +1,14 @@
 import { Toaster as Sonner } from "sonner";
+import { useTheme } from "@/lib/theme";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  // Follow the site's own light/dark choice, not just the OS setting.
+  const { resolvedTheme } = useTheme();
   return (
     <Sonner
+      theme={resolvedTheme}
       className="toaster group"
       toastOptions={{
         classNames: {

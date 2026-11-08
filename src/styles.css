@@ -722,3 +722,12 @@ html.liquid-svg .liquid-glass {
     transform: none !important;
   }
 }
+
+/* Toasts (sonner richColors): its light-theme text colours sit just under WCAG AA on their tinted
+   backgrounds (error 4.3:1, success 4.2:1). Darker text, same hues. */
+html [data-sonner-toaster][data-sonner-theme="light"] {
+  --success-text: #146c3a;
+  --info-text: #0b56a4;
+  --warning-text: #8a4600;
+  --error-text: #b42318;
+}

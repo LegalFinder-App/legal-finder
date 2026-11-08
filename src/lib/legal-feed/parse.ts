@@ -78,7 +78,9 @@ export type JudiciaryListing = { source_id: string; url: string; title: string }
 /** News listing (/data/press/news.html): unique stories in page order. */
 export function parseJudiciaryListing(html: string): JudiciaryListing[] {
   const seen = new Map<string, JudiciaryListing>();
-  const re = /<a[^>]+href="\.?\/?(data\/news\/\d+\/(\d+)\/[^"]+\.html)"[^>]*>([\s\S]*?)<\/a>/gi;
+  // URLs look like data/news/{articleId}/{n}/{Title}.html. The first number is the story's
+  // stable id; the second changes over time, so it must never be used as the key.
+  const re = /<a[^>]+href="\.?\/?(data\/news\/(\d+)\/\d+\/[^"]+\.html)"[^>]*>([\s\S]*?)<\/a>/gi;
   for (const m of html.matchAll(re)) {
     const [, path, id, inner] = m;
     const text = htmlToText(inner);

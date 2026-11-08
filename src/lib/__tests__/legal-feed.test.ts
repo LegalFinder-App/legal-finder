@@ -169,12 +169,13 @@ describe("Judiciary parsing", () => {
     const html = `
       <a href="./data/news/2056/10238/Budget Talks.html"><img src="x.jpg"></a>
       <a href="./data/news/2056/10238/Budget Talks.html">Judiciary Begins Budget Talks</a>
-      <a href="data/news/2056/10238/Budget Talks.html">Read More »</a>
+      <a href="data/news/2056/10241/Budget Talks.html">Read More »</a>
       <a href="./data/news/2054/10314/Swearing In.html">HW Swears in Board Members</a>`;
     const items = parseJudiciaryListing(html);
+    // Keyed on the stable first number: the second one changes between visits.
     expect(items.map((i) => [i.source_id, i.title])).toEqual([
-      ["10238", "Judiciary Begins Budget Talks"],
-      ["10314", "HW Swears in Board Members"],
+      ["2056", "Judiciary Begins Budget Talks"],
+      ["2054", "HW Swears in Board Members"],
     ]);
     expect(items[0].url).toBe("https://judiciary.go.ug/data/news/2056/10238/Budget%20Talks.html");
   });

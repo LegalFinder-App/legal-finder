@@ -148,6 +148,8 @@ export type RoleApplicationRow = {
   submitted_at: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
+  /** Reviewer checklist: { key: boolean, _by, _at } (record_application_checks). */
+  review_checks: Record<string, boolean | string>;
   created_at: string;
   updated_at: string;
 };
@@ -176,6 +178,10 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           _decision: "approve" | "changes" | "reject";
           _note?: string;
         };
+        Returns: RoleApplicationRow;
+      };
+      record_application_checks: {
+        Args: { _application_id: string; _checks: Record<string, boolean> };
         Returns: RoleApplicationRow;
       };
     };

@@ -57,10 +57,17 @@ export const REQUIREMENTS: Record<ApplicationRole, Requirements> = {
         key: "practising_certificate_expiry",
         label: "Practising certificate expires",
         kind: "date",
+        hint: "Certificates are renewed every year and expire on 1 March.",
       },
       { key: "firm", label: "Law firm or chambers", placeholder: "Or “Sole practitioner”" },
       { key: "district", label: "District you practise in", placeholder: "e.g. Kampala" },
-      { key: "phone", label: "Phone number", kind: "phone", placeholder: "+256…" },
+      {
+        key: "phone",
+        label: "Phone number",
+        kind: "phone",
+        placeholder: "+256…",
+        hint: "Shown on your public listing once approved, so clients can reach you.",
+      },
       {
         key: "practice_areas",
         label: "Practice areas",
@@ -316,12 +323,31 @@ export async function removeApplicationDocument(doc: ApplicationDocument) {
 }
 
 /** Identity documents: the link lasts two minutes. */
-export async function openApplicationDocument(doc: ApplicationDocument) {
+/** A short-lived link to one of an application's files (private bucket). */
+export async function signedDocumentUrl(doc: ApplicationDocument, seconds = 120) {
   const { data, error } = await supabase.storage
     .from(BUCKET)
-    .createSignedUrl(doc.storage_path, 120);
+    .createSignedUrl(doc.storage_path, seconds);
   if (error || !data?.signedUrl) throw new Error(error?.message ?? "Couldn't open the document.");
-  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  return data.signedUrl;
+}
+
+/**
+ * Opens a file in a new tab. The tab is opened inside the click, before the signed URL is
+ * fetched, so popup blockers (Safari especially) don't swallow it.
+ */
+export async function openApplicationDocument(doc: ApplicationDocument) {
+  const tab = window.open("about:blank", "_blank");
+  try {
+    const url = await signedDocumentUrl(doc);
+    if (tab) {
+      tab.opener = null;
+      tab.location.href = url;
+    } else window.location.assign(url);
+  } catch (error) {
+    tab?.close();
+    throw error;
+  }
 }
 
 // ---------- administrators ----------
@@ -339,3 +365,30 @@ export async function reviewApplication(
   if (error) throw new Error(error.message);
   return data as RoleApplicationRow;
 }
+
+/** Saves the reviewer's checklist while the application waits for review. */
+export async function recordApplicationChecks(
+  id: string,
+  checks: Record<string, boolean>,
+): Promise<RoleApplicationRow> {
+  const { data, error } = await supabase.rpc("record_application_checks", {
+    _application_id: id,
+    _checks: checks,
+  });
+  if (error) throw new Error(error.message);
+  return data as RoleApplicationRow;
+}
+
+/** Administrators: every application, for counts and duplicate checks. */
+export const allApplicationsQuery = queryOptions({
+  queryKey: ["admin-applications", "all"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("role_applications")
+      .select("*")
+      .order("submitted_at", { ascending: true, nullsFirst: false })
+      .limit(1000);
+    if (error) throw error;
+    return (data ?? []) as RoleApplicationRow[];
+  },
+});

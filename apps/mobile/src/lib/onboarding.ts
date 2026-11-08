@@ -61,10 +61,17 @@ export const REQUIREMENTS: Record<ApplicationRole, Requirements> = {
         key: "practising_certificate_expiry",
         label: "Practising certificate expires",
         kind: "date",
+        hint: "Certificates are renewed every year and expire on 1 March.",
       },
       { key: "firm", label: "Law firm or chambers", placeholder: "Or “Sole practitioner”" },
       { key: "district", label: "District you practise in", placeholder: "e.g. Kampala" },
-      { key: "phone", label: "Phone number", kind: "phone", placeholder: "+256…" },
+      {
+        key: "phone",
+        label: "Phone number",
+        kind: "phone",
+        placeholder: "+256…",
+        hint: "Shown on your public listing once approved, so clients can reach you.",
+      },
       {
         key: "practice_areas",
         label: "Practice areas",

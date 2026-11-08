@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookOpenText,
+  Clock,
   Gavel,
   Landmark,
   Newspaper,
@@ -14,6 +15,7 @@ import {
 import { PublicLayout, PageHeader } from "@/components/site/public-layout";
 import { EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
+import { ListingToolbar, StatStrip } from "@/components/common/listing-toolbar";
 import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { FeedCard, FeedCardSkeleton } from "@/components/common/feed-card";
@@ -23,7 +25,6 @@ import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate } from "@/lib/format";
 import { delay } from "@/lib/motion";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/updates")({
   head: () => ({
@@ -49,6 +50,11 @@ export const Route = createFileRoute("/updates")({
   component: UpdatesPage,
 });
 
+const SORTS = [
+  { id: "newest", label: "Newest first" },
+  { id: "oldest", label: "Oldest first" },
+];
+
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "all", label: "All", icon: Newspaper },
   { id: "judiciary", label: "Courts", icon: Landmark },
@@ -62,6 +68,7 @@ function UpdatesPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
+  const [sort, setSort] = useState("newest");
 
   const items = useMemo(() => data ?? [], [data]);
   const lastSync = useMemo(
@@ -80,7 +87,13 @@ function UpdatesPage() {
     [items],
   );
 
-  const filtered = items.filter((i) => {
+  const count = (source?: "judiciary" | "upf") =>
+    source ? items.filter((i) => i.source === source).length : items.length;
+  const advisories = items.filter(
+    (i) => i.category === "Public safety" || i.category === "Traffic alert",
+  ).length;
+
+  const matching = items.filter((i) => {
     if (tab === "judiciary" || tab === "upf") {
       if (i.source !== tab) return false;
     }
@@ -93,6 +106,7 @@ function UpdatesPage() {
     }
     return true;
   });
+  const filtered = sort === "oldest" ? [...matching].reverse() : matching;
   const { page, setPage, totalPages, pageItems } = usePaginatedList(filtered, 12);
 
   return (
@@ -111,38 +125,54 @@ function UpdatesPage() {
           label="Search legal updates"
           placeholder="Search headlines, e.g. traffic, Supreme Court, bail"
         />
+        <div className="mt-6 max-w-4xl">
+          <StatStrip
+            loading={isLoading}
+            items={[
+              { icon: Landmark, label: "From the courts", value: count("judiciary") },
+              { icon: Shield, label: "From the police", value: count("upf") },
+              { icon: ShieldCheck, label: "Safety advisories", value: advisories },
+              {
+                icon: Clock,
+                label: "Last checked",
+                value: lastSync ? formatDate(lastSync, { day: "numeric", month: "short" }) : "—",
+              },
+            ]}
+          />
+        </div>
       </PageHeader>
 
       <div className="container-page grid gap-8 py-10 sm:py-12 lg:grid-cols-[1fr_20rem] lg:gap-10">
         <div className="min-w-0">
-          {/* Tabs */}
-          <div
-            role="tablist"
-            aria-label="Choose a feed"
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0"
-          >
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === t.id}
-                onClick={() => {
-                  setTab(t.id);
-                  setPage(1);
-                }}
-                className={cn(
-                  "press inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold",
-                  tab === t.id
-                    ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <t.icon className="h-4 w-4" aria-hidden />
-                {t.label}
-              </button>
-            ))}
-          </div>
+          <ListingToolbar
+            label="Choose a feed"
+            tabs={TABS.map((t) => ({
+              id: t.id,
+              label: t.label,
+              count:
+                t.id === "all"
+                  ? count()
+                  : t.id === "judgments"
+                    ? undefined
+                    : count(t.id as "judiciary" | "upf"),
+            }))}
+            tab={tab}
+            onTab={(t) => {
+              setTab(t as Tab);
+              setPage(1);
+            }}
+            sorts={tab === "judgments" ? undefined : SORTS}
+            sort={sort}
+            onSort={(v) => {
+              setSort(v);
+              setPage(1);
+            }}
+            resultLabel={
+              tab === "judgments" || isLoading
+                ? undefined
+                : `${filtered.length} ${filtered.length === 1 ? "update" : "updates"}`
+            }
+          />
 
           {tab === "upf" && policeCategories.length > 1 && (
             <FilterChipGroup
@@ -162,7 +192,11 @@ function UpdatesPage() {
             {tab === "judgments" ? (
               <UliiJudgmentsPanel initialQuery={q} />
             ) : isLoading ? (
-              <div className="grid gap-4" role="status" aria-label="Loading updates">
+              <div
+                className="grid gap-4 sm:gap-5 xl:grid-cols-2"
+                role="status"
+                aria-label="Loading updates"
+              >
                 {Array.from({ length: 4 }).map((_, i) => (
                   <FeedCardSkeleton key={i} />
                 ))}
@@ -188,14 +222,11 @@ function UpdatesPage() {
               />
             ) : (
               <>
-                <p className="mb-4 text-sm text-muted-foreground" aria-live="polite">
-                  {filtered.length} {filtered.length === 1 ? "update" : "updates"}
-                </p>
-                <ol className="grid gap-4">
+                <ol className="grid gap-4 sm:gap-5 xl:grid-cols-2">
                   {pageItems.map((item, i) => (
                     <li
-                      key={`${tab}-${page}-${item.id}`}
-                      className="animate-rise"
+                      key={`${tab}-${sort}-${page}-${item.id}`}
+                      className="animate-rise min-w-0"
                       style={delay(Math.min(i, 6) * 50)}
                     >
                       <FeedCard item={item} />
