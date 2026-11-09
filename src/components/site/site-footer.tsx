@@ -192,8 +192,25 @@ export function SiteFooter() {
 
       {/* Solid brand band, as the closing line of the page. */}
       <div className="bg-gold text-ink pb-safe">
-        <div className="container-page flex flex-col items-center gap-2 py-4 text-center text-xs font-medium sm:flex-row sm:justify-between sm:text-left">
+        <div className="container-page flex flex-col items-center gap-2 py-4 text-center text-xs font-medium lg:flex-row lg:justify-between lg:gap-6 lg:text-left">
           <p>© {new Date().getFullYear()} LegalFinder · Uganda's justice platform</p>
+          <p className="text-balance">
+            Designed and developed by{" "}
+            <span className="whitespace-nowrap font-bold">Bitingo Josaphat (JB)</span>
+            <span aria-hidden> · </span>
+            <span className="whitespace-nowrap">
+              Powered by{" "}
+              <a
+                href="https://pytech.dev"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex min-h-9 items-center font-bold underline decoration-ink/40 underline-offset-2 hover:decoration-ink"
+              >
+                Pytech Innovations Ltd.
+                <span className="sr-only"> (opens pytech.dev in a new tab)</span>
+              </a>
+            </span>
+          </p>
           <nav aria-label="Legal" className="flex flex-wrap items-center justify-center gap-x-5">
             <Link
               to="/terms-of-service"
