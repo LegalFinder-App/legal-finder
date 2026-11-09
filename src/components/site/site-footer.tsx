@@ -196,7 +196,15 @@ export function SiteFooter() {
           <p>© {new Date().getFullYear()} LegalFinder · Uganda's justice platform</p>
           <p className="text-balance">
             Designed and developed by{" "}
-            <span className="whitespace-nowrap font-bold">Bitingo Josaphat (JB)</span>
+            <a
+              href="https://ug.linkedin.com/in/bitingojosaphatjb"
+              target="_blank"
+              rel="noopener"
+              className="inline-flex min-h-9 items-center whitespace-nowrap font-bold underline decoration-ink/40 underline-offset-2 hover:decoration-ink"
+            >
+              Bitingo Josaphat (JB)
+              <span className="sr-only"> on LinkedIn (opens in a new tab)</span>
+            </a>
             <span aria-hidden> · </span>
             <span className="whitespace-nowrap">
               Powered by{" "}

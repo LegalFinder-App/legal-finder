@@ -164,6 +164,48 @@
   box-shadow: var(--shadow-card);
 }
 
+/* Premium cards (feed, courts): a hairline gradient border that warms to brass on hover, a lift,
+   and — paired with `spotlight` + trackSpotlight — a glow that follows the cursor. */
+@utility card-glow {
+  position: relative;
+  isolation: isolate;
+  color: var(--card-foreground);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) + 8px);
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(
+        155deg,
+        color-mix(in oklch, var(--foreground) 16%, transparent),
+        color-mix(in oklch, var(--foreground) 5%, transparent) 45%,
+        color-mix(in oklch, var(--brass) 24%, transparent)
+      )
+      border-box;
+  box-shadow: var(--shadow-card);
+  transition-property: transform, box-shadow;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out-expo);
+  -webkit-tap-highlight-color: transparent;
+  @media (hover: hover) {
+    &:hover {
+      transform: translate3d(0, -4px, 0);
+      box-shadow:
+        var(--shadow-card-hover),
+        0 0 0 1px color-mix(in oklch, var(--brass) 30%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
+  &:focus-within {
+    box-shadow:
+      var(--shadow-card-hover),
+      0 0 0 2px color-mix(in oklch, var(--ring) 60%, transparent);
+  }
+}
+
 /* Clickable cards. Hover lift only where there is a real pointer, so a tap on a phone never
    leaves a card stuck "raised". */
 @utility card-interactive {
