@@ -23,11 +23,9 @@ async function handleNotification(request: Request) {
       status: 200,
     });
   } catch (error) {
+    // The route is public, so the detail goes to the logs, not back to the caller.
     console.error("[pesapal-ipn]", error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : "IPN processing failed" },
-      { status: 500 },
-    );
+    return Response.json({ error: "IPN processing failed" }, { status: 500 });
   }
 }
 

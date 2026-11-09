@@ -9,13 +9,16 @@ export const Route = createFileRoute("/api/mobile/payments/initiate")({
       POST: async (ctx) => {
         const { mobilePost } = await import("@/lib/mobile-api.server");
         const { startPesapalCheckout } = await import("@/lib/payments.server");
-        return mobilePost(initiateSchema, ({ userId, supabase }, body) =>
-          startPesapalCheckout({
-            supabase,
-            userId,
-            paymentId: body.paymentId,
-            callbackPath: "/api/pesapal/callback-mobile",
-          }),
+        return mobilePost(
+          initiateSchema,
+          ({ userId, supabase }, body) =>
+            startPesapalCheckout({
+              supabase,
+              userId,
+              paymentId: body.paymentId,
+              callbackPath: "/api/pesapal/callback-mobile",
+            }),
+          { rateLimit: "payments" },
         )(ctx);
       },
     },

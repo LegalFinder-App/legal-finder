@@ -7,7 +7,9 @@ export const Route = createFileRoute("/api/mobile/assistant")({
       POST: async (ctx) => {
         const { mobilePost } = await import("@/lib/mobile-api.server");
         const { runAssistant } = await import("@/lib/assistant.server");
-        return mobilePost(chatRequestSchema, (_ctx, body) => runAssistant(body.messages))(ctx);
+        return mobilePost(chatRequestSchema, (_ctx, body) => runAssistant(body.messages), {
+          rateLimit: "assistant",
+        })(ctx);
       },
     },
   },

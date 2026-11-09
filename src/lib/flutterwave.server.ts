@@ -14,6 +14,8 @@
 //      secret hash" and "HMAC-SHA256 of the body" in the same paragraph — verifySignature()
 //      below does a plain string comparison (the more commonly documented real-world behavior);
 //      confirm this against your dashboard's webhook settings before relying on it.
+import { secretsMatch } from "@/lib/secure-compare.server";
+
 export const FLUTTERWAVE_SETUP_NOTES =
   "Confirm against the Flutterwave sandbox: bank-recipient field shape, Uganda mobile_money.network value, and webhook signature scheme.";
 
@@ -171,7 +173,5 @@ export async function getTransferStatus(transferId: string): Promise<TransferSta
  * see the module-level FLUTTERWAVE_SETUP_NOTES caveat about the verification scheme.
  */
 export function verifyWebhookSignature(headerValue: string | null): boolean {
-  const secret = process.env.FLUTTERWAVE_WEBHOOK_HASH;
-  if (!secret || !headerValue) return false;
-  return headerValue === secret;
+  return secretsMatch(headerValue, process.env.FLUTTERWAVE_WEBHOOK_HASH);
 }

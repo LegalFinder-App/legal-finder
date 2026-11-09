@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
+import { rateLimited } from "@/lib/rate-limit-middleware";
 import type { AppDatabase } from "@/integrations/supabase/app-database";
 
 export const initiateSchema = z.object({ paymentId: z.string().uuid() });
@@ -42,7 +42,7 @@ export function assertAmountMatchesConsultationFee(
  * the mobile app's /api/mobile/payments/initiate route.
  */
 export const initiatePesapalPayment = createServerFn({ method: "POST" })
-  .middleware([requireClerkAuth])
+  .middleware([rateLimited("payments")])
   .validator(initiateSchema)
   .handler(async ({ context, data }) => {
     const { startPesapalCheckout } = await import("@/lib/payments.server");

@@ -48,11 +48,9 @@ async function handleWebhook(request: Request) {
     if (error) throw new Error(error.message);
     return Response.json({ received: true, status });
   } catch (error) {
+    // A 500 makes Flutterwave retry; the detail goes to the logs, not back to the caller.
     console.error("[flutterwave-webhook]", error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Webhook processing failed" },
-      { status: 500 },
-    );
+    return Response.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 }
 

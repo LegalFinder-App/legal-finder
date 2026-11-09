@@ -15,20 +15,24 @@ export const Route = createFileRoute("/api/mobile/push/register")({
       POST: async (ctx) => {
         const { mobilePost } = await import("@/lib/mobile-api.server");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        return mobilePost(registerSchema, async ({ userId }, body) => {
-          const { error } = await supabaseAdmin.from("device_push_tokens").upsert(
-            {
-              token: body.token,
-              user_id: userId,
-              platform: body.platform,
-              device_name: body.deviceName ?? null,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "token" },
-          );
-          if (error) throw new Error(error.message);
-          return { ok: true as const };
-        })(ctx);
+        return mobilePost(
+          registerSchema,
+          async ({ userId }, body) => {
+            const { error } = await supabaseAdmin.from("device_push_tokens").upsert(
+              {
+                token: body.token,
+                user_id: userId,
+                platform: body.platform,
+                device_name: body.deviceName ?? null,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "token" },
+            );
+            if (error) throw new Error(error.message);
+            return { ok: true as const };
+          },
+          { rateLimit: "push" },
+        )(ctx);
       },
     },
   },

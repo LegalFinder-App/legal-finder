@@ -61,3 +61,8 @@ store-listing/previews/
 *.sln
 *.sw?
 .env*
+
+# Claude Code codebase lock (local to this machine; holds the password hash)
+.claude/settings.local.json
+.claude/lock/
+.claude/hooks/codebase-lock.mjs

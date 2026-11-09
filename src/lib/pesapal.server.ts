@@ -3,6 +3,7 @@
 // dual-purpose (client stub + server handler) and must not pull secret-touching code into
 // the client bundle at module scope.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { transactionConfirmsPayment } from "@/lib/payment-verification";
 
 function baseUrl() {
   return process.env.PESAPAL_ENV === "live"
@@ -161,6 +162,7 @@ export interface TransactionStatusResult {
   status: PesapalPaymentStatus;
   description: string;
   amount: number | null;
+  currency: string | null;
   paymentMethod: string | null;
   confirmationCode: string | null;
   merchantReference: string | null;
@@ -177,6 +179,7 @@ export async function getTransactionStatus(
   const payload = (await response.json()) as {
     payment_status_description?: string;
     amount?: number;
+    currency?: string;
     payment_method?: string;
     confirmation_code?: string;
     merchant_reference?: string;
@@ -203,6 +206,7 @@ export async function getTransactionStatus(
     status,
     description,
     amount: payload.amount ?? null,
+    currency: payload.currency ?? null,
     paymentMethod: payload.payment_method ?? null,
     confirmationCode: payload.confirmation_code ?? null,
     merchantReference: payload.merchant_reference ?? null,
@@ -212,27 +216,58 @@ export async function getTransactionStatus(
 /**
  * Looks up the transaction with Pesapal and writes the resulting status to our `payments` row.
  * Shared by the IPN webhook and the browser-redirect callback — both routes run unauthenticated
- * (Pesapal/the browser, not a signed-in user), so this always uses the service role.
+ * (Pesapal/the browser, not a signed-in user), so this always uses the service role. Anyone can
+ * call those routes with any tracking id, so nothing here trusts the caller: the status comes from
+ * Pesapal, and only counts if it is for this payment's reference, amount and currency.
  */
 export async function finalizePayment(orderTrackingId: string): Promise<PesapalPaymentStatus> {
   const result = await getTransactionStatus(orderTrackingId);
 
-  const { data: payment, error } = await supabaseAdmin
+  // Two rows with one tracking id would mean the table was tampered with; limit(2) shows that.
+  const { data: rows, error } = await supabaseAdmin
     .from("payments")
-    .update({ status: result.status, pesapal_order_tracking_id: orderTrackingId })
+    .select("id, amount, currency, status, pesapal_merchant_reference")
     .eq("pesapal_order_tracking_id", orderTrackingId)
-    .select("id")
-    .maybeSingle();
-
+    .limit(2);
   if (error) throw new Error(error.message);
+  if (!rows?.length) return result.status;
+  if (rows.length > 1) {
+    console.error("[pesapal] more than one payment has tracking id", orderTrackingId);
+    return "pending";
+  }
+  const payment = rows[0];
+
+  let status = result.status;
+  if (status === "completed" && !transactionConfirmsPayment(result, payment)) {
+    // Left pending for an administrator to look at, rather than failed: it may be real money.
+    console.error("[pesapal] confirmation doesn't match payment", payment.id, {
+      reference: result.merchantReference,
+      amount: result.amount,
+      currency: result.currency,
+    });
+    status = "pending";
+  }
+
+  // A confirmed payment stays confirmed: a late or replayed notification must not undo it.
+  if (payment.status === "completed") {
+    status = "completed";
+  } else if (status !== payment.status) {
+    const { error: updateError } = await supabaseAdmin
+      .from("payments")
+      .update({ status })
+      .eq("id", payment.id)
+      .neq("status", "completed");
+    if (updateError) throw new Error(updateError.message);
+  }
 
   // Fire the lawyer payout the instant Pesapal confirms the client's payment — never let a
   // payout failure surface as a payment-confirmation failure (attemptLawyerPayout catches its
-  // own errors and records them on the payment row instead of throwing).
-  if (result.status === "completed" && payment) {
+  // own errors and records them on the payment row instead of throwing). It is idempotent, so a
+  // repeated notification for a paid payment is harmless.
+  if (status === "completed") {
     const { attemptLawyerPayout } = await import("@/lib/payouts.server");
     await attemptLawyerPayout(payment.id);
   }
 
-  return result.status;
+  return status;
 }

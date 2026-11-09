@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AppDatabase, PayoutStatus } from "@/integrations/supabase/app-database";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { LawyerPayoutAccount } from "@/lib/lawyer-payout";
+import { transactionConfirmsPayment } from "@/lib/payment-verification";
 
 // lawyer_payout_accounts isn't in AppDatabase (see src/lib/lawyer-payout.ts) — same narrowed
 // cast, applied to the service-role client here.
@@ -32,6 +33,13 @@ function splitName(fullName: string | null | undefined): { first: string; last: 
   return { first: parts[0], last: parts.slice(1).join(" ") || parts[0] };
 }
 
+async function recordPayoutFailure(paymentId: string, reason: string) {
+  await supabaseAdmin
+    .from("payments")
+    .update({ payout_status: "failed", payout_failure_reason: reason })
+    .eq("id", paymentId);
+}
+
 /**
  * Idempotent: safe to call more than once for the same payment (finalizePayment runs from both
  * the Pesapal IPN and browser-callback routes, and this is also re-invoked by the admin "Retry
@@ -54,6 +62,13 @@ export async function attemptLawyerPayout(paymentId: string): Promise<void> {
   if (payment.status !== "completed") return;
   if (payment.payout_status === "processing" || payment.payout_status === "completed") return;
 
+  // Only a payment that went through our Pesapal checkout can have brought money in. A row whose
+  // status a client set themselves has no tracking id from us (see also the Pesapal check below).
+  if (!payment.pesapal_order_tracking_id) {
+    await recordPayoutFailure(paymentId, "No Pesapal payment is on record for this consultation.");
+    return;
+  }
+
   const { data: payoutAccount } = await payoutAccountAdminClient
     .from("lawyer_payout_accounts")
     .select("*")
@@ -65,17 +80,42 @@ export async function attemptLawyerPayout(paymentId: string): Promise<void> {
     return;
   }
 
+  // Claim the payout in one conditional update. The IPN and the browser callback usually arrive
+  // together; only the call whose update still finds 'pending'/'failed' goes on to Flutterwave.
+  const { data: claimed, error: claimError } = await supabaseAdmin
+    .from("payments")
+    .update({ payout_status: "processing", payout_failure_reason: null })
+    .eq("id", paymentId)
+    .in("payout_status", ["pending", "failed"])
+    .select("id");
+  if (claimError) throw new Error(claimError.message);
+  if (!claimed?.length) return;
+
+  // Ask Pesapal again, right before money leaves: our own row could have been altered since.
+  try {
+    const { getTransactionStatus } = await import("@/lib/pesapal.server");
+    const transaction = await getTransactionStatus(payment.pesapal_order_tracking_id);
+    if (!transactionConfirmsPayment(transaction, payment)) {
+      await recordPayoutFailure(
+        paymentId,
+        "Pesapal doesn't confirm this payment for this amount, so nothing was paid out.",
+      );
+      return;
+    }
+  } catch (err) {
+    await recordPayoutFailure(
+      paymentId,
+      `Couldn't confirm the client's payment with Pesapal: ${err instanceof Error ? err.message : "unknown error"}`,
+    );
+    return;
+  }
+
   const { data: lawyer } = await supabaseAdmin
     .from("lawyers")
     .select("full_name")
     .eq("user_id", payment.lawyer_id)
     .maybeSingle();
   const { first, last } = splitName(lawyer?.full_name);
-
-  await supabaseAdmin
-    .from("payments")
-    .update({ payout_status: "processing", payout_failure_reason: null })
-    .eq("id", paymentId);
 
   const appUrl = (process.env.VITE_APP_URL || "https://legalfinder.co").replace(/\/$/, "");
 
@@ -111,13 +151,7 @@ export async function attemptLawyerPayout(paymentId: string): Promise<void> {
       })
       .eq("id", paymentId);
   } catch (err) {
-    await supabaseAdmin
-      .from("payments")
-      .update({
-        payout_status: "failed",
-        payout_failure_reason: err instanceof Error ? err.message : "Unknown error",
-      })
-      .eq("id", paymentId);
+    await recordPayoutFailure(paymentId, err instanceof Error ? err.message : "Unknown error");
   }
 }
 

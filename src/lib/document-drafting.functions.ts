@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
+import { rateLimited } from "@/lib/rate-limit-middleware";
 
 // Also used by /api/mobile/documents/draft to validate the app's requests identically.
 export const draftRequestSchema = z.object({
@@ -16,7 +16,7 @@ export const draftRequestSchema = z.object({
  * dual-purpose, so server-only deps must not load at module scope).
  */
 export const draftDocumentSection = createServerFn({ method: "POST" })
-  .middleware([requireClerkAuth])
+  .middleware([rateLimited("drafting")])
   .validator(draftRequestSchema)
   .handler(async ({ data }) => {
     const { draftDocument } = await import("@/lib/document-drafting.server");

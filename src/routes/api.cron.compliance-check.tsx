@@ -8,7 +8,8 @@ async function handleComplianceCheck(request: Request) {
   // it triggers a bulk scan-and-notify pass over every advocate and case deadline in the system.
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  const { secretsMatch } = await import("@/lib/secure-compare.server");
+  if (!cronSecret || !secretsMatch(authHeader, `Bearer ${cronSecret}`)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -17,11 +18,9 @@ async function handleComplianceCheck(request: Request) {
     const result = await runComplianceCheck();
     return Response.json({ ok: true, ...result });
   } catch (error) {
+    // The detail goes to the logs, not to whoever called.
     console.error("[compliance-check]", error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Compliance check failed" },
-      { status: 500 },
-    );
+    return Response.json({ error: "Compliance check failed" }, { status: 500 });
   }
 }
 

@@ -8,7 +8,9 @@ export const Route = createFileRoute("/api/mobile/documents/draft")({
       POST: async (ctx) => {
         const { mobilePost } = await import("@/lib/mobile-api.server");
         const { draftDocument } = await import("@/lib/document-drafting.server");
-        return mobilePost(draftRequestSchema, (_caller, body) => draftDocument(body))(ctx);
+        return mobilePost(draftRequestSchema, (_caller, body) => draftDocument(body), {
+          rateLimit: "drafting",
+        })(ctx);
       },
     },
   },

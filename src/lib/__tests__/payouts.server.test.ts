@@ -20,20 +20,36 @@ const db = vi.hoisted(() => {
         };
       },
     }),
-    update: (values: Record<string, unknown>) => ({
-      eq: async (column: string, value: unknown) => {
-        updates.push({ table, values });
-        for (const row of tables[table] ?? [])
-          if (row[column] === value) Object.assign(row, values);
-        return { error: null };
-      },
-    }),
+    // update(...).eq(...).in(...).select(...): filters collect, and awaiting applies the update to
+    // the matching rows only — the conditional "claim" in attemptLawyerPayout depends on that.
+    update: (values: Record<string, unknown>) => {
+      const filters: ((row: Record<string, unknown>) => boolean)[] = [];
+      const builder = {
+        eq: (column: string, value: unknown) => {
+          filters.push((row) => row[column] === value);
+          return builder;
+        },
+        in: (column: string, list: unknown[]) => {
+          filters.push((row) => list.includes(row[column]));
+          return builder;
+        },
+        select: () => builder,
+        then: (resolve: (result: { data: unknown[]; error: null }) => unknown) => {
+          const matched = (tables[table] ?? []).filter((row) => filters.every((f) => f(row)));
+          if (matched.length) updates.push({ table, values });
+          for (const row of matched) Object.assign(row, values);
+          return resolve({ data: matched.map((row) => ({ id: row.id })), error: null });
+        },
+      };
+      return builder;
+    },
   });
-  return { tables, updates, from, submitTransfer: vi.fn() };
+  return { tables, updates, from, submitTransfer: vi.fn(), getTransactionStatus: vi.fn() };
 });
 
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { from: db.from } }));
 vi.mock("@/lib/flutterwave.server", () => ({ submitTransfer: db.submitTransfer }));
+vi.mock("@/lib/pesapal.server", () => ({ getTransactionStatus: db.getTransactionStatus }));
 
 import { attemptLawyerPayout, retryLawyerPayoutAsAdmin } from "../payouts.server";
 

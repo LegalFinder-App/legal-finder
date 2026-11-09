@@ -9,7 +9,9 @@ export const Route = createFileRoute("/api/mobile/documents/generate")({
         const { mobilePost } = await import("@/lib/mobile-api.server");
         const { generateDocument, generateDocumentSchema } =
           await import("@/lib/documents/generate.server");
-        return mobilePost(generateDocumentSchema, generateDocument)(ctx);
+        return mobilePost(generateDocumentSchema, generateDocument, { rateLimit: "documents" })(
+          ctx,
+        );
       },
     },
   },

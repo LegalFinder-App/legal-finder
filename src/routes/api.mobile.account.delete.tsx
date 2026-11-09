@@ -8,10 +8,14 @@ export const Route = createFileRoute("/api/mobile/account/delete")({
       POST: async (ctx) => {
         const { mobilePost } = await import("@/lib/mobile-api.server");
         const { deprovisionUser } = await import("@/integrations/clerk/deprovisioning.server");
-        return mobilePost(null, async ({ userId }) => {
-          await deprovisionUser(userId);
-          return { ok: true as const };
-        })(ctx);
+        return mobilePost(
+          null,
+          async ({ userId }) => {
+            await deprovisionUser(userId);
+            return { ok: true as const };
+          },
+          { rateLimit: "account" },
+        )(ctx);
       },
     },
   },

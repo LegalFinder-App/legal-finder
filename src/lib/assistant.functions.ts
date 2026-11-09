@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
+import { rateLimited } from "@/lib/rate-limit-middleware";
 
 const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -24,7 +24,7 @@ export const chatRequestSchema = z.object({
  * dual-purpose, so server-only deps must not load at module scope).
  */
 export const askAssistant = createServerFn({ method: "POST" })
-  .middleware([requireClerkAuth])
+  .middleware([rateLimited("assistant")])
   .validator(chatRequestSchema)
   .handler(async ({ data }) => {
     const { runAssistant } = await import("@/lib/assistant.server");

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
+import { rateLimited } from "@/lib/rate-limit-middleware";
 
 // Also used by /api/mobile/uploads/image-auth to validate the native app's requests identically.
 export const uploadRequestSchema = z.object({
@@ -9,7 +9,7 @@ export const uploadRequestSchema = z.object({
 });
 
 export const getImageKitUploadAuth = createServerFn({ method: "POST" })
-  .middleware([requireClerkAuth])
+  .middleware([rateLimited("uploads")])
   .validator(uploadRequestSchema)
   .handler(async ({ context, data }) => {
     const { createImageKitUploadAuth } = await import("@/lib/imagekit.server");

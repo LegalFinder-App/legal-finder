@@ -4,7 +4,15 @@ import { z } from "zod";
 import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
 import type { AppDatabase } from "@/integrations/supabase/app-database";
 
-const deleteUserSchema = z.object({ userId: z.string().min(1) });
+// Same shape deprovisionUser() insists on: a Clerk id, or a pre-Clerk account's UUID.
+const deleteUserSchema = z.object({
+  userId: z
+    .string()
+    .regex(
+      /^(user_[A-Za-z0-9]{1,64}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/,
+      "That isn't a valid account id.",
+    ),
+});
 
 /** Shared by every admin-only function in this file — checks the role explicitly (not RLS)
  * because these also call the Clerk Management API, which RLS can't reach. */

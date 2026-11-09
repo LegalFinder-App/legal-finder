@@ -26,7 +26,9 @@ const payoutAccounts = supabaseAdmin as unknown as {
 };
 
 /** The identity documents in the private onboarding bucket, filed under <user id>/<application>/. */
-async function removeApplicationFiles(userId: string): Promise<{ error: { message: string } | null }> {
+async function removeApplicationFiles(
+  userId: string,
+): Promise<{ error: { message: string } | null }> {
   const { data, error } = await supabaseAdmin
     .from("role_application_documents")
     .select("storage_path")
@@ -39,7 +41,15 @@ async function removeApplicationFiles(userId: string): Promise<{ error: { messag
   return { error: removeError };
 }
 
+// A Clerk user id, or the UUID of an account from before the move to Clerk. Checked before
+// anything runs: the id is written into a PostgREST filter below (user_blocks), where a comma or
+// bracket would widen what gets deleted.
+export const ACCOUNT_ID_PATTERN =
+  /^(user_[A-Za-z0-9]{1,64}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/;
+
 export async function deprovisionUser(userId: string): Promise<void> {
+  if (!ACCOUNT_ID_PATTERN.test(userId)) throw new Error("That isn't a valid account id.");
+
   try {
     await clerkClient().users.deleteUser(userId);
   } catch (error) {
