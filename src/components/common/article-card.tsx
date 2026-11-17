@@ -103,6 +103,7 @@ export function ArticleCard({
           className={cn(
             "font-bold tracking-tight text-foreground transition-colors group-hover:text-brass",
             feature ? "mt-3 text-h3 lg:text-h2" : "mt-2 line-clamp-2 text-[1.0625rem] leading-snug",
+            feature && kind === "advice" && "text-balance",
           )}
         >
           {article.title}
@@ -144,6 +145,8 @@ export function ArticleCard({
   const classes = cn(
     "group card card-interactive flex h-full min-w-0 flex-col overflow-hidden",
     feature && "lg:grid lg:grid-cols-[1.15fr_1fr]",
+    // Advice lead story: a thin brass rule that warms the editorial layout without a new card type.
+    feature && kind === "advice" && "ring-1 ring-brass/15",
     className,
   );
   const slug = article.slug ?? article.id;
@@ -160,15 +163,38 @@ export function ArticleCard({
 }
 
 /** Same footprint as ArticleCard, shown while the list loads (no spinners on content). */
-export function ArticleCardSkeleton() {
+export function ArticleCardSkeleton({ variant = "default" }: { variant?: "default" | "feature" }) {
+  const feature = variant === "feature";
   return (
-    <div aria-hidden className="card flex h-full flex-col overflow-hidden">
-      <div className="aspect-[16/10] animate-pulse bg-muted" />
-      <div className="flex flex-1 flex-col gap-2.5 p-5">
+    <div
+      aria-hidden
+      className={cn(
+        "card flex h-full flex-col overflow-hidden",
+        feature && "lg:grid lg:grid-cols-[1.15fr_1fr]",
+      )}
+    >
+      <div
+        className={cn(
+          "animate-pulse bg-muted",
+          feature ? "aspect-[16/10] lg:aspect-auto lg:min-h-80" : "aspect-[16/10]",
+        )}
+      />
+      <div
+        className={cn(
+          "flex flex-1 flex-col gap-2.5 p-5",
+          feature && "sm:p-7 lg:justify-center lg:p-10",
+        )}
+      >
         <div className="h-3 w-24 animate-pulse rounded-full bg-muted" />
-        <div className="h-4 w-4/5 animate-pulse rounded-full bg-muted" />
+        <div
+          className={cn(
+            "animate-pulse rounded-full bg-muted",
+            feature ? "mt-1 h-7 w-4/5" : "h-4 w-4/5",
+          )}
+        />
         <div className="h-3 w-full animate-pulse rounded-full bg-muted/70" />
         <div className="h-3 w-2/3 animate-pulse rounded-full bg-muted/70" />
+        {feature && <div className="h-3 w-1/2 animate-pulse rounded-full bg-muted/70" />}
         <div className="mt-3 flex items-center justify-between border-t border-border pt-4">
           <div className="h-7 w-28 animate-pulse rounded-full bg-muted" />
           <div className="h-3 w-10 animate-pulse rounded-full bg-muted" />

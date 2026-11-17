@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Clock, Scale } from "lucide-react";
 import { PublicLayout } from "@/components/site/public-layout";
 import { EmptyState, QueryError } from "@/components/common/bits";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,12 @@ export const Route = createFileRoute("/advice/$slug")({
   component: AdviceDetail,
 });
 
+function readingTime(body?: string | null) {
+  if (!body) return null;
+  const words = body.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 function AdviceDetail() {
   const { slug } = Route.useParams();
   const { data, isLoading, isError, error, refetch } = useQuery(adviceQuery(slug));
@@ -52,8 +58,12 @@ function AdviceDetail() {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="mx-auto max-w-3xl px-4 py-24">
-          <div className="h-96 animate-pulse rounded-xl bg-muted" />
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-24">
+          <div className="h-4 w-28 animate-pulse rounded-full bg-muted" />
+          <div className="mt-8 h-10 w-4/5 animate-pulse rounded-full bg-muted" />
+          <div className="mt-4 h-4 w-full animate-pulse rounded-full bg-muted/70" />
+          <div className="mt-2 h-4 w-2/3 animate-pulse rounded-full bg-muted/70" />
+          <div className="mt-10 aspect-[16/10] animate-pulse rounded-[1.5rem] bg-muted" />
         </div>
       </PublicLayout>
     );
@@ -90,39 +100,82 @@ function AdviceDetail() {
     );
   }
 
+  const minutes = readingTime(data.body);
+  const byline = data.author_name ?? "LegalFinder editorial";
+
   return (
     <PublicLayout>
-      <article className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:py-20">
+      <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
         <Link
           to="/advice"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brass"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-brass"
         >
           <ArrowLeft className="h-4 w-4" /> All guides
         </Link>
-        <p className="mt-8 eyebrow text-brass">{data.category}</p>
-        <h1 className="mt-3 font-display text-4xl font-semibold leading-tight">{data.title}</h1>
-        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{data.summary}</p>
-        <div className="mt-6 flex items-center gap-3 border-y border-border py-4 text-sm text-muted-foreground">
-          <span>{data.author_name ?? "LegalFinder editorial"}</span>
-          <span>·</span>
-          <span>{formatDate(data.created_at)}</span>
-        </div>
+
+        <header className="mt-8">
+          <p className="inline-flex items-center gap-2 eyebrow text-brass">
+            <Scale className="h-3.5 w-3.5" aria-hidden />
+            {data.category}
+          </p>
+          <h1 className="mt-3 text-balance text-h1 font-bold tracking-tight">{data.title}</h1>
+          {data.summary && (
+            <p className="mt-4 text-lead leading-relaxed text-muted-foreground">{data.summary}</p>
+          )}
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border py-4 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-2 font-medium text-foreground">
+              <span
+                aria-hidden
+                className="grid h-8 w-8 place-items-center rounded-full bg-accent text-[0.75rem] font-bold text-accent-foreground"
+              >
+                {byline.charAt(0).toUpperCase()}
+              </span>
+              {byline}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden />
+              <time dateTime={data.created_at}>{formatDate(data.created_at)}</time>
+            </span>
+            {minutes && (
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" aria-hidden />
+                {minutes} min read
+              </span>
+            )}
+          </div>
+        </header>
+
         {data.image_url && (
-          <img src={data.image_url} alt="" className="mt-8 w-full rounded-xl object-cover" />
+          <figure className="mt-8 overflow-hidden rounded-[1.5rem] border border-border shadow-xs">
+            <img
+              src={data.image_url}
+              alt=""
+              width={1200}
+              height={750}
+              className="aspect-[16/10] w-full object-cover"
+            />
+          </figure>
         )}
+
         <MarkdownLite
           text={data.body}
-          className="mt-8 space-y-5 text-[1.02rem] leading-[1.75] text-foreground/90"
+          className="mt-10 space-y-5 text-[1.05rem] leading-[1.8] text-foreground/90"
         />
-        <div className="mt-14 rounded-xl border border-border bg-secondary/50 p-7 text-center">
-          <h2 className="font-display text-xl font-semibold">Need advice on your own situation?</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+
+        <aside className="relative isolate mt-14 overflow-hidden rounded-[1.75rem] surface-ink p-7 text-center shadow-float sm:p-10 dark:ring-1 dark:ring-white/10">
+          <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
+          <h2 className="text-h3 font-bold text-ink-foreground">
+            Need advice on your own situation?
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-foreground/75">
             Speak to a verified advocate who handles matters like this every week.
           </p>
-          <Button asChild variant="brass" className="mt-5">
-            <Link to="/lawyers">Find an advocate</Link>
+          <Button asChild variant="brass" size="lg" className="mt-6 rounded-full">
+            <Link to="/lawyers">
+              Find an advocate <ArrowRight />
+            </Link>
           </Button>
-        </div>
+        </aside>
       </article>
     </PublicLayout>
   );

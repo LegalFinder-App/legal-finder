@@ -59,6 +59,8 @@ const caller = (userId: string) => ({
   supabase: { from: db.from } as unknown as SupabaseClient<AppDatabase>,
 });
 
+const TRACKING = "pesapal-track-1";
+
 function seed({ payment, payoutAccount = true }: { payment: Row; payoutAccount?: boolean }) {
   for (const table of Object.keys(db.tables)) delete db.tables[table];
   db.tables.payments = [
@@ -72,6 +74,10 @@ function seed({ payment, payoutAccount = true }: { payment: Row; payoutAccount?:
       status: "completed",
       payout_status: "pending",
       payout_failure_reason: null,
+      // Pesapal fields are required before any Flutterwave transfer (defence against a forged
+      // payments.status). Tests that intentionally omit them pass pesapal_order_tracking_id: null.
+      pesapal_order_tracking_id: TRACKING,
+      pesapal_merchant_reference: PAYMENT,
       ...payment,
     },
   ];
@@ -96,6 +102,13 @@ beforeEach(() => {
   db.updates.length = 0;
   db.submitTransfer.mockReset();
   db.submitTransfer.mockResolvedValue({ transferId: "trf_1", reference: PAYMENT });
+  db.getTransactionStatus.mockReset();
+  db.getTransactionStatus.mockResolvedValue({
+    status: "completed",
+    amount: 50000,
+    currency: "UGX",
+    merchantReference: PAYMENT,
+  });
 });
 
 describe("attemptLawyerPayout", () => {
@@ -139,7 +152,20 @@ describe("attemptLawyerPayout", () => {
     await attemptLawyerPayout(PAYMENT);
 
     expect(db.submitTransfer).not.toHaveBeenCalled();
+    expect(db.getTransactionStatus).not.toHaveBeenCalled();
     expect(db.tables.payments[0].payout_status).toBe("pending");
+  });
+
+  it("refuses a completed row that never went through Pesapal", async () => {
+    seed({ payment: { pesapal_order_tracking_id: null } });
+    await attemptLawyerPayout(PAYMENT);
+
+    expect(db.submitTransfer).not.toHaveBeenCalled();
+    expect(db.getTransactionStatus).not.toHaveBeenCalled();
+    expect(db.tables.payments[0]).toMatchObject({
+      payout_status: "failed",
+      payout_failure_reason: "No Pesapal payment is on record for this consultation.",
+    });
   });
 
   it("records a failed transfer on the payment instead of throwing", async () => {
