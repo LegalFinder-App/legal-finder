@@ -8,27 +8,38 @@ import { MaintenanceGate } from "@/components/site/maintenance-gate";
 import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
+import { clientClerkUserId } from "@/lib/after-auth";
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/** Fresh sign-up/sign-in can race the Clerk cookie by a few hundred ms — retry before bouncing. */
-async function requireUserId(): Promise<string | null> {
-  for (let attempt = 0; attempt < 6; attempt++) {
+/**
+ * Prefer the server cookie (also provisions the profile). If the cookie is still catching up
+ * after finalize(), fall back to the browser Clerk session so a signed-in user is not bounced
+ * to /auth — client data calls already use window.Clerk.session.getToken().
+ */
+async function resolveUserId(): Promise<string | null> {
+  for (let attempt = 0; attempt < 4; attempt++) {
     try {
       const { userId } = await checkClerkSession();
       if (userId) return userId;
     } catch {
-      // keep retrying — first-touch provisioning can flake once
+      // first-touch provisioning can flake once
     }
-    await sleep(200 + attempt * 150);
+    const clientId = clientClerkUserId();
+    if (clientId) {
+      // Keep trying to provision / sync the cookie without blocking entry.
+      void checkClerkSession().catch(() => {});
+      return clientId;
+    }
+    await sleep(150 + attempt * 100);
   }
-  return null;
+  return clientClerkUserId();
 }
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const userId = await requireUserId();
+    const userId = await resolveUserId();
     if (!userId) throw redirect({ to: "/auth" });
     return { user: { id: userId } };
   },

@@ -9,37 +9,42 @@ export type AfterAuthNavigate = (opts: { to: AfterAuthDestination }) => void | P
 
 const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
+/** Clerk user id from the browser SDK (set right after finalize, even if the cookie lags). */
+export function clientClerkUserId(): string | null {
+  if (typeof window === "undefined") return null;
+  const clerk = window.Clerk;
+  return clerk?.user?.id ?? clerk?.session?.user?.id ?? null;
+}
+
 /**
- * Poll the server until Clerk's session cookie is visible. Client `isSignedIn` can flip on
- * before the cookie is readable by `auth()` — navigating to `/_authenticated` in that window
- * bounces the user straight back to `/auth` (account-created toast, then stuck on the form).
+ * Best-effort: warm the server session / profile provision. Do not block the UI on this —
+ * client `isSignedIn` is enough to enter the workspace; Supabase uses `getToken()` from the
+ * browser SDK, not the cookie gate.
  */
-export async function waitForServerSession(maxMs = 10_000): Promise<string | null> {
+export async function warmServerSession(maxMs = 2_500): Promise<string | null> {
   const deadline = Date.now() + maxMs;
-  let delay = 150;
+  let delay = 120;
   while (Date.now() < deadline) {
     try {
       const { userId } = await checkClerkSession();
       if (userId) return userId;
     } catch {
-      // Provisioning / transport blip — keep trying until the deadline.
+      // ignore — cookie / provision may still be catching up
     }
     await sleep(delay);
-    delay = Math.min(delay + 100, 600);
+    delay = Math.min(delay + 80, 400);
   }
   return null;
 }
 
 /**
- * Post-auth router used by /auth and /sso-callback: wait until the server sees the session,
- * resolve the role home, then navigate. Soft SPA nav is preferred once the cookie is confirmed;
- * pass a hard-nav `navigate` from the OAuth callback if you need a full document load.
+ * Leave /auth for the role home as soon as we have a user id. Briefly tries to warm the
+ * server cookie; navigates either way so a cookie lag cannot trap a signed-in user on /auth.
  */
 export async function continueAfterAuth(opts: {
   queryClient: QueryClient;
   userId: string;
   navigate: AfterAuthNavigate;
-  warmSession?: boolean;
 }): Promise<AfterAuthDestination> {
   const { queryClient, userId, navigate } = opts;
 
@@ -49,19 +54,18 @@ export async function continueAfterAuth(opts: {
       new Promise<T>((resolve) => window.setTimeout(() => resolve(fallback), ms)),
     ]);
 
-  const serverUserId = await waitForServerSession(10_000);
-  if (!serverUserId) {
-    throw new Error(
-      "Your account is ready, but this browser hasn't saved the sign-in cookie yet. Refresh the page, or try again in a moment.",
-    );
-  }
+  // Kick provisioning / cookie visibility, but never block leaving /auth on it.
+  const serverUserId = await warmServerSession(2_500);
+  const resolvedId = serverUserId ?? userId;
 
   const home = await withTimeout(
-    navigateAfterAuth(queryClient, serverUserId || userId),
-    8_000,
+    navigateAfterAuth(queryClient, resolvedId).catch(() => "/dashboard" as AfterAuthDestination),
+    6_000,
     "/dashboard",
   );
   await navigate({ to: home });
+  // Keep warming in the background so the next full page load sees the cookie.
+  if (!serverUserId) void warmServerSession(8_000);
   return home;
 }
 

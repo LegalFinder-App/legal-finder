@@ -101,18 +101,23 @@ function AuthPage() {
     }
     redirectedRef.current = true;
     try {
-      // Wait until the server sees the Clerk cookie, then soft-navigate. Hard-nav was racing the
-      // cookie and bouncing brand-new accounts straight back to /auth after the success toast.
+      // Leave /auth as soon as Clerk client has a user — do not require the server cookie first.
       await continueAfterAuth({
         queryClient,
         userId: resolvedUserId,
         navigate: ({ to }) => navigate({ to, replace: true }),
       });
     } catch (err) {
-      redirectedRef.current = false;
-      toast.error("Signed in, but we couldn't open your workspace", {
-        description: err instanceof Error ? err.message : "Please try refreshing the page.",
-      });
+      // Absolute fallback so a signed-in user is never trapped on the auth form.
+      try {
+        await navigate({ to: "/dashboard", replace: true });
+        return;
+      } catch {
+        redirectedRef.current = false;
+        toast.error("Signed in, but we couldn't open your workspace", {
+          description: err instanceof Error ? err.message : "Please try refreshing the page.",
+        });
+      }
     } finally {
       setBusy(false);
     }
