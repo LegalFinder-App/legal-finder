@@ -360,19 +360,29 @@ function AuthPage() {
   // Social sign-in leaves this page via a top-level redirect (Clerk posts a form to the
   // provider). Clerk's Future SSO API: redirectCallbackUrl is the /sso-callback handshake
   // page; redirectUrl is where to land once a session already exists (MFA / workspace via /auth).
-  // Swapping those two is what made Safari return "something went wrong" after picking an account.
   const startSocialSignIn = async (
     strategy: "oauth_google" | "oauth_apple" | "oauth_linkedin_oidc",
     label: string,
   ) => {
+    if (mode === "signup" && !legalAccepted) {
+      toast.error("Please agree to the terms and privacy policy to continue.");
+      return;
+    }
     setBusy(true);
     try {
       const origin = window.location.origin;
-      const { error } = await signIn.sso({
+      const ssoArgs = {
         strategy,
         redirectCallbackUrl: `${origin}/sso-callback`,
         redirectUrl: `${origin}/auth`,
-      });
+      } as const;
+      // Prefer signUp.sso on the Sign up tab so legalAccepted travels with the OAuth attempt;
+      // sign-in tab still uses signIn.sso (new Google accounts transfer + get legalAccepted on
+      // /sso-callback).
+      const { error } =
+        mode === "signup"
+          ? await signUp.sso({ ...ssoArgs, legalAccepted: true })
+          : await signIn.sso(ssoArgs);
       if (error) throw error;
       // Successful SSO hands the browser off; if we're still here after a beat, unlock the UI.
       window.setTimeout(() => setBusy(false), 8000);
