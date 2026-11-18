@@ -42,7 +42,7 @@ export function mobilePost<TBody, TResult>(
 ) {
   return async ({ request }: { request: Request }): Promise<Response> => {
     try {
-      const { userId, supabase } = await authenticateClerkRequest();
+      const { userId, supabase } = await authenticateClerkRequest(request);
       if (options.rateLimit) await enforceRateLimit(options.rateLimit, userId);
       const raw = await readJsonBody(request);
       const body = schema ? schema.parse(raw) : (raw as TBody);

@@ -1,6 +1,7 @@
 import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
 import type { CounsellorSource } from "@/lib/assistant-sources";
+import { clerkApiHeaders } from "@/lib/clerk-browser-token";
 
 export type StreamChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -16,17 +17,26 @@ export type StreamHandlers = {
 };
 
 /**
- * Browser client for POST /api/assistant/stream. Uses the Clerk cookie session (credentials
- * include). Falls back to a clear error if the response isn't an event stream.
+ * Browser client for POST /api/assistant/stream. Sends the Clerk session JWT (same as the
+ * mobile app) plus cookies, so a lagging session cookie cannot 401 a signed-in user.
  */
 export async function streamCounsellorReply(
   messages: StreamChatMessage[],
   handlers: StreamHandlers = {},
 ): Promise<void> {
+  const headers = await clerkApiHeaders({
+    "Content-Type": "application/json",
+    Accept: "text/event-stream",
+  });
+
+  if (!headers.Authorization) {
+    throw new Error("Please sign in again.");
+  }
+
   const response = await fetch("/api/assistant/stream", {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    headers,
     body: JSON.stringify({
       messages,
       mode: handlers.mode ?? "assistant",

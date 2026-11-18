@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/assistant/stream")({
         const { ZodError } = await import("zod");
 
         try {
-          const { userId } = await authenticateClerkRequest();
+          const { userId } = await authenticateClerkRequest(request);
           await enforceRateLimit("assistant", userId);
 
           const raw = await request.json().catch(() => null);

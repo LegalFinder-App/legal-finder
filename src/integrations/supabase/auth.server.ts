@@ -1,6 +1,7 @@
 // Server-only. Request authentication shared by requireClerkAuth (server functions) and the
-// /api/mobile/* routes. Kept out of auth-middleware.ts so import protection can see that
-// provisioning.server never reaches the client bundle.
+// /api/mobile/* + /api/assistant/* routes. Kept out of auth-middleware.ts so import protection
+// can see that provisioning.server never reaches the client bundle.
+import { verifyToken } from "@clerk/backend";
 import { auth } from "@clerk/tanstack-react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import type { AppDatabase } from "./app-database";
@@ -35,13 +36,19 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 export class UnauthorizedError extends Error {}
 
+function bearerFromRequest(request: Request | undefined): string | null {
+  if (!request) return null;
+  const header = request.headers.get("authorization") ?? request.headers.get("Authorization");
+  const match = header?.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || null;
+}
+
 /**
  * Verifies the Clerk session on the current request (browser cookie, or the Authorization bearer
- * token the mobile app sends) and returns an RLS-scoped Supabase client for that user. Shared by
- * requireClerkAuth (server functions) and the /api/mobile/* routes, so both authenticate
- * identically.
+ * token the mobile app / web assistant send) and returns an RLS-scoped Supabase client for that
+ * user. Shared by requireClerkAuth, /api/mobile/*, and /api/assistant/*.
  */
-export async function authenticateClerkRequest() {
+export async function authenticateClerkRequest(request?: Request) {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
@@ -55,14 +62,39 @@ export async function authenticateClerkRequest() {
     throw new Error(message);
   }
 
+  let userId: string | null = null;
+  let token: string | null = null;
+
   const authObject = await auth();
-  if (!authObject.isAuthenticated) {
-    throw new UnauthorizedError("Unauthorized: No active Clerk session");
+  if (authObject.isAuthenticated) {
+    userId = authObject.userId;
+    token = (await authObject.getToken()) ?? null;
   }
 
-  const token = await authObject.getToken();
-  if (!token) {
-    throw new UnauthorizedError("Unauthorized: Could not obtain a session token");
+  // Cookie lag after sign-in: the browser still has a live Clerk session JWT — accept it the
+  // same way /api/mobile/* does, even when `auth()` has not seen a cookie yet.
+  if ((!userId || !token) && request) {
+    const bearer = bearerFromRequest(request);
+    const secretKey = process.env.CLERK_SECRET_KEY;
+    if (bearer && secretKey) {
+      try {
+        const verified = await verifyToken(bearer, { secretKey });
+        const sub =
+          !verified.errors && verified.data && typeof (verified.data as { sub?: unknown }).sub === "string"
+            ? (verified.data as { sub: string }).sub
+            : null;
+        if (sub) {
+          userId = sub;
+          token = bearer;
+        }
+      } catch {
+        // Invalid / expired JWT — fall through to UnauthorizedError.
+      }
+    }
+  }
+
+  if (!userId || !token) {
+    throw new UnauthorizedError("Unauthorized: No active Clerk session");
   }
 
   // Supabase's Clerk third-party auth integration verifies this token directly (via Clerk's
@@ -82,7 +114,7 @@ export async function authenticateClerkRequest() {
     },
   });
 
-  await ensureProfileProvisioned(authObject.userId);
+  await ensureProfileProvisioned(userId);
 
-  return { supabase, userId: authObject.userId };
+  return { supabase, userId };
 }

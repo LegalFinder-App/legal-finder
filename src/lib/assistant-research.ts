@@ -4,16 +4,22 @@ import type {
   ResearchSearchResult,
 } from "@/lib/assistant-sources";
 import { DEFAULT_RESEARCH_FILTERS, emptyFacets } from "@/lib/assistant-sources";
+import { clerkApiHeaders } from "@/lib/clerk-browser-token";
 
 export async function searchCounsellorResearch(
   query: string,
   filters: ResearchFilters = DEFAULT_RESEARCH_FILTERS,
   signal?: AbortSignal,
 ): Promise<ResearchSearchResult> {
+  const headers = await clerkApiHeaders({ "Content-Type": "application/json" });
+  if (!headers.Authorization) {
+    throw new Error("Please sign in again.");
+  }
+
   const response = await fetch("/api/assistant/research", {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       query,
       kinds: filters.kinds,
