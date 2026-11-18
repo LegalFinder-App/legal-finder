@@ -94,10 +94,7 @@ export const api = {
     }>("/api/mobile/assistant", { messages }),
   startPayment: (paymentId: string) =>
     apiPost<{ redirectUrl: string }>("/api/mobile/payments/initiate", { paymentId }),
-  imageUploadAuth: (
-    extension: string,
-    purpose: "profile" | "content" | "assistant" = "profile",
-  ) =>
+  imageUploadAuth: (extension: string, purpose: "profile" | "content" | "assistant" = "profile") =>
     apiPost<{
       token: string;
       expire: number;
