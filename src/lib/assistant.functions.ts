@@ -7,6 +7,15 @@ const chatMessageSchema = z.object({
   content: z.string().min(1).max(4000),
 });
 
+const attachmentSchema = z.object({
+  id: z.string().min(1).max(80),
+  kind: z.enum(["image", "pdf"]),
+  url: z.string().url().max(2000),
+  name: z.string().min(1).max(200),
+  mimeType: z.string().min(3).max(100),
+  size: z.number().int().positive().max(10 * 1024 * 1024),
+});
+
 // Also used by /api/mobile/assistant to validate the native app's requests identically.
 export const chatRequestSchema = z.object({
   messages: z
@@ -17,6 +26,27 @@ export const chatRequestSchema = z.object({
     .refine((messages) => messages[messages.length - 1]?.role === "user", {
       message: "The last message must be a question from you.",
     }),
+  mode: z.enum(["assistant", "research"]).optional(),
+  /** Applied to the latest user turn for multimodal Counsellor requests. */
+  attachments: z.array(attachmentSchema).max(3).optional(),
+});
+
+export const researchRequestSchema = z.object({
+  query: z.string().max(400).default(""),
+  kinds: z.array(z.enum(["advice", "judgment", "library"])).max(3).optional(),
+  court: z.string().max(120).nullable().optional(),
+  category: z.string().max(120).nullable().optional(),
+  dateFrom: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+  dateTo: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+  limit: z.number().int().min(1).max(40).optional(),
 });
 
 /**
@@ -28,5 +58,8 @@ export const askAssistant = createServerFn({ method: "POST" })
   .validator(chatRequestSchema)
   .handler(async ({ data }) => {
     const { runAssistant } = await import("@/lib/assistant.server");
-    return runAssistant(data.messages);
+    return runAssistant(data.messages, {
+      mode: data.mode ?? "assistant",
+      attachments: data.attachments,
+    });
   });

@@ -13,7 +13,7 @@ export async function createImageKitUploadAuth({
   supabase: SupabaseClient<AppDatabase>;
   userId: string;
   extension: string;
-  purpose: "profile" | "content";
+  purpose: "profile" | "content" | "assistant";
 }) {
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
@@ -32,6 +32,7 @@ export async function createImageKitUploadAuth({
 
   // "content" images (wanted persons, news, library covers, advice) are uploaded through the
   // admin CMS, which has no RLS policy of its own to lean on here — check the role explicitly.
+  // "assistant" uploads are per signed-in user for Counsellor AI multimodal turns.
   let folder = `${rootFolder}/profiles/${userId}`;
   let fileNamePrefix = "profile";
   if (purpose === "content") {
@@ -45,6 +46,9 @@ export async function createImageKitUploadAuth({
     }
     folder = `${rootFolder}/content`;
     fileNamePrefix = "content";
+  } else if (purpose === "assistant") {
+    folder = `${rootFolder}/assistant/${userId}`;
+    fileNamePrefix = "assistant";
   }
 
   const token = randomUUID();

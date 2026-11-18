@@ -65,7 +65,7 @@ const PILLARS: Pillar[] = [
   },
   {
     icon: Sparkles,
-    title: "AI legal assistant",
+    title: "Counsellor AI",
     body: "Understand your options in minutes.",
     href: "/assistant",
   },

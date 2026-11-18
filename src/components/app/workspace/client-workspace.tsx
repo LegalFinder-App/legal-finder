@@ -26,7 +26,7 @@ import { requestBrowserNotificationPermission } from "@/lib/platform-notificatio
 export function ClientWorkspace() {
   const { user } = useSession();
   const navigate = useNavigate();
-  const search = useRouterState({ select: (state) => state.location.search });
+  const searchStr = useRouterState({ select: (state) => state.location.searchStr });
   const cases = useQuery(myCasesQuery(user?.id));
   const appts = useQuery(appointmentsQuery(user?.id));
   const docs = useQuery(documentsQuery(user?.id));
@@ -34,7 +34,7 @@ export function ClientWorkspace() {
   const notifications = useQuery(notificationsQuery(user?.id));
 
   useEffect(() => {
-    const params = new URLSearchParams(search);
+    const params = new URLSearchParams(searchStr);
     const payment = params.get("payment");
     if (!payment) return;
 
@@ -55,7 +55,7 @@ export function ClientWorkspace() {
     }
 
     navigate({ to: "/dashboard", replace: true });
-  }, [search, navigate]);
+  }, [searchStr, navigate]);
 
   const liveCases = cases.data ?? [];
   const liveAppts = appts.data ?? [];

@@ -7,23 +7,30 @@ const sdk = vi.hoisted(() => {
   class RateLimitError extends APIError {}
   const create = vi.fn();
   const constructed: Record<string, unknown>[] = [];
+  const stream = vi.fn();
   class Client {
     static APIError = APIError;
     static AuthenticationError = AuthenticationError;
     static RateLimitError = RateLimitError;
-    messages = { create };
+    messages = { create, stream };
     constructor(options: Record<string, unknown>) {
       constructed.push(options);
     }
   }
-  return { Client, create, constructed, APIError, AuthenticationError, RateLimitError };
+  return { Client, create, stream, constructed, APIError, AuthenticationError, RateLimitError };
 });
 
 vi.mock("@anthropic-ai/sdk", () => ({ default: sdk.Client }));
 
 import { chatRequestSchema } from "../assistant.functions";
-import { runAssistant } from "../assistant.server";
+import { runAssistant, streamAssistant } from "../assistant.server";
 import { draftDocument } from "../document-drafting.server";
+
+async function collectStream(messages: typeof question) {
+  const events = [];
+  for await (const event of streamAssistant(messages)) events.push(event);
+  return events;
+}
 
 const question = [{ role: "user" as const, content: "How do I report a stolen phone?" }];
 const text = (value: string) => ({ type: "text", text: value });
@@ -32,6 +39,7 @@ const thinking = { type: "thinking", thinking: "", signature: "sig" };
 
 beforeEach(() => {
   sdk.create.mockReset();
+  sdk.stream.mockReset();
   sdk.constructed.length = 0;
   vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
   vi.stubEnv("ANTHROPIC_WORKSPACE_ID", "");
@@ -47,7 +55,11 @@ describe("runAssistant", () => {
 
   it("asks the current model for a short answer and returns its text", async () => {
     sdk.create.mockResolvedValue({ stop_reason: "end_turn", content: [text("Go to the police.")] });
-    await expect(runAssistant(question)).resolves.toEqual({ reply: "Go to the police." });
+    await expect(runAssistant(question)).resolves.toEqual({
+      reply: "Go to the police.",
+      sources: [],
+      advocates: [],
+    });
     const request = sdk.create.mock.calls[0][0];
     expect(request.model).toBe("claude-opus-5-5");
     expect(request.output_config).toEqual({ effort: "low" });
@@ -59,7 +71,11 @@ describe("runAssistant", () => {
 
   it("reads the answer by block type, since a response can begin with thinking", async () => {
     sdk.create.mockResolvedValue({ stop_reason: "end_turn", content: [thinking, text("Answer.")] });
-    await expect(runAssistant(question)).resolves.toEqual({ reply: "Answer." });
+    await expect(runAssistant(question)).resolves.toEqual({
+      reply: "Answer.",
+      sources: [],
+      advocates: [],
+    });
   });
 
   it("tells the reader when the answer hit the length limit", async () => {
@@ -97,6 +113,39 @@ describe("runAssistant", () => {
     vi.stubEnv("ANTHROPIC_WORKSPACE_ID", "wrkspc_1");
     await runAssistant(question);
     expect(sdk.constructed[1].defaultHeaders).toEqual({ "anthropic-workspace-id": "wrkspc_1" });
+  });
+});
+
+describe("streamAssistant", () => {
+  it("streams text deltas and ignores thinking blocks", async () => {
+    async function* events() {
+      yield { type: "content_block_start", content_block: { type: "thinking" } };
+      yield { type: "content_block_delta", delta: { type: "thinking_delta", thinking: "…" } };
+      yield { type: "content_block_start", content_block: { type: "text" } };
+      yield { type: "content_block_delta", delta: { type: "text_delta", text: "Go " } };
+      yield { type: "content_block_delta", delta: { type: "text_delta", text: "to the police." } };
+      yield { type: "message_delta", delta: { stop_reason: "end_turn" } };
+    }
+    sdk.stream.mockReturnValue(events());
+    const received = await collectStream(question);
+    expect(received.filter((e) => e.type === "delta")).toEqual([
+      { type: "delta", text: "Go " },
+      { type: "delta", text: "to the police." },
+    ]);
+    expect(received.at(-1)).toEqual({ type: "done", stopReason: "end_turn" });
+    expect(sdk.stream.mock.calls[0][0].model).toBe("claude-opus-5-5");
+  });
+
+  it("appends the cut-short note when the stream hits max_tokens", async () => {
+    async function* events() {
+      yield { type: "content_block_delta", delta: { type: "text_delta", text: "First," } };
+      yield { type: "message_delta", delta: { stop_reason: "max_tokens" } };
+    }
+    sdk.stream.mockReturnValue(events());
+    const received = await collectStream(question);
+    const deltas = received.filter((e) => e.type === "delta").map((e) => e.text).join("");
+    expect(deltas).toContain("First,");
+    expect(deltas).toMatch(/cut short/);
   });
 });
 

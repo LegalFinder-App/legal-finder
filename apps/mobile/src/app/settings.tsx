@@ -310,7 +310,7 @@ function Settings() {
       <Card>
         <SwitchField
           label="AI features"
-          description="Let the legal assistant and AI-assisted drafting send what you type to Anthropic, which provides the AI model. Off: both ask again before they are used."
+          description="Let Counsellor AI and AI-assisted drafting send what you type (and any attachments) to Anthropic, which provides the AI model. Off: both ask again before they are used."
           value={aiConsent.allowed}
           onChange={(on) => void (on ? aiConsent.allow() : aiConsent.withdraw())}
         />

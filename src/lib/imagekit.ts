@@ -90,6 +90,62 @@ export async function uploadContentImage(file: File): Promise<string> {
   return response.url;
 }
 
+const MAX_ASSISTANT_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_ASSISTANT_PDF_BYTES = 8 * 1024 * 1024;
+const ASSISTANT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+/** Counsellor AI attachments — stored under the signed-in user's assistant folder. */
+export async function uploadAssistantAttachment(file: File): Promise<{
+  url: string;
+  kind: "image" | "pdf";
+  mimeType: string;
+  name: string;
+  size: number;
+}> {
+  const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+  const isImage = ASSISTANT_IMAGE_TYPES.has(file.type);
+
+  if (!isPdf && !isImage) {
+    throw new Error("Attach a JPG, PNG, WebP image, or a PDF.");
+  }
+  if (isImage && file.size > MAX_ASSISTANT_IMAGE_BYTES) {
+    throw new Error("Images must be 5 MB or smaller.");
+  }
+  if (isPdf && file.size > MAX_ASSISTANT_PDF_BYTES) {
+    throw new Error("PDFs must be 8 MB or smaller.");
+  }
+
+  const extension = isPdf
+    ? ".pdf"
+    : extensionFor(file);
+  const auth = await getImageKitUploadAuth({
+    data: { extension, purpose: "assistant" },
+  });
+  const response = await upload({
+    file,
+    fileName: auth.fileName,
+    folder: auth.folder,
+    token: auth.token,
+    expire: auth.expire,
+    signature: auth.signature,
+    publicKey: auth.publicKey,
+    useUniqueFileName: true,
+    tags: ["assistant", "legalfinder"],
+  });
+
+  if (!response.url) {
+    throw new Error("Upload succeeded, but no URL was returned from ImageKit.");
+  }
+
+  return {
+    url: response.url,
+    kind: isPdf ? "pdf" : "image",
+    mimeType: isPdf ? "application/pdf" : file.type,
+    name: file.name,
+    size: file.size,
+  };
+}
+
 function extensionFor(file: File): string {
   const fromName = file.name.match(/\.(jpe?g|png|webp)$/i)?.[0];
   if (fromName) return fromName.toLowerCase();

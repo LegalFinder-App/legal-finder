@@ -143,7 +143,7 @@ export default function MoreTab() {
           <>
             <ListRow
               icon={icon(Sparkles)}
-              title="AI legal assistant"
+              title="Counsellor AI"
               subtitle="Plain-language answers, pointed to the right help"
               onPress={() => router.push("/assistant")}
             />

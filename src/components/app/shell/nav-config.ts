@@ -34,7 +34,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ALL_ROLES },
       { to: "/messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES },
-      { to: "/assistant", label: "Assistant", icon: Sparkles, roles: ALL_ROLES },
+      { to: "/assistant", label: "Counsellor AI", icon: Sparkles, roles: ALL_ROLES },
     ],
   },
   {

@@ -23,6 +23,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, radius } from "@/theme/tokens";
 import { Avatar, Button, Text } from "@/components/ui";
 import { Logo } from "@/components/Logo";
+import { CounsellorFab } from "@/components/CounsellorFab";
 import { useWideLayout } from "@/lib/layout";
 import { appSettingsQuery } from "@/lib/queries";
 import { useUnreadCount } from "@/lib/realtime";
@@ -61,7 +62,10 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   return (
     <View style={[styles.shell, { backgroundColor: colors.background }]}>
       {showSidebar ? <Sidebar /> : null}
-      <View style={styles.content}>{children}</View>
+      <View style={styles.content}>
+        {children}
+        {!inAuthFlow ? <CounsellorFab /> : null}
+      </View>
     </View>
   );
 }
@@ -115,7 +119,7 @@ function Sidebar() {
     ...(settings.data?.ai_assistant_enabled !== false
       ? [
           {
-            label: "AI legal assistant",
+            label: "Counsellor AI",
             href: "/assistant",
             icon: Sparkles,
             paths: ["/assistant"],
@@ -289,7 +293,7 @@ function Sidebar() {
 
 const styles = StyleSheet.create({
   shell: { flex: 1, flexDirection: "row" },
-  content: { flex: 1 },
+  content: { flex: 1, position: "relative" },
   sidebar: { width: 256, borderRightWidth: StyleSheet.hairlineWidth },
   brand: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 14 },
   sections: { paddingHorizontal: 12, paddingBottom: 16, gap: 18 },

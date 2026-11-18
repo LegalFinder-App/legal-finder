@@ -4,6 +4,29 @@ import { getAuthToken } from "./auth-token";
 import { bridgedFetch } from "./bridged-fetch";
 import type { DocumentRow } from "./queries";
 
+export type AssistantSource = {
+  id: string;
+  kind: "advice" | "judgment" | "library";
+  authority: "judgment" | "legislation" | "editorial" | "catalogue";
+  title: string;
+  subtitle: string | null;
+  summary: string | null;
+  href: string;
+};
+
+export type AssistantAdvocate = {
+  id: string;
+  fullName: string;
+  headline: string | null;
+  photoUrl: string | null;
+  verified: boolean;
+  city: string | null;
+  county: string | null;
+  practiceAreas: string[];
+  languages: string[];
+  href: string;
+};
+
 // TanStack Start's answer to a JSON request for a path it has no route for (status 500).
 const ROUTE_MISSING = "Only HTML requests are supported here";
 
@@ -64,10 +87,17 @@ export const api = {
   /** Provisions the profile/default role on first sign-in and returns the caller's roles. */
   session: () => apiPost<{ userId: string; roles: string[] }>("/api/mobile/session"),
   askAssistant: (messages: { role: "user" | "assistant"; content: string }[]) =>
-    apiPost<{ reply: string }>("/api/mobile/assistant", { messages }),
+    apiPost<{
+      reply: string;
+      sources?: AssistantSource[];
+      advocates?: AssistantAdvocate[];
+    }>("/api/mobile/assistant", { messages }),
   startPayment: (paymentId: string) =>
     apiPost<{ redirectUrl: string }>("/api/mobile/payments/initiate", { paymentId }),
-  imageUploadAuth: (extension: string, purpose: "profile" | "content" = "profile") =>
+  imageUploadAuth: (
+    extension: string,
+    purpose: "profile" | "content" | "assistant" = "profile",
+  ) =>
     apiPost<{
       token: string;
       expire: number;

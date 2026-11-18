@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 /**
- * Minimal markdown-ish renderer for advice/news article bodies. Supports headings (#/##/###),
- * paragraphs, **bold**, *italic*, [links](url), and "- " lists. Outputs plain React elements
- * (no dangerouslySetInnerHTML), so no sanitizer dependency is needed.
+ * Minimal markdown-ish renderer for advice/news article bodies and Counsellor AI replies.
+ * Supports headings (#/##/###), paragraphs, **bold**, *italic*, [links](url), "- "/ordered
+ * lists, and "> " blockquotes. Outputs plain React elements (no dangerouslySetInnerHTML).
  */
 export function MarkdownLite({ text, className }: { text: string; className?: string }) {
   return <div className={className}>{parseBlocks(text)}</div>;
@@ -43,10 +43,13 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
   return nodes;
 }
 
+type ListKind = "ul" | "ol";
+
 function parseBlocks(text: string): ReactNode[] {
   const lines = text.split("\n");
   const blocks: ReactNode[] = [];
   let listBuffer: string[] = [];
+  let listKind: ListKind = "ul";
   let paragraphBuffer: string[] = [];
 
   const flushParagraph = (key: string) => {
@@ -61,14 +64,17 @@ function parseBlocks(text: string): ReactNode[] {
 
   const flushList = (key: string) => {
     if (listBuffer.length === 0) return;
+    const ListTag = listKind === "ol" ? "ol" : "ul";
+    const listClass = listKind === "ol" ? "list-decimal space-y-1 pl-5" : "list-disc space-y-1 pl-5";
     blocks.push(
-      <ul key={key} className="list-disc space-y-1 pl-5">
+      <ListTag key={key} className={listClass}>
         {listBuffer.map((item, i) => (
           <li key={`${key}-${i}`}>{renderInline(item, `${key}-${i}`)}</li>
         ))}
-      </ul>,
+      </ListTag>,
     );
     listBuffer = [];
+    listKind = "ul";
   };
 
   lines.forEach((rawLine, lineIndex) => {
@@ -109,10 +115,33 @@ function parseBlocks(text: string): ReactNode[] {
       return;
     }
 
-    const listMatch = /^[-*]\s+(.*)$/.exec(line);
-    if (listMatch) {
+    const quoteMatch = /^>\s?(.*)$/.exec(line);
+    if (quoteMatch) {
       flushParagraph(key);
-      listBuffer.push(listMatch[1]);
+      flushList(key);
+      blocks.push(
+        <blockquote key={key} className="border-l-[3px] border-brass/60 pl-3 italic text-muted-foreground">
+          {renderInline(quoteMatch[1], key)}
+        </blockquote>,
+      );
+      return;
+    }
+
+    const unorderedMatch = /^[-*]\s+(.*)$/.exec(line);
+    if (unorderedMatch) {
+      flushParagraph(key);
+      if (listBuffer.length > 0 && listKind !== "ul") flushList(`${key}-switch`);
+      listKind = "ul";
+      listBuffer.push(unorderedMatch[1]);
+      return;
+    }
+
+    const orderedMatch = /^\d+[.)]\s+(.*)$/.exec(line);
+    if (orderedMatch) {
+      flushParagraph(key);
+      if (listBuffer.length > 0 && listKind !== "ol") flushList(`${key}-switch`);
+      listKind = "ol";
+      listBuffer.push(orderedMatch[1]);
       return;
     }
 

@@ -111,7 +111,7 @@ const PILLARS = [
   },
   {
     icon: Sparkles,
-    title: "AI legal assistant",
+    title: "Counsellor AI",
     body: "Ask a question, understand your options, and get pointed to the right advocate or office.",
     to: "/assistant",
     wide: true,
@@ -590,14 +590,17 @@ function AvatarRow({ lawyers }: { lawyers: { id: string; photo_url: string | nul
   );
 }
 
-/** A static preview of the assistant's chat layout — illustrative, hidden from screen readers. */
+/** A static preview of Counsellor AI — illustrative, hidden from screen readers. */
 function AssistantPreview() {
   return (
     <div className="mt-6 grid gap-2 text-[0.8rem]" aria-hidden>
       <p className="ml-auto max-w-[80%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-primary-foreground">
         Can my landlord evict me without notice?
       </p>
-      <p className="max-w-[85%] rounded-2xl rounded-bl-md bg-secondary px-3.5 py-2 text-muted-foreground">
+      <p className="max-w-[85%] rounded-2xl rounded-bl-md border border-border/70 bg-card px-3.5 py-2 text-muted-foreground">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-brass">
+          Counsellor AI
+        </span>
         Here's what the law says about notice — and advocates near you who handle tenancy matters.
       </p>
     </div>

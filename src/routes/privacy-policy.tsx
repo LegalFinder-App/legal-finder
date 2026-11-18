@@ -102,16 +102,16 @@ const SECTIONS: Section[] = [
         </p>
         <p>
           <span className="font-medium text-foreground">
-            AI assistant and AI-assisted drafting.
+            Counsellor AI and AI-assisted drafting.
           </span>{" "}
-          If you use the AI legal assistant or AI-assisted document drafting, what you type into
-          them — your questions, your drafting instructions, and the draft you are revising — is
-          sent to Anthropic, the provider of the Claude AI model, to generate a response. Your name,
-          email address, and account details are not sent with it. We ask for your permission before
-          these features are first used, and you can withdraw it at any time in Settings. We do not
-          keep a copy of your conversation with the assistant; a draft you choose to save is stored
-          with your other documents. Avoid sharing information in these features that you would not
-          want processed to answer your request.
+          If you use Counsellor AI or AI-assisted document drafting, what you type into them — your
+          questions, drafting instructions, the draft you are revising, and any images or PDFs you
+          attach — is sent to Anthropic, the provider of the Claude AI model, to generate a
+          response. Your name, email address, and account details are not sent with it. We ask for
+          your permission before these features are first used, and you can withdraw it at any time
+          in Settings. We do not keep a copy of your conversation with the assistant; a draft you
+          choose to save is stored with your other documents. Avoid sharing information in these
+          features that you would not want processed to answer your request.
         </p>
         <p>
           <span className="font-medium text-foreground">Device and usage data.</span> We use
@@ -151,7 +151,7 @@ const SECTIONS: Section[] = [
       <p>
         We process your data because it is necessary to perform our contract with you (providing the
         Service you signed up for), because you have given consent (for example, to receive
-        notifications or use the AI assistant), because we have a legitimate interest in keeping the
+        notifications or use Counsellor AI), because we have a legitimate interest in keeping the
         Service secure and improving it, or because we are required to by law — consistent with
         Uganda's Data Protection and Privacy Act, 2019.
       </p>

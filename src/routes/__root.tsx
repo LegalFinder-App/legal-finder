@@ -19,6 +19,7 @@ import { LiquidGlassFilter, enableLiquidGlassRefraction } from "@/components/ui/
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useHideNativeSplashScreen, useNativeBackButton, useNativeStatusBar } from "@/lib/native";
+import { CounsellorFab } from "@/components/app/counsellor/fab";
 
 function NotFoundComponent() {
   return (
@@ -175,6 +176,7 @@ function RootComponent() {
         <NativeAppEffects />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <CounsellorFab />
         <Toaster position="top-right" richColors closeButton />
         <Analytics />
       </QueryClientProvider>

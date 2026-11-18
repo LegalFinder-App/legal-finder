@@ -45,13 +45,14 @@ export function AiConsentGate({
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Sparkles size={20} color={colors.brass} />
           <Text variant="h3" style={{ flex: 1 }}>
-            Before you use AI features
+            Before you use Counsellor AI
           </Text>
         </View>
         <Text>
-          The legal assistant and AI-assisted document drafting are powered by Claude, an AI model
-          made by Anthropic. What you type into them — your questions, your drafting instructions
-          and the draft you are revising — is sent to Anthropic to write the response.
+          Counsellor AI and AI-assisted document drafting are powered by Claude, an AI model made by
+          Anthropic. What you type into them — your questions, drafting instructions, the draft you
+          are revising, and any images or PDFs you attach — is sent to Anthropic to write the
+          response.
         </Text>
         <Text>
           Your name, email and account details are not sent with it, and LegalFinder does not keep

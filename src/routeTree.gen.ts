@@ -53,6 +53,8 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVerificationsRouteImport } from './routes/_authenticated/admin/verifications'
 import { Route as AuthenticatedCasesCaseIdRouteImport } from './routes/_authenticated/cases.$caseId'
+import { Route as ApiAssistantResearchRouteImport } from './routes/api.assistant.research'
+import { Route as ApiAssistantStreamRouteImport } from './routes/api.assistant.stream'
 import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
 import { Route as ApiCronLegalFeedRouteImport } from './routes/api.cron.legal-feed'
 import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
@@ -307,6 +309,16 @@ const AuthenticatedCasesCaseIdRoute =
     path: '/cases/$caseId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiAssistantResearchRoute = ApiAssistantResearchRouteImport.update({
+  id: '/api/assistant/research',
+  path: '/api/assistant/research',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAssistantStreamRoute = ApiAssistantStreamRouteImport.update({
+  id: '/api/assistant/stream',
+  path: '/api/assistant/stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCronComplianceCheckRoute = ApiCronComplianceCheckRouteImport.update({
   id: '/api/cron/compliance-check',
   path: '/api/cron/compliance-check',
@@ -500,6 +512,8 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/api/assistant/research': typeof ApiAssistantResearchRoute
+  '/api/assistant/stream': typeof ApiAssistantStreamRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
@@ -570,6 +584,8 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/api/assistant/research': typeof ApiAssistantResearchRoute
+  '/api/assistant/stream': typeof ApiAssistantStreamRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
@@ -644,6 +660,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verifications': typeof AuthenticatedAdminVerificationsRoute
   '/_authenticated/cases/$caseId': typeof AuthenticatedCasesCaseIdRoute
+  '/api/assistant/research': typeof ApiAssistantResearchRoute
+  '/api/assistant/stream': typeof ApiAssistantStreamRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
@@ -718,6 +736,8 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verifications'
     | '/cases/$caseId'
+    | '/api/assistant/research'
+    | '/api/assistant/stream'
     | '/api/cron/compliance-check'
     | '/api/cron/legal-feed'
     | '/api/flutterwave/webhook'
@@ -788,6 +808,8 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verifications'
     | '/cases/$caseId'
+    | '/api/assistant/research'
+    | '/api/assistant/stream'
     | '/api/cron/compliance-check'
     | '/api/cron/legal-feed'
     | '/api/flutterwave/webhook'
@@ -861,6 +883,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verifications'
     | '/_authenticated/cases/$caseId'
+    | '/api/assistant/research'
+    | '/api/assistant/stream'
     | '/api/cron/compliance-check'
     | '/api/cron/legal-feed'
     | '/api/flutterwave/webhook'
@@ -916,6 +940,8 @@ export interface RootRouteChildren {
   AdviceIndexRoute: typeof AdviceIndexRoute
   LawyersIndexRoute: typeof LawyersIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
+  ApiAssistantResearchRoute: typeof ApiAssistantResearchRoute
+  ApiAssistantStreamRoute: typeof ApiAssistantStreamRoute
   ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
   ApiCronLegalFeedRoute: typeof ApiCronLegalFeedRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
@@ -1246,6 +1272,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCasesCaseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/assistant/research': {
+      id: '/api/assistant/research'
+      path: '/api/assistant/research'
+      fullPath: '/api/assistant/research'
+      preLoaderRoute: typeof ApiAssistantResearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/assistant/stream': {
+      id: '/api/assistant/stream'
+      path: '/api/assistant/stream'
+      fullPath: '/api/assistant/stream'
+      preLoaderRoute: typeof ApiAssistantStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/cron/compliance-check': {
       id: '/api/cron/compliance-check'
       path: '/api/cron/compliance-check'
@@ -1568,6 +1608,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdviceIndexRoute: AdviceIndexRoute,
   LawyersIndexRoute: LawyersIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
+  ApiAssistantResearchRoute: ApiAssistantResearchRoute,
+  ApiAssistantStreamRoute: ApiAssistantStreamRoute,
   ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
   ApiCronLegalFeedRoute: ApiCronLegalFeedRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,

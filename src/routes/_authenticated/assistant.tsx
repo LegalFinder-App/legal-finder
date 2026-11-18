@@ -8,7 +8,7 @@ import { appSettingsQuery } from "@/lib/app-settings";
 import { ROLE_HOME, useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
-  head: () => ({ meta: [{ title: "LegalFinder | AI assistant" }] }),
+  head: () => ({ meta: [{ title: "LegalFinder | Counsellor AI" }] }),
   component: Page,
 });
 
@@ -22,7 +22,7 @@ function Page() {
       <div className="mx-auto max-w-3xl px-4 py-24 sm:px-6 lg:px-8">
         <EmptyState
           icon={<Sparkles className="h-8 w-8" />}
-          title="The AI assistant is temporarily unavailable"
+          title="Counsellor AI is temporarily unavailable"
           description="This feature has been paused by an administrator."
         />
       </div>

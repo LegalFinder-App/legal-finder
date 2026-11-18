@@ -36,8 +36,8 @@ const TOGGLES: {
   },
   {
     key: "ai_assistant_enabled",
-    label: "AI legal assistant",
-    description: "Lets signed-in users open and use the AI-assisted chat feature.",
+    label: "Counsellor AI",
+    description: "Lets signed-in users open and use Counsellor AI (chat and research).",
   },
 ];
 

@@ -5,7 +5,7 @@ import { rateLimited } from "@/lib/rate-limit-middleware";
 // Also used by /api/mobile/uploads/image-auth to validate the native app's requests identically.
 export const uploadRequestSchema = z.object({
   extension: z.string().regex(/^\.[a-z0-9]{1,5}$/i),
-  purpose: z.enum(["profile", "content"]).default("profile"),
+  purpose: z.enum(["profile", "content", "assistant"]).default("profile"),
 });
 
 export const getImageKitUploadAuth = createServerFn({ method: "POST" })
