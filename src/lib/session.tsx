@@ -1,6 +1,8 @@
+import { useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth, useUser } from "@clerk/tanstack-react-start";
 import { userRolesQuery } from "@/lib/queries";
+import { clientClerkUserId } from "@/lib/after-auth";
 
 export type AppRole = "user" | "lawyer" | "police" | "judiciary" | "admin";
 
@@ -41,18 +43,41 @@ export function primaryRoleFrom(roles: AppRole[]): AppRole {
   return ROLE_PRIORITY.find((role) => roles.includes(role)) ?? "user";
 }
 
+/**
+ * useAuth() can lag behind window.Clerk after finalize (cookie not visible yet). The workspace
+ * gate already accepts the client session; the rest of the UI must too — otherwise Counsellor
+ * consent stays on a blank skeleton and the marketing header keeps showing Sign in.
+ */
+function subscribeClerkClient(onStoreChange: () => void) {
+  if (typeof window === "undefined" || !window.Clerk) return () => {};
+  const clerk = window.Clerk as {
+    addListener?: (cb: () => void) => () => void;
+  };
+  if (typeof clerk.addListener === "function") {
+    return clerk.addListener(onStoreChange);
+  }
+  return () => {};
+}
+
+function readClerkClientUserId() {
+  return clientClerkUserId();
+}
+
 export function useSession(): SessionState {
   const { isLoaded: authLoaded, userId, isSignedIn } = useAuth();
   const { user: clerkUser } = useUser();
-  const rolesQuery = useQuery(userRolesQuery(userId ?? undefined));
+  const clientId = useSyncExternalStore(subscribeClerkClient, readClerkClientUserId, () => null);
+
+  const effectiveId = userId ?? clientId;
+  const signedIn = Boolean(isSignedIn || effectiveId);
+
+  const rolesQuery = useQuery(userRolesQuery(effectiveId ?? undefined));
   const roles = (rolesQuery.data ?? []) as AppRole[];
 
-  // Prefer Clerk's user object, but userId alone is enough for "signed in" UI (navbar). Waiting
-  // on useUser() or roles used to keep the header stuck on Sign in / Get started after login.
   const user: SessionUser | null =
-    isSignedIn && userId
+    signedIn && effectiveId
       ? {
-          id: userId,
+          id: effectiveId,
           email: clerkUser?.primaryEmailAddress?.emailAddress ?? null,
           fullName: clerkUser?.fullName ?? null,
         }

@@ -91,6 +91,14 @@ export function CounsellorWorkspace() {
   }, []);
 
   useEffect(() => {
+    // Wait for a real account id so we never hydrate under a shared key (privacy).
+    if (!userId) {
+      setHydrated(false);
+      setConversations([]);
+      setActiveId(null);
+      setResearchHistory([]);
+      return;
+    }
     const stored = loadConversations(userId);
     if (stored.length > 0) {
       setConversations(stored);
@@ -105,12 +113,12 @@ export function CounsellorWorkspace() {
   }, [userId]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !userId) return;
     saveConversations(userId, conversations);
   }, [conversations, hydrated, userId]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !userId) return;
     saveResearchHistory(userId, researchHistory);
   }, [researchHistory, hydrated, userId]);
 
@@ -357,10 +365,24 @@ export function CounsellorWorkspace() {
     }
   };
 
+  if (!userId) {
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
+        <Sparkles className="h-8 w-8 text-brass" aria-hidden />
+        <p className="text-sm font-medium text-foreground">Confirming your account…</p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          Counsellor AI keeps each account’s chats private. We’re matching this session to your
+          profile.
+        </p>
+      </div>
+    );
+  }
+
   if (!hydrated || !active) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center">
-        <div className="h-10 w-10 animate-pulse rounded-2xl bg-brass/20" aria-hidden />
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 animate-pulse rounded-2xl bg-brass/25" aria-hidden />
+        <p className="text-xs text-muted-foreground">Loading your private workspace…</p>
       </div>
     );
   }
@@ -386,7 +408,7 @@ export function CounsellorWorkspace() {
   };
 
   return (
-    <div className="counsellor-shell relative flex h-[calc(100dvh-4.5rem)] min-h-[560px] overflow-hidden rounded-none border-y border-border/70 bg-[linear-gradient(180deg,hsl(var(--secondary)/0.35)_0%,hsl(var(--background))_28%)] sm:mx-3 sm:my-3 sm:h-[calc(100dvh-5.5rem)] sm:rounded-2xl sm:border lg:mx-4">
+    <div className="counsellor-shell relative flex h-[calc(100dvh-4.5rem)] min-h-[560px] overflow-hidden rounded-none border-y border-border/70 bg-gradient-to-b from-secondary/35 to-background sm:mx-3 sm:my-3 sm:h-[calc(100dvh-5.5rem)] sm:rounded-2xl sm:border lg:mx-4">
       <CounsellorSidebar
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}

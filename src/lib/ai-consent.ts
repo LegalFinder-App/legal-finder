@@ -19,7 +19,7 @@ function read(userId: string) {
 }
 
 export function useAiConsent() {
-  const { user } = useSession();
+  const { user, loading: sessionLoading } = useSession();
   const userId = user?.id;
   const queryClient = useQueryClient();
   const stored = useQuery({
@@ -42,8 +42,10 @@ export function useAiConsent() {
   };
 
   return {
-    loading: !userId || stored.isLoading,
+    // Only spin while the account id is still resolving — never hang forever after that.
+    loading: sessionLoading || (Boolean(userId) && stored.isLoading),
     allowed: stored.data === true,
+    ready: Boolean(userId) && !stored.isLoading,
     allow: () => set(true),
     withdraw: () => set(false),
   };

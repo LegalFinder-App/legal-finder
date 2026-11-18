@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
-import { continueAfterAuth, isAlreadySignedInError } from "@/lib/after-auth";
+import { clientClerkUserId, continueAfterAuth, isAlreadySignedInError } from "@/lib/after-auth";
 import { cn } from "@/lib/utils";
 import { delay } from "@/lib/motion";
 
@@ -150,32 +150,41 @@ function AuthPage() {
     }
   };
 
-  /** If Clerk says the browser already has a session, open the workspace instead of erroring. */
-  const recoverIfAlreadySignedIn = async (err: unknown) => {
-    if (!isAlreadySignedInError(err)) return false;
-    const sessionId = signIn?.existingSession?.sessionId;
+  /** Open workspace for an existing browser session — no "already signed in" toast. */
+  const enterExistingSession = async () => {
+    const sessionId = signIn?.existingSession?.sessionId ?? clerk.session?.id;
     if (sessionId) {
       try {
         await clerk.setActive({ session: sessionId });
       } catch {
-        // fall through — we may still have clerk.user from the active client
+        // continue with whatever client id we already have
       }
     }
-    const id = userId ?? clerk.user?.id ?? clerk.session?.user?.id ?? null;
-    toast.success("You're already signed in");
+    const id = userId ?? clientClerkUserId() ?? clerk.user?.id ?? clerk.session?.user?.id ?? null;
     if (id) {
       await goToWorkspace(id);
-    } else {
-      await navigate({ to: "/dashboard", replace: true });
+      return true;
     }
+    await navigate({ to: "/dashboard", replace: true });
     return true;
   };
 
+  /** If Clerk rejects a new sign-in because a session already exists, enter it quietly. */
+  const recoverIfAlreadySignedIn = async (err: unknown) => {
+    if (!isAlreadySignedInError(err)) return false;
+    return enterExistingSession();
+  };
+
+  // Proactive: if this browser already has a Clerk session, skip the form entirely.
   useEffect(() => {
-    if (!authLoaded || !isSignedIn || !userId || redirectedRef.current) return;
-    void goToWorkspace(userId);
+    if (!authLoaded || !clerk.loaded || redirectedRef.current) return;
+    const existingId = userId ?? clientClerkUserId();
+    if (!existingId) return;
+    if (isSignedIn || clerk.session?.status === "active" || clerk.user?.id) {
+      void goToWorkspace(existingId);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoaded, isSignedIn, userId]);
+  }, [authLoaded, isSignedIn, userId, clerk.loaded, clerk.session?.status, clerk.user?.id]);
 
   const startEmailCodeStep = async () => {
     const { error } = await signIn.mfa.sendEmailCode();
@@ -188,8 +197,11 @@ function AuthPage() {
     if (signIn.status === "complete") {
       const { error: finalizeError } = await signIn.finalize();
       if (finalizeError) throw finalizeError;
+      if (clerk.session?.id) {
+        await clerk.setActive({ session: clerk.session.id }).catch(() => undefined);
+      }
       toast.success("Signed in");
-      const signedInId = clerk.session?.user?.id ?? clerk.user?.id;
+      const signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? clientClerkUserId();
       if (signedInId) await goToWorkspace(signedInId);
       return true;
     }
@@ -227,6 +239,16 @@ function AuthPage() {
       if (!ready || !signIn || !signUp) {
         throw new Error("Sign-in took too long to start. Please refresh and try again.");
       }
+      // Don't attempt a second sign-in if this browser is already in a session.
+      const existingId = userId ?? clientClerkUserId();
+      if (
+        existingId &&
+        (isSignedIn || clerk.session?.status === "active" || Boolean(clerk.user?.id))
+      ) {
+        redirecting = true;
+        await goToWorkspace(existingId);
+        return;
+      }
       if (mode === "signup") {
         if (!legalAccepted) {
           toast.error("Please agree to the terms and privacy policy to continue.");
@@ -242,13 +264,16 @@ function AuthPage() {
         if (signUp.status === "complete") {
           const { error: finalizeError } = await signUp.finalize();
           if (finalizeError) throw finalizeError;
+          if (clerk.session?.id) {
+            await clerk.setActive({ session: clerk.session.id }).catch(() => undefined);
+          }
           toast.success("Account created", {
             description:
               role === "user"
                 ? "Welcome to LegalFinder."
                 : "Next, send your details and documents for review.",
           });
-          const createdId = clerk.session?.user?.id ?? clerk.user?.id;
+          const createdId = clerk.session?.user?.id ?? clerk.user?.id ?? clientClerkUserId();
           if (createdId) await goToWorkspace(createdId);
           redirecting = true;
         } else {
@@ -317,6 +342,9 @@ function AuthPage() {
         }
         const { error: finalizeError } = await signUp.finalize();
         if (finalizeError) throw finalizeError;
+        if (clerk.session?.id) {
+          await clerk.setActive({ session: clerk.session.id }).catch(() => undefined);
+        }
         toast.success("Account created", {
           description:
             role === "user"
@@ -331,13 +359,16 @@ function AuthPage() {
         }
         const { error: finalizeError } = await signIn.finalize();
         if (finalizeError) throw finalizeError;
+        if (clerk.session?.id) {
+          await clerk.setActive({ session: clerk.session.id }).catch(() => undefined);
+        }
         toast.success("Signed in");
       }
       // Prefer the just-activated session; fall back to waiting briefly for Clerk to hydrate.
-      let signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? null;
+      let signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? clientClerkUserId();
       for (let i = 0; !signedInId && i < 20; i++) {
         await new Promise((r) => window.setTimeout(r, 100));
-        signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? null;
+        signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? clientClerkUserId();
       }
       if (signedInId) {
         await goToWorkspace(signedInId);
@@ -396,7 +427,9 @@ function AuthPage() {
   };
 
   const onCodeStep = verificationCode !== null;
-  const openingWorkspace = Boolean(authLoaded && isSignedIn && userId);
+  const openingWorkspace = Boolean(
+    authLoaded && (isSignedIn || clientClerkUserId()) && (userId || clientClerkUserId()),
+  );
   const title = openingWorkspace
     ? "Opening your workspace"
     : onCodeStep

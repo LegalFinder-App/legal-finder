@@ -7,8 +7,8 @@ import { useAiConsent } from "@/lib/ai-consent";
 
 /**
  * Shows `children` once this account has agreed to its text being sent to the AI provider;
- * until then, the notice that asks. One yes covers both AI features (the notice names both), so
- * neither asks again after the other. See lib/ai-consent for why this exists.
+ * until then, the notice that asks. Consent is stored per Clerk user id in this browser only —
+ * one account never sees another's yes, or their chat history.
  */
 export function AiConsentGate({
   children,
@@ -26,7 +26,37 @@ export function AiConsentGate({
   if (consent.allowed) return <>{children}</>;
   const frame = (content: ReactNode) =>
     frameClassName ? <div className={frameClassName}>{content}</div> : content;
-  if (consent.loading) return frame(<Skeleton className="h-40 w-full" />);
+
+  if (consent.loading) {
+    return frame(
+      <div className="space-y-3" aria-busy="true" aria-label="Checking AI permission">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-10 w-40" />
+      </div>,
+    );
+  }
+
+  // Session never resolved — don't leave a blank page.
+  if (!consent.ready) {
+    return frame(
+      <div className="card p-5 sm:p-6">
+        <div className="flex items-center gap-3">
+          <Sparkles className="h-5 w-5 shrink-0 text-brass" />
+          <h2 className="font-display text-lg font-semibold">Sign in to use Counsellor AI</h2>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          Your AI chats stay private to your account. We could not confirm who is signed in — please
+          refresh, or open your workspace from the header and try again.
+        </p>
+        <div className="mt-5">
+          <Button type="button" variant="outline" onClick={onDecline}>
+            Back to workspace
+          </Button>
+        </div>
+      </div>,
+    );
+  }
 
   return frame(
     <div className="card p-5 sm:p-6">
@@ -42,9 +72,9 @@ export function AiConsentGate({
           response.
         </p>
         <p>
-          Your name, email and account details are not sent with it, and LegalFinder does not keep
-          your conversation with the assistant. Leave out names, ID numbers and anything else you
-          would not want shared.
+          Your name, email and account details are not sent with it. Conversations are stored only
+          on this device, keyed to your account — other LegalFinder users cannot see what you asked.
+          Leave out names, ID numbers and anything else you would not want shared.
         </p>
         <p className="text-muted-foreground">
           Answers and drafts are general information, not legal advice. For anything that matters,

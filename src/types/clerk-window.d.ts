@@ -10,11 +10,13 @@ declare global {
     Clerk?: {
       loaded: boolean;
       load(): Promise<unknown>;
+      addListener?: (callback: () => void) => () => void;
       user?: { id: string } | null;
       session?: {
+        id?: string;
+        status?: string;
         getToken(): Promise<string | null>;
         user?: { id: string } | null;
-        status?: string;
       } | null;
     };
   }
