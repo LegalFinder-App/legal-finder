@@ -397,10 +397,12 @@ function AuthPage() {
       if (!ready || !signIn || !signUp) {
         throw new Error("Sign-in took too long to start. Please refresh and try again.");
       }
+      // redirectUrl = where Clerk sends people after SSO completes (never /auth — that caused
+      // callback → auth form → dashboard). redirectCallbackUrl = handshake / incomplete step.
       const ssoArgs = {
         strategy,
         redirectCallbackUrl: "/sso-callback",
-        redirectUrl: "/auth",
+        redirectUrl: "/sso-callback",
       } as const;
       const { error } =
         mode === "signup"
