@@ -1,17 +1,47 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AuthenticateWithRedirectCallback } from "@clerk/tanstack-react-start";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { HandleSSOCallback } from "@clerk/tanstack-react-start";
 
-// Where Clerk's OAuth redirect (e.g. Google) lands to complete the sign-in/sign-up. Both
-// fallbacks point at /auth, which already redirects a signed-in user to their role-based
-// workspace — reusing that logic instead of duplicating it here.
+// Where Clerk's OAuth redirect (Google / Apple / LinkedIn) lands when the Future `signIn.sso`
+// flow needs the handshake page (`redirectCallbackUrl`). HandleSSOCallback finishes the
+// sign-in/sign-up and routes back to /auth, which already opens MFA and the role-based workspace.
 export const Route = createFileRoute("/sso-callback")({
   head: () => ({ meta: [{ name: "robots", content: "noindex" }] }),
-  component: () => (
-    <AuthenticateWithRedirectCallback
-      signInFallbackRedirectUrl="/auth"
-      signUpFallbackRedirectUrl="/auth"
-      // An MFA-enrolled account still owes its code after OAuth; /auth opens that code step.
-      secondFactorUrl="/auth"
-    />
-  ),
+  component: SsoCallbackPage,
 });
+
+function SsoCallbackPage() {
+  const navigate = useNavigate();
+
+  const goAuth = () => {
+    void navigate({ to: "/auth", replace: true });
+  };
+
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-background text-sm text-muted-foreground">
+      <HandleSSOCallback
+        navigateToApp={({ session, decorateUrl }) => {
+          if (session?.currentTask?.key === "setup-mfa") {
+            const destination = decorateUrl("/session-tasks/setup-mfa");
+            if (destination.startsWith("http")) {
+              window.location.href = destination;
+              return;
+            }
+            void navigate({ to: "/session-tasks/setup-mfa", replace: true });
+            return;
+          }
+          // /auth already runs navigateAfterAuth once isSignedIn flips.
+          const destination = decorateUrl("/auth");
+          if (destination.startsWith("http")) {
+            window.location.href = destination;
+            return;
+          }
+          void navigate({ to: "/auth", replace: true });
+        }}
+        // MFA / missing fields / transfer — /auth already opens the code step and sign-up continue UI.
+        navigateToSignIn={goAuth}
+        navigateToSignUp={goAuth}
+      />
+      <p>Finishing sign-in…</p>
+    </div>
+  );
+}
