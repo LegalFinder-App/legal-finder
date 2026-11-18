@@ -357,50 +357,34 @@ function AuthPage() {
     }
   };
 
-  const google = async () => {
+  // Social sign-in leaves this page via a top-level redirect (Clerk posts a form to the
+  // provider). Keep the spinner only until that navigation starts; if Clerk rejects the
+  // attempt (bad redirect allowlist, CSP, popup block), surface the real error and unlock.
+  const startSocialSignIn = async (
+    strategy: "oauth_google" | "oauth_apple" | "oauth_linkedin_oidc",
+    label: string,
+  ) => {
     setBusy(true);
     try {
+      const origin = window.location.origin;
       const { error } = await signIn.sso({
-        strategy: "oauth_google",
-        redirectUrl: `${window.location.origin}/sso-callback`,
-        redirectCallbackUrl: `${window.location.origin}/auth`,
+        strategy,
+        redirectUrl: `${origin}/sso-callback`,
+        redirectCallbackUrl: `${origin}/auth`,
       });
       if (error) throw error;
+      // Successful SSO hands the browser off; if we're still here after a beat, unlock the UI.
+      window.setTimeout(() => setBusy(false), 8000);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+      const message = err instanceof Error ? err.message : `${label} sign-in failed`;
+      toast.error(message || `${label} sign-in failed`);
       setBusy(false);
     }
   };
 
-  const apple = async () => {
-    setBusy(true);
-    try {
-      const { error } = await signIn.sso({
-        strategy: "oauth_apple",
-        redirectUrl: `${window.location.origin}/sso-callback`,
-        redirectCallbackUrl: `${window.location.origin}/auth`,
-      });
-      if (error) throw error;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Apple sign-in failed");
-      setBusy(false);
-    }
-  };
-
-  const linkedin = async () => {
-    setBusy(true);
-    try {
-      const { error } = await signIn.sso({
-        strategy: "oauth_linkedin_oidc",
-        redirectUrl: `${window.location.origin}/sso-callback`,
-        redirectCallbackUrl: `${window.location.origin}/auth`,
-      });
-      if (error) throw error;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "LinkedIn sign-in failed");
-      setBusy(false);
-    }
-  };
+  const google = () => startSocialSignIn("oauth_google", "Google");
+  const apple = () => startSocialSignIn("oauth_apple", "Apple");
+  const linkedin = () => startSocialSignIn("oauth_linkedin_oidc", "LinkedIn");
 
   const forgot = () => {
     if (!email) return toast.error("Enter your email first");
