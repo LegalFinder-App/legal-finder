@@ -221,7 +221,7 @@ export default function SignUpScreen() {
         size="lg"
         fullWidth
       />
-      <SocialButtons onDone={done} onSecondFactor={() => router.replace("/(auth)/sign-in")} />
+      <SocialButtons onDone={done} onEmailCode={() => router.replace("/(auth)/sign-in")} />
       <View style={{ flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 8 }}>
         <Text variant="small" tone="muted">
           Already have an account?

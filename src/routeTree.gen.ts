@@ -41,7 +41,6 @@ import { Route as LawyersIndexRouteImport } from './routes/lawyers.index'
 import { Route as LawyersLawyerIdRouteImport } from './routes/lawyers.$lawyerId'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
-import { Route as SessionTasksSetupMfaRouteImport } from './routes/session-tasks/setup-mfa'
 import { Route as WantedIdRouteImport } from './routes/wanted.$id'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminApplicationsRouteImport } from './routes/_authenticated/admin/applications'
@@ -240,11 +239,6 @@ const NewsIndexRoute = NewsIndexRouteImport.update({
 const NewsSlugRoute = NewsSlugRouteImport.update({
   id: '/news/$slug',
   path: '/news/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessionTasksSetupMfaRoute = SessionTasksSetupMfaRouteImport.update({
-  id: '/session-tasks/setup-mfa',
-  path: '/session-tasks/setup-mfa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WantedIdRoute = WantedIdRouteImport.update({
@@ -498,7 +492,6 @@ export interface FileRoutesByFullPath {
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
-  '/session-tasks/setup-mfa': typeof SessionTasksSetupMfaRoute
   '/wanted/$id': typeof WantedIdRoute
   '/advice/': typeof AdviceIndexRoute
   '/lawyers/': typeof LawyersIndexRoute
@@ -571,7 +564,6 @@ export interface FileRoutesByTo {
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
-  '/session-tasks/setup-mfa': typeof SessionTasksSetupMfaRoute
   '/wanted/$id': typeof WantedIdRoute
   '/advice': typeof AdviceIndexRoute
   '/lawyers': typeof LawyersIndexRoute
@@ -646,7 +638,6 @@ export interface FileRoutesById {
   '/advice/$slug': typeof AdviceSlugRoute
   '/lawyers/$lawyerId': typeof LawyersLawyerIdRoute
   '/news/$slug': typeof NewsSlugRoute
-  '/session-tasks/setup-mfa': typeof SessionTasksSetupMfaRoute
   '/wanted/$id': typeof WantedIdRoute
   '/advice/': typeof AdviceIndexRoute
   '/lawyers/': typeof LawyersIndexRoute
@@ -722,7 +713,6 @@ export interface FileRouteTypes {
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
-    | '/session-tasks/setup-mfa'
     | '/wanted/$id'
     | '/advice/'
     | '/lawyers/'
@@ -795,7 +785,6 @@ export interface FileRouteTypes {
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
-    | '/session-tasks/setup-mfa'
     | '/wanted/$id'
     | '/advice'
     | '/lawyers'
@@ -869,7 +858,6 @@ export interface FileRouteTypes {
     | '/advice/$slug'
     | '/lawyers/$lawyerId'
     | '/news/$slug'
-    | '/session-tasks/setup-mfa'
     | '/wanted/$id'
     | '/advice/'
     | '/lawyers/'
@@ -936,7 +924,6 @@ export interface RootRouteChildren {
   AdviceSlugRoute: typeof AdviceSlugRoute
   LawyersLawyerIdRoute: typeof LawyersLawyerIdRoute
   NewsSlugRoute: typeof NewsSlugRoute
-  SessionTasksSetupMfaRoute: typeof SessionTasksSetupMfaRoute
   AdviceIndexRoute: typeof AdviceIndexRoute
   LawyersIndexRoute: typeof LawyersIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
@@ -1186,13 +1173,6 @@ declare module '@tanstack/react-router' {
       path: '/news/$slug'
       fullPath: '/news/$slug'
       preLoaderRoute: typeof NewsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/session-tasks/setup-mfa': {
-      id: '/session-tasks/setup-mfa'
-      path: '/session-tasks/setup-mfa'
-      fullPath: '/session-tasks/setup-mfa'
-      preLoaderRoute: typeof SessionTasksSetupMfaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wanted/$id': {
@@ -1604,7 +1584,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdviceSlugRoute: AdviceSlugRoute,
   LawyersLawyerIdRoute: LawyersLawyerIdRoute,
   NewsSlugRoute: NewsSlugRoute,
-  SessionTasksSetupMfaRoute: SessionTasksSetupMfaRoute,
   AdviceIndexRoute: AdviceIndexRoute,
   LawyersIndexRoute: LawyersIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
@@ -1632,13 +1611,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,12 +1,12 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useEffect, useRef, useState } from "react";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AlertHost } from "@/lib/alert";
-import { AuthProvider, useAuth, useClerk } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import { focusManager, onlineManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import NetInfo from "@react-native-community/netinfo";
@@ -83,36 +83,6 @@ function AuthBridge() {
   return null;
 }
 
-/**
- * The production Clerk instance requires MFA: a fresh session stays "pending" on a setup-mfa task
- * and Clerk treats it as signed out until the user enrolls. Route to the enrollment screen
- * whenever that happens, from any entry point (password, social sign-in, app relaunch).
- */
-function SessionTaskRouter() {
-  const clerk = useClerk();
-  const router = useRouter();
-  const segments = useSegments();
-
-  useEffect(() => {
-    const check = () => {
-      const session = clerk.session;
-      const path = segments as string[];
-      const onTaskScreen = path[0] === "(auth)" && path[1] === "setup-mfa";
-      if (
-        session?.status === "pending" &&
-        session.currentTask?.key === "setup-mfa" &&
-        !onTaskScreen
-      ) {
-        router.replace("/(auth)/setup-mfa");
-      }
-    };
-    check();
-    return clerk.addListener(check);
-  }, [clerk, router, segments]);
-
-  return null;
-}
-
 function RootNavigator({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { colors, scheme } = useTheme();
   const wide = useWideLayout();
@@ -139,7 +109,6 @@ function RootNavigator({ fontsLoaded }: { fontsLoaded: boolean }) {
     <>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <AuthBridge />
-      <SessionTaskRouter />
       <BiometricGate>
         <DesktopShell>
           <Stack

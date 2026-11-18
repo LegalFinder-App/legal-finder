@@ -56,7 +56,7 @@ admin approves an application that includes the required documents.
  Windows · macOS ·
  Linux (Electron)
 
- Website and app both use: Supabase (Postgres, RLS, Storage, Realtime) · Clerk (sign-in, MFA)
+ Website and app both use: Supabase (Postgres, RLS, Storage, Realtime) · Clerk (sign-in)
 ```
 
 There are two client codebases and one backend:
@@ -79,7 +79,7 @@ in the database as well as in the UI.
 | Website   | TanStack Start (React 19, TanStack Router and Query), Vite, TypeScript                    |
 | Styling   | Tailwind CSS v4, shadcn/ui, the "Chambers" theme (ink navy and brass) in `src/styles.css` |
 | Data      | Supabase: Postgres with RLS, Storage, Realtime                                            |
-| Auth      | Clerk, with MFA required on production; Google, Apple and LinkedIn sign-in                |
+| Auth      | Clerk (email/password, Google, Apple, LinkedIn)                                           |
 | AI        | Anthropic SDK (`@anthropic-ai/sdk`)                                                       |
 | Payments  | Pesapal (consultation fees), Flutterwave (advocate payouts)                               |
 | Media     | ImageKit                                                                                  |

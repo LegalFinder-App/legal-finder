@@ -65,7 +65,7 @@ export function AuthShell({
               <div className="mx-auto w-full max-w-[26rem]">{children}</div>
             </div>
             <p className="text-center text-xs text-muted-foreground">
-              Protected by two-step verification and row-level security.
+              Secured with encrypted sessions and row-level database access rules.
             </p>
           </section>
 

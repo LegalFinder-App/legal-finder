@@ -40,9 +40,9 @@ export default function ForgotPasswordScreen() {
         password,
       });
       if (submitError) throw submitError;
-      if (signIn.status === "needs_second_factor") {
+      if (signIn.status === "needs_second_factor" || signIn.status === "needs_client_trust") {
         toast.message("Password updated", {
-          description: "Sign in again to finish with your verification code.",
+          description: "Sign in again — we may email you a one-time code to confirm this device.",
         });
         router.replace("/(auth)/sign-in");
         return;

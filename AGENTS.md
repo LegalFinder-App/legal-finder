@@ -83,14 +83,11 @@ store-listing/    what the app stores ask for: listing text, privacy answers, sc
   `loadUserRoles`/`requireRoles` both read the same `userRolesQuery` cache key
   (`["roles", userId]`) — keep it that way so an admin-panel role change invalidates everywhere at
   once (`src/components/app/admin/users-panel.tsx`).
-- **Required MFA / session tasks**: the production Clerk instance requires MFA, so every new
-  session starts `pending` on a `setup-mfa` task, and Clerk treats pending sessions as **signed
-  out** (`useAuth().isSignedIn === false`, server `auth()` unauthenticated). The
-  `/session-tasks/setup-mfa` route (mapped via `ClerkProvider taskUrls` in `__root.tsx`) handles
-  it. If another task type is ever enabled in Clerk (e.g. `reset-password`,
-  `choose-organization`), add a route + `taskUrls` entry for it, or sign-in silently strands users
-  on `/auth` again. App Store / Play reviewers also hit this, so any reviewer demo account needs an
-  MFA answer.
+- **Session tasks**: MFA (authenticator) is disabled in Clerk — do not re-add `taskUrls` /
+  `/session-tasks/setup-mfa` unless MFA is turned back on in the Clerk Dashboard. If another
+  task type is enabled later (e.g. `reset-password`, `choose-organization`), add a route +
+  `ClerkProvider taskUrls` entry for it, or sign-in can strand users on `/auth`. Email OTP for
+  sign-up verification and rare device-trust checks remains on `/auth`.
 - **Mobile API**: `src/routes/api.mobile.*.tsx` authenticate with `authenticateClerkRequest()`
   (`src/integrations/supabase/auth.server.ts`, shared with `requireClerkAuth`) and call the same
   `*.server.ts` logic as the web's server functions. Keep server-only imports out of files the

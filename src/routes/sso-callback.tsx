@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { continueAfterAuth } from "@/lib/after-auth";
+import { continueAfterAuth, hardNavigateTo } from "@/lib/after-auth";
 import { toast } from "@/lib/toast";
 
-// OAuth return URL for `signIn.sso({ redirectCallbackUrl })`. Retries briefly while Clerk
-// hydrates sign-in/sign-up state, completes legal acceptance / transfers, then routes to MFA
-// or the role home — never a silent black spinner.
+// OAuth return for `signIn.sso` / `signUp.sso`. Completes legal acceptance + account transfer,
+// then hard-navigates to the role home so Safari/Chrome both pick up the session cookie.
 export const Route = createFileRoute("/sso-callback")({
   ssr: false,
   head: () => ({
@@ -23,7 +22,6 @@ function SsoCallbackPage() {
   const clerk = useClerk();
   const { signIn, fetchStatus: signInFetch } = useSignIn();
   const { signUp, fetchStatus: signUpFetch } = useSignUp();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const ran = useRef(false);
   const [message, setMessage] = useState("Finishing sign-in…");
@@ -34,16 +32,10 @@ function SsoCallbackPage() {
     ran.current = true;
 
     const goAuth = (mode?: "signup") => {
-      void navigate({
-        to: "/auth",
-        search: mode ? { mode } : undefined,
-        replace: true,
-      });
+      hardNavigateTo(mode === "signup" ? "/auth?mode=signup" : "/auth");
     };
 
     const routeAfterSession = async (session?: {
-      status?: string;
-      currentTask?: { key?: string } | null;
       user?: { id?: string } | null;
     } | null) => {
       const userId = session?.user?.id ?? clerk.session?.user?.id ?? clerk.user?.id;
@@ -52,11 +44,13 @@ function SsoCallbackPage() {
         return;
       }
       try {
+        setMessage("Opening your workspace…");
         await continueAfterAuth({
           queryClient,
           userId,
-          session: session ?? clerk.session,
-          navigate: ({ to }) => navigate({ to, replace: true }),
+          navigate: ({ to }) => {
+            hardNavigateTo(to);
+          },
         });
       } catch (err) {
         toast.error("Signed in, but we couldn't open your workspace", {
@@ -74,7 +68,6 @@ function SsoCallbackPage() {
       if (signIn.isTransferable || signUp.isTransferable) return true;
       if (si === "needs_second_factor" || si === "needs_client_trust") return true;
       if (signIn.existingSession?.sessionId || signUp.existingSession?.sessionId) return true;
-      // Still empty / needs_first_factor with nothing to do — wait for Clerk to hydrate.
       return false;
     };
 
@@ -89,10 +82,9 @@ function SsoCallbackPage() {
           return;
         }
 
-        // Brief retry while OAuth ticket materialises into signIn/signUp status.
-        for (let attempt = 0; attempt < 8 && !statusReady(); attempt++) {
+        for (let attempt = 0; attempt < 10 && !statusReady(); attempt++) {
           setMessage("Connecting your account…");
-          await sleep(200);
+          await sleep(250);
         }
 
         if (signIn.status === "complete") {
@@ -174,8 +166,8 @@ function SsoCallbackPage() {
           return;
         }
 
+        // Device trust / leftover second factor — /auth shows email OTP (no authenticator setup).
         if (signIn.status === "needs_second_factor" || signIn.status === "needs_client_trust") {
-          // /auth opens TOTP / email OTP (no SMS).
           goAuth();
           return;
         }
@@ -199,7 +191,7 @@ function SsoCallbackPage() {
         goAuth();
       }
     })();
-  }, [clerk, navigate, queryClient, signIn, signInFetch, signUp, signUpFetch]);
+  }, [clerk, queryClient, signIn, signInFetch, signUp, signUpFetch]);
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-sky px-6 text-center">

@@ -13,8 +13,8 @@ It talks to the same backend as the website:
 
 - **Supabase** directly for data, with the same queries and RLS policies as the web
   (`src/lib/queries.ts` mirrors `../../src/lib/queries.ts`).
-- **Clerk** for auth — email/password, sign-up with email codes, required MFA (authenticator
-  setup, TOTP/SMS/backup codes), password reset, and Google/Apple/LinkedIn through the system
+- **Clerk** for auth — email/password, sign-up with email codes, password reset, and
+  Google/Apple/LinkedIn through the system
   browser (Google blocks sign-in inside WebViews). Phones use `@clerk/expo`; the desktop build runs
   Clerk in the same token-based mode (`src/lib/auth-provider.web.tsx`).
 - **`/api/mobile/*`** on the web app for anything that needs a server secret or can't run on a

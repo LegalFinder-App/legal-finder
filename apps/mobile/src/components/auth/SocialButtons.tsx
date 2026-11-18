@@ -34,14 +34,14 @@ function GoogleMark() {
 }
 
 /**
- * Google / Apple / LinkedIn (see lib/social-sign-in). Calls onSecondFactor when the account has
- * MFA enrolled — the caller shows the code step.
+ * Google / Apple / LinkedIn (see lib/social-sign-in). Calls onEmailCode when Clerk asks for
+ * device trust / a leftover second factor — the caller shows email OTP.
  */
 export function SocialButtons({
-  onSecondFactor,
+  onEmailCode,
   onDone,
 }: {
-  onSecondFactor: () => void;
+  onEmailCode: () => void;
   onDone: () => void;
 }) {
   const { colors } = useTheme();
@@ -53,7 +53,7 @@ export function SocialButtons({
     try {
       const result = await startSocialSignIn(strategy);
       if (result === "signed-in") onDone();
-      else if (result === "needs-second-factor") onSecondFactor();
+      else if (result === "needs-second-factor") onEmailCode();
       // "cancelled": the user closed the browser — nothing to report.
     } catch (error) {
       toast.error(errorMessage(error, "Sign-in didn't complete"));
