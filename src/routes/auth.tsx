@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
+import { checkClerkSession } from "@/lib/clerk-session.functions";
 import { navigateAfterAuth } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import { delay } from "@/lib/motion";
@@ -122,6 +123,29 @@ function AuthPage() {
   const autoSecondFactorStarted = useRef(false);
   // Bumped on a failed attempt; keys the card so it shakes once.
   const [shake, setShake] = useState(0);
+  // Prevents the isSignedIn effect from double-navigating after we already redirected in-submit.
+  const redirectedRef = useRef(false);
+
+  // Resolve the role home and warm the authenticated session (profile provision + server auth)
+  // in parallel so the dashboard beforeLoad does not pay a cold serverless + Clerk round trip.
+  const goToWorkspace = async (resolvedUserId: string) => {
+    if (redirectedRef.current) return;
+    redirectedRef.current = true;
+    try {
+      const [home] = await Promise.all([
+        navigateAfterAuth(queryClient, resolvedUserId),
+        checkClerkSession().catch(() => null),
+      ]);
+      await navigate({ to: home, replace: true });
+    } catch (err) {
+      redirectedRef.current = false;
+      toast.error("Signed in, but we couldn't load your workspace", {
+        description: err instanceof Error ? err.message : "Please try refreshing the page.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   // useAuth() reports a pending session (one still owing Clerk a task, e.g. MFA enrollment) as
   // signed out, so the redirect effect below never fires for it. Clerk's own listener does see
@@ -129,6 +153,7 @@ function AuthPage() {
   useEffect(() => {
     const forwardPendingTask = (session: typeof clerk.session) => {
       if (session?.status === "pending" && session.currentTask?.key === "setup-mfa") {
+        redirectedRef.current = true;
         navigate({ to: "/session-tasks/setup-mfa", replace: true });
       }
     };
@@ -136,20 +161,14 @@ function AuthPage() {
     return clerk.addListener(({ session }) => forwardPendingTask(session));
   }, [clerk, navigate]);
 
+  // Fallback for OAuth return / already-signed-in visits. Password + MFA paths call
+  // goToWorkspace themselves right after finalize() so they do not wait on this effect.
   useEffect(() => {
-    if (!authLoaded || !isSignedIn || !userId) return;
-    navigateAfterAuth(queryClient, userId)
-      .then((home) => navigate({ to: home, replace: true }))
-      .catch((err) => {
-        toast.error("Signed in, but we couldn't load your workspace", {
-          description: err instanceof Error ? err.message : "Please try refreshing the page.",
-        });
-      })
-      // Whether this lands on a redirect (component unmounts, so this is a no-op) or an error
-      // (user stays on this page), busy must clear either way -- see the note in submit() about
-      // why it isn't cleared any earlier.
-      .finally(() => setBusy(false));
-  }, [authLoaded, isSignedIn, userId, navigate, queryClient]);
+    if (!authLoaded || !isSignedIn || !userId || redirectedRef.current) return;
+    void goToWorkspace(userId);
+    // goToWorkspace closes over the latest queryClient/navigate; userId flip is the trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoaded, isSignedIn, userId]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +202,9 @@ function AuthPage() {
                 ? "Welcome to LegalFinder."
                 : "Next, send your details and documents for review.",
           });
+          // Prefer the active session user; if Clerk hasn't wired isSignedIn yet, the effect falls through.
+          const createdId = clerk.session?.user?.id ?? clerk.user?.id;
+          if (createdId) await goToWorkspace(createdId);
           redirecting = true;
         } else {
           const { error: codeError } = await signUp.verifications.sendEmailCode();
@@ -231,6 +253,8 @@ function AuthPage() {
       const { error: finalizeError } = await signIn.finalize();
       if (finalizeError) throw finalizeError;
       toast.success("Signed in");
+      const signedInId = clerk.session?.user?.id ?? clerk.user?.id;
+      if (signedInId) await goToWorkspace(signedInId);
       return true;
     } else if (signIn.status === "needs_second_factor") {
       await startCodeStep(["totp", "phone_code", "backup_code"]);
@@ -321,9 +345,11 @@ function AuthPage() {
         if (finalizeError) throw finalizeError;
         toast.success("Signed in");
       }
-      // Both branches above only reach here via finalize() succeeding, which hands off to the
-      // isSignedIn redirect effect -- so busy stays on and that effect's finally() clears it,
-      // same reasoning as submit().
+      const signedInId = clerk.session?.user?.id ?? clerk.user?.id;
+      if (signedInId) {
+        await goToWorkspace(signedInId);
+      }
+      // If the session user isn't readable yet, leave busy on — the isSignedIn effect finishes it.
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Verification failed");
       setShake((n) => n + 1);
