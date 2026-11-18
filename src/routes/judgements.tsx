@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,7 +12,7 @@ import {
   Landmark,
   Scale,
 } from "lucide-react";
-import { PublicLayout, PageHeader } from "@/components/site/public-layout";
+import { PublicLayout } from "@/components/site/public-layout";
 import { EmptyState, QueryError } from "@/components/common/bits";
 import { FeedCard, FeedCardSkeleton } from "@/components/common/feed-card";
 import { ListingToolbar, StatStrip } from "@/components/common/listing-toolbar";
@@ -26,7 +26,9 @@ import { CAUSE_LISTS, COURT_LEVELS, type CourtLevel } from "@/lib/legal-feed/cau
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate } from "@/lib/format";
-import { delay } from "@/lib/motion";
+import { delay, trackSpotlight } from "@/lib/motion";
+import { useReveal } from "@/hooks/use-reveal";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/judgements")({
   head: () => ({
@@ -77,35 +79,107 @@ function JudgementsPage() {
 
   return (
     <PublicLayout>
-      <PageHeader
-        eyebrow="Case law"
-        title="Judgments, cause lists and court news"
-        description="Every reported Ugandan judgment on ULII, the Judiciary's daily cause lists for 120 courts, and the latest news from the courts — searchable in one place."
-      >
-        <SearchInput
-          value={q}
-          onChange={setQ}
-          label="Search judgments, courts and court news"
-          placeholder="Search a case, a court or a topic"
-        />
-        <div className="mt-6 max-w-4xl">
-          <StatStrip
-            loading={feed.isLoading}
-            items={[
-              { icon: Gavel, label: "Courts on ULII", value: ULII_COURTS.length },
-              { icon: ClipboardList, label: "Cause lists", value: CAUSE_LISTS.length },
-              { icon: Landmark, label: "Court news", value: courtNews.length },
-              {
-                icon: CalendarDays,
-                label: "Latest court news",
-                value: latestNews
-                  ? formatDate(latestNews, { day: "numeric", month: "short" })
-                  : "—",
-              },
-            ]}
+      <section className="container-page pt-2">
+        <div
+          onPointerMove={trackSpotlight}
+          className="spotlight relative isolate overflow-hidden rounded-[2rem] surface-ink shadow-float dark:ring-1 dark:ring-white/10"
+        >
+          <picture>
+            <source
+              type="image/avif"
+              srcSet="/images/site/lady-justice-320.avif 320w, /images/site/lady-justice-463.avif 463w"
+              sizes="(min-width: 1024px) 40vw, 100vw"
+            />
+            <img
+              src="/images/site/lady-justice-463.webp"
+              srcSet="/images/site/lady-justice-320.webp 320w, /images/site/lady-justice-463.webp 463w"
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              alt=""
+              width={463}
+              height={618}
+              fetchPriority="high"
+              className="absolute inset-y-0 right-0 -z-10 hidden h-full w-auto object-cover opacity-50 lg:block"
+            />
+          </picture>
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[linear-gradient(105deg,oklch(0.16_0.035_262/0.97)_0%,oklch(0.16_0.035_262/0.9)_52%,oklch(0.16_0.035_262/0.55)_100%)]"
           />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
+          <div
+            aria-hidden
+            className="animate-aurora absolute -left-16 top-8 -z-10 h-64 w-64 rounded-full bg-[oklch(0.78_0.115_80/0.16)] blur-[90px]"
+          />
+
+          <div className="grid gap-10 px-5 py-12 sm:px-10 sm:py-14 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-12 lg:px-14 lg:py-16">
+            <div>
+              <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
+                <Gavel className="h-3.5 w-3.5" aria-hidden /> Case law
+              </p>
+              <h1
+                className="animate-rise mt-4 max-w-2xl text-h1 font-bold text-ink-foreground"
+                style={delay(60)}
+              >
+                Judgements, cause lists{" "}
+                <span className="font-serif italic font-medium text-brass">& court news</span>
+              </h1>
+              <p
+                className="animate-rise mt-4 max-w-xl text-lead text-ink-foreground/75"
+                style={delay(120)}
+              >
+                Every reported Ugandan judgment on ULII, the Judiciary&apos;s daily cause lists for{" "}
+                {CAUSE_LISTS.length} courts, and the latest news from the courts — searchable in one
+                place.
+              </p>
+              <div className="animate-rise mt-8 max-w-xl" style={delay(180)}>
+                <SearchInput
+                  value={q}
+                  onChange={setQ}
+                  tone="ink"
+                  label="Search judgments, courts and court news"
+                  placeholder="Search a case, a court or a topic"
+                />
+              </div>
+              <div className="animate-rise mt-5 flex flex-wrap gap-2" style={delay(220)}>
+                <Button asChild variant="brass" className="rounded-full">
+                  <a href="#judgments">
+                    Browse ULII <ArrowRight />
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-full border-ink-foreground/20 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
+                >
+                  <a href="#cause-lists">Cause lists</a>
+                </Button>
+              </div>
+            </div>
+
+            <div className="animate-rise" style={delay(260)}>
+              <StatStrip
+                tone="ink"
+                loading={feed.isLoading}
+                items={[
+                  { icon: Gavel, label: "Courts on ULII", value: ULII_COURTS.length },
+                  { icon: ClipboardList, label: "Cause lists", value: CAUSE_LISTS.length },
+                  { icon: Landmark, label: "Court news", value: courtNews.length },
+                  {
+                    icon: CalendarDays,
+                    label: "Latest court news",
+                    value: latestNews
+                      ? formatDate(latestNews, { day: "numeric", month: "short" })
+                      : "—",
+                  },
+                ]}
+              />
+              <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-foreground/55">
+                Links open ULII and judiciary.go.ug. LegalFinder does not copy their full texts.
+              </p>
+            </div>
+          </div>
         </div>
-      </PageHeader>
+      </section>
 
       <div className="container-page space-y-16 py-10 sm:space-y-20 sm:py-14">
         <Section
@@ -151,14 +225,48 @@ function JudgementsPage() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {courtNews.slice(0, 6).map((item) => (
-                <FeedCard key={item.id} item={item} />
+              {courtNews.slice(0, 6).map((item, i) => (
+                <div key={item.id} className="reveal min-w-0" style={delay(i * 50)}>
+                  <FeedCard item={item} />
+                </div>
               ))}
             </div>
           )}
         </Section>
 
         <CaseSummaries term={term} query={summaries} />
+
+        <aside className="relative isolate overflow-hidden rounded-[2rem] surface-ink p-6 shadow-float sm:p-8 lg:p-10 dark:ring-1 dark:ring-white/10">
+          <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-xl">
+              <p className="eyebrow text-brass">Official sources</p>
+              <h2 className="mt-2 text-h3 font-bold text-ink-foreground">
+                Verify every citation yourself
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-ink-foreground/75 sm:text-base">
+                Summaries on this page are a starting point. Open the judgment on ULII or the cause
+                list on judiciary.go.ug before you rely on it.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="brass" className="rounded-full">
+                <a href="https://ulii.org/en/judgments/" target="_blank" rel="noreferrer">
+                  Open ULII <ArrowUpRight />
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full border-ink-foreground/20 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
+              >
+                <a href={JUDICIARY_LINKS.news} target="_blank" rel="noreferrer">
+                  Judiciary news
+                </a>
+              </Button>
+            </div>
+          </div>
+        </aside>
       </div>
     </PublicLayout>
   );
@@ -176,15 +284,19 @@ function Section({
   eyebrow: string;
   title: string;
   description?: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
 }) {
+  const reveal = useReveal<HTMLElement>();
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <section ref={reveal} id={id} aria-labelledby={`${id}-title`} className="scroll-mt-28">
+      <div className="reveal mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
-          <p className="eyebrow text-brass">{eyebrow}</p>
-          <h2 id={`${id}-title`} className="mt-2 text-h3 font-bold tracking-tight">
+          <p className="eyebrow inline-flex items-center gap-2 text-brass">
+            <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden />
+            {eyebrow}
+          </p>
+          <h2 id={`${id}-title`} className="mt-2 text-h3 font-bold tracking-tight text-balance">
             {title}
           </h2>
           {description && (
@@ -195,7 +307,9 @@ function Section({
         </div>
         {action && <div className="shrink-0">{action}</div>}
       </div>
-      {children}
+      <div className="reveal" style={delay(60)}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -245,12 +359,13 @@ function CauseLists({ term }: { term: string }) {
       ) : (
         <ul className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {shown.map((c, i) => (
-            <li key={c.url} className="animate-rise min-w-0" style={delay(Math.min(i, 12) * 25)}>
+            <li key={c.url} className="reveal min-w-0" style={delay(Math.min(i, 12) * 25)}>
               <a
                 href={c.url}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex h-full min-h-14 items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-[var(--shadow-card-hover)]"
+                onPointerMove={trackSpotlight}
+                className="spotlight group flex h-full min-h-14 items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-[var(--shadow-card-hover)]"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-brass">
                   {c.level === "magistrate" ? (
@@ -260,7 +375,7 @@ function CauseLists({ term }: { term: string }) {
                   )}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold group-hover:text-brass">
+                  <span className="block truncate text-sm font-semibold transition-colors group-hover:text-brass">
                     {c.name}
                   </span>
                   <span className="block text-xs text-muted-foreground">
@@ -382,7 +497,10 @@ function CaseSummaries({
               {pageItems.map((j, index) => (
                 <article
                   key={`${sort}-${j.id}`}
-                  className="animate-rise card relative flex min-w-0 flex-col overflow-hidden p-5 sm:p-6"
+                  onPointerMove={trackSpotlight}
+                  className={cn(
+                    "card-glow spotlight reveal relative flex min-w-0 flex-col overflow-hidden p-5 sm:p-6",
+                  )}
                   style={delay(Math.min(index, 8) * 40)}
                 >
                   <span
@@ -407,7 +525,7 @@ function CaseSummaries({
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-4 text-[1.0625rem] font-bold leading-snug tracking-tight sm:text-lg">
+                  <h3 className="mt-4 text-balance text-[1.0625rem] font-bold leading-snug tracking-tight sm:text-lg">
                     {j.title}
                   </h3>
                   <p className="mt-1.5 break-words font-mono text-xs text-brass">{j.case_number}</p>

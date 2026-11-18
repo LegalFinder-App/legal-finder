@@ -1,18 +1,19 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowRight,
+  ArrowUpRight,
   BookOpenText,
   Clock,
   Gavel,
   Landmark,
   Newspaper,
-  Search,
   Shield,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
-import { PublicLayout, PageHeader } from "@/components/site/public-layout";
+import { PublicLayout } from "@/components/site/public-layout";
 import { EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
 import { ListingToolbar, StatStrip } from "@/components/common/listing-toolbar";
@@ -20,11 +21,14 @@ import { FilterChipGroup } from "@/components/common/filter-chip";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { FeedCard, FeedCardSkeleton } from "@/components/common/feed-card";
 import { UliiJudgmentsPanel } from "@/components/common/ulii-panel";
+import { Button } from "@/components/ui/button";
 import { legalFeedQuery, SOURCE_META } from "@/lib/legal-feed/meta";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { formatDate } from "@/lib/format";
-import { delay } from "@/lib/motion";
+import { delay, trackSpotlight } from "@/lib/motion";
+import { useReveal } from "@/hooks/use-reveal";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/updates")({
   head: () => ({
@@ -69,6 +73,7 @@ function UpdatesPage() {
   const [q, setQ] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [sort, setSort] = useState("newest");
+  const listReveal = useReveal<HTMLDivElement>();
 
   const items = useMemo(() => data ?? [], [data]);
   const lastSync = useMemo(
@@ -109,41 +114,128 @@ function UpdatesPage() {
   const filtered = sort === "oldest" ? [...matching].reverse() : matching;
   const { page, setPage, totalPages, pageItems } = usePaginatedList(filtered, 12);
 
+  const jumpTab = (next: Tab) => {
+    setTab(next);
+    setPage(1);
+    document.getElementById("updates-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <PublicLayout>
-      <PageHeader
-        eyebrow="Legal updates"
-        title="Courts and police, in one feed"
-        description="Headlines from the Judiciary of Uganda and the Uganda Police Force, summarised and linked to the original. Judgments open on ULII, Uganda's free law library."
-      >
-        <SearchInput
-          value={q}
-          onChange={(v) => {
-            setQ(v);
-            setPage(1);
-          }}
-          label="Search legal updates"
-          placeholder="Search headlines, e.g. traffic, Supreme Court, bail"
-        />
-        <div className="mt-6 max-w-4xl">
-          <StatStrip
-            loading={isLoading}
-            items={[
-              { icon: Landmark, label: "From the courts", value: count("judiciary") },
-              { icon: Shield, label: "From the police", value: count("upf") },
-              { icon: ShieldCheck, label: "Safety advisories", value: advisories },
-              {
-                icon: Clock,
-                label: "Last checked",
-                value: lastSync ? formatDate(lastSync, { day: "numeric", month: "short" }) : "—",
-              },
-            ]}
+      <section className="container-page pt-2">
+        <div
+          onPointerMove={trackSpotlight}
+          className="spotlight relative isolate overflow-hidden rounded-[2rem] surface-ink shadow-float dark:ring-1 dark:ring-white/10"
+        >
+          <picture>
+            <source
+              type="image/avif"
+              srcSet="/images/site/justice-480.avif 480w, /images/site/justice-800.avif 800w, /images/site/justice-1200.avif 1200w"
+              sizes="(min-width: 1280px) 1216px, 100vw"
+            />
+            <img
+              src="/images/site/justice-800.webp"
+              srcSet="/images/site/justice-480.webp 480w, /images/site/justice-800.webp 800w, /images/site/justice-1200.webp 1200w"
+              sizes="(min-width: 1280px) 1216px, 100vw"
+              alt=""
+              width={1200}
+              height={800}
+              fetchPriority="high"
+              className="absolute inset-0 -z-10 h-full w-full object-cover opacity-35"
+            />
+          </picture>
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[linear-gradient(115deg,oklch(0.16_0.035_262/0.96)_0%,oklch(0.16_0.035_262/0.84)_55%,oklch(0.16_0.035_262/0.4)_100%)]"
           />
-        </div>
-      </PageHeader>
+          <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
+          <div
+            aria-hidden
+            className="animate-aurora absolute -right-16 bottom-0 -z-10 h-72 w-72 rounded-full bg-[oklch(0.78_0.115_80/0.16)] blur-[90px]"
+          />
 
-      <div className="container-page grid gap-8 py-10 sm:py-12 lg:grid-cols-[1fr_20rem] lg:gap-10">
-        <div className="min-w-0">
+          <div className="grid gap-10 px-5 py-12 sm:px-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-12 lg:px-14 lg:py-16">
+            <div>
+              <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
+                <Newspaper className="h-3.5 w-3.5" aria-hidden /> Legal updates
+              </p>
+              <h1
+                className="animate-rise mt-4 max-w-2xl text-h1 font-bold text-ink-foreground"
+                style={delay(60)}
+              >
+                Courts and police,{" "}
+                <span className="font-serif italic font-medium text-brass">in one feed</span>
+              </h1>
+              <p
+                className="animate-rise mt-4 max-w-xl text-lead text-ink-foreground/75"
+                style={delay(120)}
+              >
+                Headlines from the Judiciary of Uganda and the Uganda Police Force, summarised and
+                linked to the original. Judgments open on ULII, Uganda&apos;s free law library.
+              </p>
+              <div className="animate-rise mt-8 max-w-xl" style={delay(180)}>
+                <SearchInput
+                  value={q}
+                  onChange={(v) => {
+                    setQ(v);
+                    setPage(1);
+                  }}
+                  tone="ink"
+                  label="Search legal updates"
+                  placeholder="Search headlines, e.g. traffic, Supreme Court, bail"
+                />
+              </div>
+              <div className="animate-rise mt-5 flex flex-wrap gap-2" style={delay(220)}>
+                <Button
+                  type="button"
+                  variant="brass"
+                  className="rounded-full"
+                  onClick={() => jumpTab("all")}
+                >
+                  View feed <ArrowRight />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full border-ink-foreground/20 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
+                  onClick={() => jumpTab("judgments")}
+                >
+                  Search ULII
+                </Button>
+              </div>
+            </div>
+
+            <div className="animate-rise" style={delay(260)}>
+              <StatStrip
+                tone="ink"
+                loading={isLoading}
+                items={[
+                  { icon: Landmark, label: "From the courts", value: count("judiciary") },
+                  { icon: Shield, label: "From the police", value: count("upf") },
+                  { icon: ShieldCheck, label: "Safety advisories", value: advisories },
+                  {
+                    icon: Clock,
+                    label: "Last checked",
+                    value: lastSync
+                      ? formatDate(lastSync, { day: "numeric", month: "short" })
+                      : "—",
+                  },
+                ]}
+              />
+              <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-foreground/55">
+                Headlines and short extracts only — always open the original on judiciary.go.ug or
+                upf.go.ug.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div
+        id="updates-feed"
+        className="container-page grid scroll-mt-28 gap-8 py-10 sm:py-12 lg:grid-cols-[1fr_20rem] lg:gap-10"
+      >
+        <div ref={listReveal} className="min-w-0">
           <ListingToolbar
             label="Choose a feed"
             tabs={TABS.map((t) => ({
@@ -190,7 +282,9 @@ function UpdatesPage() {
 
           <div className="mt-6">
             {tab === "judgments" ? (
-              <UliiJudgmentsPanel initialQuery={q} />
+              <div className="reveal">
+                <UliiJudgmentsPanel query={q} onQueryChange={setQ} />
+              </div>
             ) : isLoading ? (
               <div
                 className="grid gap-4 sm:gap-5 xl:grid-cols-2"
@@ -226,7 +320,7 @@ function UpdatesPage() {
                   {pageItems.map((item, i) => (
                     <li
                       key={`${tab}-${sort}-${page}-${item.id}`}
-                      className="animate-rise min-w-0"
+                      className="reveal min-w-0"
                       style={delay(Math.min(i, 6) * 50)}
                     >
                       <FeedCard item={item} />
@@ -245,7 +339,7 @@ function UpdatesPage() {
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start">
-          <section className="card p-5">
+          <section onPointerMove={trackSpotlight} className="card-glow spotlight p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-bold">
               <BookOpenText className="h-4 w-4 text-brass" aria-hidden /> About this feed
             </h2>
@@ -264,7 +358,7 @@ function UpdatesPage() {
                       href={SOURCE_META[s].home}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-semibold hover:text-brass"
+                      className="font-semibold transition-colors hover:text-brass"
                     >
                       {SOURCE_META[s].name}
                     </a>
@@ -288,22 +382,47 @@ function UpdatesPage() {
                 (Kampala time). Checked daily.
               </p>
             )}
+            <div className="mt-4 flex flex-col gap-2">
+              <Button asChild variant="outline" size="sm" className="justify-between rounded-full">
+                <Link to="/judgements">
+                  Judgements hub <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="justify-between rounded-full">
+                <Link to="/news">
+                  Newsroom <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </div>
           </section>
 
-          <section className="card p-5">
-            <h2 className="flex items-center gap-2 text-sm font-bold">
-              <ShieldCheck className="h-4 w-4 text-success" aria-hidden /> Privacy and accuracy
+          <section
+            className={cn(
+              "relative isolate overflow-hidden rounded-[1.25rem] surface-ink p-5 shadow-float sm:p-6 dark:ring-1 dark:ring-white/10",
+            )}
+          >
+            <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
+            <h2 className="flex items-center gap-2 text-sm font-bold text-ink-foreground">
+              <ShieldCheck className="h-4 w-4 text-brass" aria-hidden /> Privacy and accuracy
             </h2>
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-xs leading-relaxed text-ink-foreground/70">
               We show headlines and a short extract only, and always link to the original. Details
               about children and victims of sexual offences are never shown. LegalFinder is
               independent and not affiliated with these institutions.
             </p>
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-3 text-xs leading-relaxed text-ink-foreground/70">
               Spotted a problem? Use{" "}
-              <span className="font-semibold text-foreground">Report a concern</span> on any update
-              and we'll review it promptly.
+              <span className="font-semibold text-ink-foreground">Report a concern</span> on any
+              update and we&apos;ll review it promptly.
             </p>
+            <a
+              href={SOURCE_META.judiciary.home}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brass hover:underline"
+            >
+              judiciary.go.ug <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+            </a>
           </section>
         </aside>
       </div>

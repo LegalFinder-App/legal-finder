@@ -21,7 +21,8 @@ import { SearchInput } from "@/components/common/search-input";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { libraryQuery } from "@/lib/queries";
 import { JUDICIARY_LINKS, ULII_LEGISLATION_URL, uliiSearchUrl } from "@/lib/legal-feed/meta";
-import { delay } from "@/lib/motion";
+import { delay, trackSpotlight } from "@/lib/motion";
+import { useReveal } from "@/hooks/use-reveal";
 import { cn } from "@/lib/utils";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
@@ -78,11 +79,15 @@ function LibraryPage() {
     );
   }, [all, q, category, sort]);
   const { page, setPage, totalPages, pageItems } = usePaginatedList(items, 9);
+  const listReveal = useReveal<HTMLDivElement>();
 
   return (
     <PublicLayout>
       <section className="container-page pt-2">
-        <div className="relative isolate overflow-hidden rounded-[2rem] surface-ink shadow-float dark:ring-1 dark:ring-white/10">
+        <div
+          onPointerMove={trackSpotlight}
+          className="spotlight relative isolate overflow-hidden rounded-[2rem] surface-ink shadow-float dark:ring-1 dark:ring-white/10"
+        >
           <picture>
             <source
               type="image/avif"
@@ -102,39 +107,46 @@ function LibraryPage() {
           </picture>
           <div
             aria-hidden
-            className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,oklch(0.16_0.035_262/0.95)_0%,oklch(0.16_0.035_262/0.78)_50%,oklch(0.16_0.035_262/0.3)_100%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(105deg,oklch(0.16_0.035_262/0.95)_0%,oklch(0.16_0.035_262/0.78)_50%,oklch(0.16_0.035_262/0.3)_100%)]"
           />
           <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
-          <div className="px-5 py-12 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
-            <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
-              <BookOpen className="h-3.5 w-3.5" aria-hidden /> E-library
-            </p>
-            <h1
-              className="animate-rise mt-4 max-w-2xl text-h1 font-bold text-ink-foreground"
-              style={delay(60)}
-            >
-              The texts every case starts from
-            </h1>
-            <p
-              className="animate-rise mt-4 max-w-xl text-lead text-ink-foreground/75"
-              style={delay(120)}
-            >
-              Constitutions, statutes, procedure rules and practice manuals — collected, tagged and
-              free to read.
-            </p>
-            <div className="animate-rise mt-8 max-w-xl" style={delay(180)}>
-              <SearchInput
-                value={q}
-                onChange={(v) => {
-                  setQ(v);
-                  setPage(1);
-                }}
-                tone="ink"
-                label="Search the library"
-                placeholder="Search by title, author or description"
-              />
+          <div
+            aria-hidden
+            className="animate-aurora absolute -right-16 bottom-0 -z-10 h-64 w-64 rounded-full bg-[oklch(0.78_0.115_80/0.16)] blur-[90px]"
+          />
+          <div className="grid gap-10 px-5 py-12 sm:px-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-12 lg:px-14 lg:py-16">
+            <div>
+              <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
+                <BookOpen className="h-3.5 w-3.5" aria-hidden /> E-library
+              </p>
+              <h1
+                className="animate-rise mt-4 max-w-2xl text-h1 font-bold text-ink-foreground"
+                style={delay(60)}
+              >
+                The texts every case{" "}
+                <span className="font-serif italic font-medium text-brass">starts from</span>
+              </h1>
+              <p
+                className="animate-rise mt-4 max-w-xl text-lead text-ink-foreground/75"
+                style={delay(120)}
+              >
+                Constitutions, statutes, procedure rules and practice manuals — collected, tagged
+                and free to read.
+              </p>
+              <div className="animate-rise mt-8 max-w-xl" style={delay(180)}>
+                <SearchInput
+                  value={q}
+                  onChange={(v) => {
+                    setQ(v);
+                    setPage(1);
+                  }}
+                  tone="ink"
+                  label="Search the library"
+                  placeholder="Search by title, author or description"
+                />
+              </div>
             </div>
-            <div className="animate-rise mt-6 max-w-2xl" style={delay(240)}>
+            <div className="animate-rise" style={delay(240)}>
               <StatStrip
                 tone="ink"
                 loading={isLoading}
@@ -148,6 +160,9 @@ function LibraryPage() {
                   },
                 ]}
               />
+              <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-foreground/55">
+                Links open ULII or the Judiciary where the authoritative text lives.
+              </p>
             </div>
           </div>
         </div>
@@ -183,7 +198,7 @@ function LibraryPage() {
           }
         />
 
-        <div className="mt-6">
+        <div ref={listReveal} className="mt-6">
           {isLoading ? (
             <div
               className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-4 sm:gap-5"
@@ -218,7 +233,8 @@ function LibraryPage() {
                   return (
                     <article
                       key={`${category}-${sort}-${i.id}`}
-                      className="animate-rise card group relative flex min-w-0 flex-col overflow-hidden p-5 sm:p-6"
+                      onPointerMove={trackSpotlight}
+                      className="card-glow spotlight reveal group relative flex min-w-0 flex-col overflow-hidden p-5 sm:p-6"
                       style={delay(Math.min(index, 8) * 40)}
                     >
                       <span aria-hidden className={cn("absolute inset-x-0 top-0 h-1", kind.bar)} />
@@ -354,7 +370,8 @@ function OfficialCollections() {
               <a
                 href={c.href}
                 {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
-                className="card card-interactive group relative flex h-full flex-col overflow-hidden p-5 sm:p-6"
+                onPointerMove={trackSpotlight}
+                className="card-glow spotlight group relative flex h-full flex-col overflow-hidden p-5 sm:p-6"
               >
                 <span
                   aria-hidden

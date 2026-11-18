@@ -11,17 +11,19 @@ import {
   UserCheck,
   X,
 } from "lucide-react";
-import { PublicLayout, PageHeader } from "@/components/site/public-layout";
+import { PublicLayout } from "@/components/site/public-layout";
 import { LawyerCard, LawyerCardSkeleton } from "@/components/common/lawyer-card";
 import { EmptyState, QueryError } from "@/components/common/bits";
 import { SearchInput } from "@/components/common/search-input";
 import { FilterChipGroup } from "@/components/common/filter-chip";
+import { StatStrip } from "@/components/common/listing-toolbar";
 import { PaginationBar, usePaginatedList } from "@/components/common/paginated-list";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { publicLawyersQuery, type Lawyer } from "@/lib/queries";
 import { cn } from "@/lib/utils";
-import { delay } from "@/lib/motion";
+import { delay, trackSpotlight } from "@/lib/motion";
+import { useReveal } from "@/hooks/use-reveal";
 import { prefetchForPage } from "@/lib/prefetch";
 import { siteMediaQuery } from "@/lib/site-media";
 import { appSettingsQuery } from "@/lib/app-settings";
@@ -110,16 +112,7 @@ function LawyersPage() {
   const visibleAreas = showAllAreas
     ? areaOptions
     : Array.from(new Set([...areaOptions.slice(0, 8), ...areas]));
-  const stats = [
-    { icon: BadgeCheck, label: "Advocates", value: (data ?? []).length },
-    { icon: Scale, label: "Practice areas", value: areaOptions.length },
-    { icon: MapPinned, label: "Districts", value: countyOptions.length },
-    {
-      icon: UserCheck,
-      label: "Accepting clients",
-      value: (data ?? []).filter((l) => l.accepting_clients).length,
-    },
-  ];
+  const listReveal = useReveal<HTMLDivElement>();
 
   const filterControls: ReactNode = (
     <>
@@ -169,44 +162,101 @@ function LawyersPage() {
 
   return (
     <PublicLayout>
-      <PageHeader
-        eyebrow="Directory"
-        title="Find a verified advocate"
-        description="Every advocate on LegalFinder is checked against the roll before their profile is published."
-      >
-        <SearchInput
-          value={q}
-          onChange={setQ}
-          label="Search advocates"
-          placeholder="Search by name, firm or specialisation"
-        />
-        <ul
-          aria-label="Directory at a glance"
-          className="mt-6 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
+      <section className="container-page pt-2">
+        <div
+          onPointerMove={trackSpotlight}
+          className="spotlight relative isolate overflow-hidden rounded-[2rem] surface-ink shadow-float dark:ring-1 dark:ring-white/10"
         >
-          {stats.map((s) => (
-            <li
-              key={s.label}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card/70 p-3 shadow-xs backdrop-blur"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-brass">
-                <s.icon className="h-4 w-4" aria-hidden />
-              </span>
-              <div className="flex min-w-0 flex-col-reverse">
-                <span className="mt-1 truncate text-[0.7rem] text-muted-foreground">{s.label}</span>
-                <span className="text-lg font-bold leading-none tabular-nums">
-                  {isLoading ? "—" : s.value}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </PageHeader>
+          <picture>
+            <source
+              type="image/avif"
+              srcSet="/images/site/justice-480.avif 480w, /images/site/justice-800.avif 800w, /images/site/justice-1200.avif 1200w"
+              sizes="(min-width: 1280px) 1216px, 100vw"
+            />
+            <img
+              src="/images/site/justice-800.webp"
+              srcSet="/images/site/justice-480.webp 480w, /images/site/justice-800.webp 800w, /images/site/justice-1200.webp 1200w"
+              sizes="(min-width: 1280px) 1216px, 100vw"
+              alt=""
+              width={1200}
+              height={800}
+              fetchPriority="high"
+              className="absolute inset-0 -z-10 h-full w-full object-cover object-[center_25%] opacity-35"
+            />
+          </picture>
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-[linear-gradient(108deg,oklch(0.16_0.035_262/0.96)_0%,oklch(0.16_0.035_262/0.84)_52%,oklch(0.16_0.035_262/0.4)_100%)]"
+          />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-grid opacity-40" />
+          <div
+            aria-hidden
+            className="animate-aurora absolute -right-16 top-0 -z-10 h-72 w-72 rounded-full bg-[oklch(0.78_0.115_80/0.18)] blur-[90px]"
+          />
 
-      <div className="container-page py-10 sm:py-12">
+          <div className="grid gap-10 px-5 py-12 sm:px-10 sm:py-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-12 lg:px-14 lg:py-16">
+            <div>
+              <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
+                <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Directory
+              </p>
+              <h1
+                className="animate-rise mt-4 max-w-2xl text-h1 font-bold text-ink-foreground"
+                style={delay(60)}
+              >
+                Find a{" "}
+                <span className="font-serif italic font-medium text-brass">verified advocate</span>
+              </h1>
+              <p
+                className="animate-rise mt-4 max-w-xl text-lead text-ink-foreground/75"
+                style={delay(120)}
+              >
+                Every advocate on LegalFinder is checked against the roll before their profile is
+                published.
+              </p>
+              <div className="animate-rise mt-8 max-w-xl" style={delay(180)}>
+                <SearchInput
+                  value={q}
+                  onChange={(v) => {
+                    setQ(v);
+                    setPage(1);
+                  }}
+                  tone="ink"
+                  label="Search advocates"
+                  placeholder="Search by name, firm or specialisation"
+                />
+              </div>
+            </div>
+
+            <div className="animate-rise" style={delay(240)}>
+              <StatStrip
+                tone="ink"
+                loading={isLoading}
+                items={[
+                  { icon: BadgeCheck, label: "Advocates", value: (data ?? []).length },
+                  { icon: Scale, label: "Practice areas", value: areaOptions.length },
+                  { icon: MapPinned, label: "Districts", value: countyOptions.length },
+                  {
+                    icon: UserCheck,
+                    label: "Accepting clients",
+                    value: (data ?? []).filter((l) => l.accepting_clients).length,
+                  },
+                ]}
+              />
+              <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-foreground/55">
+                Filter by practice area, district and availability. Book or message from a profile.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="directory" className="container-page scroll-mt-28 py-10 sm:py-12">
         <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
           <aside className="hidden lg:block">
-            <div className="card sticky top-[calc(var(--header-h)+1.5rem)] max-h-[calc(100dvh-var(--header-h)-3rem)] space-y-7 overflow-y-auto p-5 [scrollbar-width:thin]">
+            <div
+              onPointerMove={trackSpotlight}
+              className="card-glow spotlight sticky top-[calc(var(--header-h)+1.5rem)] max-h-[calc(100dvh-var(--header-h)-3rem)] space-y-7 overflow-y-auto p-5 [scrollbar-width:thin]"
+            >
               <div className="flex items-center justify-between gap-2">
                 <p className="flex items-center gap-2 text-sm font-bold">
                   <SlidersHorizontal className="h-4 w-4 text-brass" aria-hidden /> Filters
@@ -225,16 +275,18 @@ function LawyersPage() {
             </div>
           </aside>
 
-          <div className="min-w-0">
+          <div ref={listReveal} className="min-w-0">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <SortControl value={sort} onChange={setSort} />
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 sm:justify-end">
                 <p className="text-sm text-muted-foreground" aria-live="polite">
-                  {isLoading ? "Loading advocates…" : `${results.length} advocates`}
+                  {isLoading
+                    ? "Loading advocates…"
+                    : `${results.length} ${results.length === 1 ? "advocate" : "advocates"}`}
                 </p>
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="lg:hidden">
+                    <Button variant="outline" className="rounded-full lg:hidden">
                       <SlidersHorizontal />
                       Filters
                       {activeFilterCount > 0 && (
@@ -259,11 +311,9 @@ function LawyersPage() {
                 </Sheet>
               </div>
             </div>
+
             {activeFilterCount > 0 && (
-              <div
-                className="-mt-2 mb-6 flex flex-wrap items-center gap-2"
-                aria-label="Active filters"
-              >
+              <div className="mb-6 flex flex-wrap items-center gap-2" aria-label="Active filters">
                 {[
                   ...areas.map((a) => ({
                     key: `a-${a}`,
@@ -337,7 +387,7 @@ function LawyersPage() {
                   {pageItems.map((l, i) => (
                     <div
                       key={`${sort}-${page}-${l.id}`}
-                      className="animate-rise min-w-0"
+                      className="reveal min-w-0"
                       style={delay(Math.min(i, 8) * 60)}
                     >
                       <LawyerCard lawyer={l} />
