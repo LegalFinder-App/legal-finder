@@ -89,9 +89,7 @@ export function CitationCard({
       <p className="mt-2 font-display text-sm font-semibold leading-snug text-foreground group-hover:text-brass">
         {source.title}
       </p>
-      {source.subtitle && (
-        <p className="mt-1 text-xs text-muted-foreground">{source.subtitle}</p>
-      )}
+      {source.subtitle && <p className="mt-1 text-xs text-muted-foreground">{source.subtitle}</p>}
       {!compact && source.summary && (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
           {source.summary}
@@ -138,9 +136,7 @@ export function SourcePreview({
         </SheetHeader>
 
         <div className="mt-6 space-y-4 text-sm">
-          {source.subtitle && (
-            <p className="text-muted-foreground">{source.subtitle}</p>
-          )}
+          {source.subtitle && <p className="text-muted-foreground">{source.subtitle}</p>}
           <dl className="grid gap-3 rounded-2xl border border-border/80 bg-secondary/40 p-4">
             {source.court && (
               <div>

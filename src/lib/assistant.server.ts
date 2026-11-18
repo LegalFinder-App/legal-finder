@@ -153,10 +153,7 @@ async function buildRequest(
     }
     return {
       role: "user" as const,
-      content: [
-        ...attachmentBlocks(attachments),
-        { type: "text" as const, text: message.content },
-      ],
+      content: [...attachmentBlocks(attachments), { type: "text" as const, text: message.content }],
     };
   });
 

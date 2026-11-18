@@ -143,7 +143,10 @@ describe("streamAssistant", () => {
     }
     sdk.stream.mockReturnValue(events());
     const received = await collectStream(question);
-    const deltas = received.filter((e) => e.type === "delta").map((e) => e.text).join("");
+    const deltas = received
+      .filter((e) => e.type === "delta")
+      .map((e) => e.text)
+      .join("");
     expect(deltas).toContain("First,");
     expect(deltas).toMatch(/cut short/);
   });

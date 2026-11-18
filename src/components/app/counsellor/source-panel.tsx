@@ -28,7 +28,9 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
     <aside className="hidden h-full w-[17.5rem] shrink-0 flex-col overflow-y-auto border-l border-border/70 bg-card/40 px-4 py-5 lg:flex xl:w-[20rem]">
       <SectionHeading
         eyebrow={mode === "research" || hasSources ? "Sources" : "Quick lookup"}
-        title={hasSources ? "This answer" : mode === "research" ? "Sources nearby" : "Verified advocates"}
+        title={
+          hasSources ? "This answer" : mode === "research" ? "Sources nearby" : "Verified advocates"
+        }
       />
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
         {hasSources

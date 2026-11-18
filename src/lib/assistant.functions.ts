@@ -13,7 +13,11 @@ const attachmentSchema = z.object({
   url: z.string().url().max(2000),
   name: z.string().min(1).max(200),
   mimeType: z.string().min(3).max(100),
-  size: z.number().int().positive().max(10 * 1024 * 1024),
+  size: z
+    .number()
+    .int()
+    .positive()
+    .max(10 * 1024 * 1024),
 });
 
 // Also used by /api/mobile/assistant to validate the native app's requests identically.
@@ -33,7 +37,10 @@ export const chatRequestSchema = z.object({
 
 export const researchRequestSchema = z.object({
   query: z.string().max(400).default(""),
-  kinds: z.array(z.enum(["advice", "judgment", "library"])).max(3).optional(),
+  kinds: z
+    .array(z.enum(["advice", "judgment", "library"]))
+    .max(3)
+    .optional(),
   court: z.string().max(120).nullable().optional(),
   category: z.string().max(120).nullable().optional(),
   dateFrom: z

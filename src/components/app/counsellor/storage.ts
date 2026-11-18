@@ -62,10 +62,7 @@ export function saveResearchHistory(
 ) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(
-      researchKeyFor(userId),
-      JSON.stringify(entries.slice(0, 30)),
-    );
+    window.localStorage.setItem(researchKeyFor(userId), JSON.stringify(entries.slice(0, 30)));
   } catch {
     // Quota or private mode — history is best-effort.
   }

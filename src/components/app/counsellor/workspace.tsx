@@ -281,9 +281,7 @@ export function CounsellorWorkspace() {
       messages.length === 0
         ? {
             ...active,
-            title: titleFromPrompt(
-              content || pendingAttachments[0]?.name || "Attachment review",
-            ),
+            title: titleFromPrompt(content || pendingAttachments[0]?.name || "Attachment review"),
             updatedAt: userMessage.createdAt,
           }
         : { ...active, updatedAt: userMessage.createdAt };

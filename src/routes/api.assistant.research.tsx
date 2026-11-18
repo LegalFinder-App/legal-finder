@@ -10,9 +10,8 @@ export const Route = createFileRoute("/api/assistant/research")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { UnauthorizedError, authenticateClerkRequest } = await import(
-          "@/integrations/supabase/auth.server"
-        );
+        const { UnauthorizedError, authenticateClerkRequest } =
+          await import("@/integrations/supabase/auth.server");
         const { RateLimitError, enforceRateLimit } = await import("@/lib/rate-limit.server");
         const { searchLegalResearch } = await import("@/lib/assistant-sources.server");
         const { ZodError } = await import("zod");

@@ -118,7 +118,12 @@ export function CounsellorSidebar({
       </div>
 
       <div className="space-y-3 px-3 py-3">
-        <Button type="button" variant="brass" className="w-full justify-start gap-2" onClick={onNew}>
+        <Button
+          type="button"
+          variant="brass"
+          className="w-full justify-start gap-2"
+          onClick={onNew}
+        >
           <MessageSquarePlus className="h-4 w-4" />
           New conversation
         </Button>

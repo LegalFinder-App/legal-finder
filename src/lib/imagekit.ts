@@ -115,9 +115,7 @@ export async function uploadAssistantAttachment(file: File): Promise<{
     throw new Error("PDFs must be 8 MB or smaller.");
   }
 
-  const extension = isPdf
-    ? ".pdf"
-    : extensionFor(file);
+  const extension = isPdf ? ".pdf" : extensionFor(file);
   const auth = await getImageKitUploadAuth({
     data: { extension, purpose: "assistant" },
   });

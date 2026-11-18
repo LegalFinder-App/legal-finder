@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Paperclip, Send, Square } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { uploadAssistantAttachment } from "@/lib/imagekit";
-import {
-  MAX_ATTACHMENTS,
-  type CounsellorAttachment,
-} from "@/lib/assistant-attachments";
+import { MAX_ATTACHMENTS, type CounsellorAttachment } from "@/lib/assistant-attachments";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AttachmentPreviewStrip } from "./media";
@@ -165,10 +162,11 @@ export function MessageComposer({
                 </Button>
               </>
             )}
-            <p id="counsellor-composer-hint" className="text-[11px] leading-snug text-muted-foreground">
-              {dragging
-                ? "Drop files to attach"
-                : "Enter to send · Shift+Enter for a new line"}
+            <p
+              id="counsellor-composer-hint"
+              className="text-[11px] leading-snug text-muted-foreground"
+            >
+              {dragging ? "Drop files to attach" : "Enter to send · Shift+Enter for a new line"}
             </p>
           </div>
           {sending ? (

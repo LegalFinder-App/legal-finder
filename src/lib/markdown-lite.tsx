@@ -65,7 +65,8 @@ function parseBlocks(text: string): ReactNode[] {
   const flushList = (key: string) => {
     if (listBuffer.length === 0) return;
     const ListTag = listKind === "ol" ? "ol" : "ul";
-    const listClass = listKind === "ol" ? "list-decimal space-y-1 pl-5" : "list-disc space-y-1 pl-5";
+    const listClass =
+      listKind === "ol" ? "list-decimal space-y-1 pl-5" : "list-disc space-y-1 pl-5";
     blocks.push(
       <ListTag key={key} className={listClass}>
         {listBuffer.map((item, i) => (
@@ -120,7 +121,10 @@ function parseBlocks(text: string): ReactNode[] {
       flushParagraph(key);
       flushList(key);
       blocks.push(
-        <blockquote key={key} className="border-l-[3px] border-brass/60 pl-3 italic text-muted-foreground">
+        <blockquote
+          key={key}
+          className="border-l-[3px] border-brass/60 pl-3 italic text-muted-foreground"
+        >
           {renderInline(quoteMatch[1], key)}
         </blockquote>,
       );

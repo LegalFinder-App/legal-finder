@@ -67,12 +67,10 @@ const guide: CounsellorSource = {
 
 describe("research filters", () => {
   it("keeps kinds that are selected", () => {
-    expect(
-      matchesFilters(judgment, { ...DEFAULT_RESEARCH_FILTERS, kinds: ["judgment"] }),
-    ).toBe(true);
-    expect(matchesFilters(guide, { ...DEFAULT_RESEARCH_FILTERS, kinds: ["judgment"] })).toBe(
-      false,
+    expect(matchesFilters(judgment, { ...DEFAULT_RESEARCH_FILTERS, kinds: ["judgment"] })).toBe(
+      true,
     );
+    expect(matchesFilters(guide, { ...DEFAULT_RESEARCH_FILTERS, kinds: ["judgment"] })).toBe(false);
   });
 
   it("filters by court and date for judgments", () => {

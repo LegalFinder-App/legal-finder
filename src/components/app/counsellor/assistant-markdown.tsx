@@ -243,7 +243,8 @@ function parseBlocks(text: string, ctx: MarkdownContext): ReactNode[] {
       flushParagraph(key);
       flushList(key);
       const kind = (calloutMatch?.[1] ?? "NOTE").toUpperCase();
-      const body = calloutMatch?.[2] || quoteMatch?.[1].replace(/^(warning|note|important):\s*/i, "");
+      const body =
+        calloutMatch?.[2] || quoteMatch?.[1].replace(/^(warning|note|important):\s*/i, "");
       const isWarning = kind === "WARNING" || /^warning:/i.test(quoteMatch?.[1] ?? "");
       const isLegal = kind === "LEGAL";
       const Icon = isWarning ? AlertTriangle : isLegal ? Scale : Info;

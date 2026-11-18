@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardEvents } from "react-native-keyboard-controller";
@@ -138,7 +131,13 @@ function Counsellor() {
           ref={listRef}
           data={turns}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20, gap: 16, flexGrow: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 20,
+            gap: 16,
+            flexGrow: 1,
+          }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
           ListHeaderComponent={
             <View style={{ gap: 10, marginBottom: 6 }}>
@@ -179,11 +178,7 @@ function Counsellor() {
               </View>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {SHORTCUTS.slice(0, 4).map((s) => (
-                  <Chip
-                    key={s.path}
-                    label={s.label}
-                    onPress={() => router.push(s.href as never)}
-                  />
+                  <Chip key={s.path} label={s.label} onPress={() => router.push(s.href as never)} />
                 ))}
               </View>
             </View>
@@ -258,16 +253,11 @@ function Counsellor() {
                             { borderColor: colors.border, backgroundColor: colors.background },
                           ]}
                         >
-                          <View
-                            style={[
-                              styles.avatar,
-                              { backgroundColor: colors.muted },
-                            ]}
-                          >
+                          <View style={[styles.avatar, { backgroundColor: colors.muted }]}>
                             {photo ? (
                               <Image
                                 source={{ uri: photo }}
-                                style={StyleSheet.absoluteFillObject}
+                                style={StyleSheet.absoluteFill}
                                 contentFit="cover"
                               />
                             ) : (

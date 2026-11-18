@@ -78,9 +78,9 @@ export function CounsellorSettingsDialog({ open, onOpenChange, variant = "settin
             {isHelp ? (
               <>
                 <p>
-                  <span className="font-semibold text-foreground">Everyday</span> — ask plain-language
-                  questions. Counsellor streams an answer with citations when matching LegalFinder
-                  sources exist.
+                  <span className="font-semibold text-foreground">Everyday</span> — ask
+                  plain-language questions. Counsellor streams an answer with citations when
+                  matching LegalFinder sources exist.
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Research</span> — split workspace
@@ -100,8 +100,8 @@ export function CounsellorSettingsDialog({ open, onOpenChange, variant = "settin
             ) : (
               <>
                 <p>
-                  Conversations stay on this device. Clearing site data removes local history.
-                  AI consent can be withdrawn any time under account Settings → Privacy.
+                  Conversations stay on this device. Clearing site data removes local history. AI
+                  consent can be withdrawn any time under account Settings → Privacy.
                 </p>
                 <p className="text-muted-foreground">
                   Answers are general information — not a substitute for a licensed advocate.

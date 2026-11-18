@@ -24,8 +24,7 @@ export type CounsellorSource = {
   caseNumber: string | null;
 };
 
-export const CITE_PATTERN =
-  /\[\[cite:(advice|judgment|library):([a-zA-Z0-9_-]+)\]\]/g;
+export const CITE_PATTERN = /\[\[cite:(advice|judgment|library):([a-zA-Z0-9_-]+)\]\]/g;
 
 export const AUTHORITY_LABEL: Record<SourceAuthority, string> = {
   judgment: "Court judgment",
