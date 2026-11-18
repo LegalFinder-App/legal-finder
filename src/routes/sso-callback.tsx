@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { continueAfterAuth } from "@/lib/after-auth";
 import { toast } from "@/lib/toast";
 
-// OAuth return URL for `signIn.sso({ redirectCallbackUrl })`. Handles transfer to sign-up,
-// legal-acceptance gaps, MFA, and second-factor — HandleSSOCallback alone left new Google
-// accounts hanging on a black screen when status was `missing_requirements`.
+// OAuth return URL for `signIn.sso({ redirectCallbackUrl })`. Retries briefly while Clerk
+// hydrates sign-in/sign-up state, completes legal acceptance / transfers, then routes to MFA
+// or the role home — never a silent black spinner.
 export const Route = createFileRoute("/sso-callback")({
   ssr: false,
   head: () => ({
@@ -15,11 +17,14 @@ export const Route = createFileRoute("/sso-callback")({
   component: SsoCallbackPage,
 });
 
+const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+
 function SsoCallbackPage() {
   const clerk = useClerk();
   const { signIn, fetchStatus: signInFetch } = useSignIn();
   const { signUp, fetchStatus: signUpFetch } = useSignUp();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const ran = useRef(false);
   const [message, setMessage] = useState("Finishing sign-in…");
 
@@ -36,19 +41,41 @@ function SsoCallbackPage() {
       });
     };
 
-    const goMfa = () => {
-      void navigate({ to: "/session-tasks/setup-mfa", replace: true });
-    };
-
-    const afterActivate = (session?: {
+    const routeAfterSession = async (session?: {
       status?: string;
       currentTask?: { key?: string } | null;
+      user?: { id?: string } | null;
     } | null) => {
-      if (session?.status === "pending" && session.currentTask?.key === "setup-mfa") {
-        goMfa();
+      const userId = session?.user?.id ?? clerk.session?.user?.id ?? clerk.user?.id;
+      if (!userId) {
+        goAuth();
         return;
       }
-      goAuth();
+      try {
+        await continueAfterAuth({
+          queryClient,
+          userId,
+          session: session ?? clerk.session,
+          navigate: ({ to }) => navigate({ to, replace: true }),
+        });
+      } catch (err) {
+        toast.error("Signed in, but we couldn't open your workspace", {
+          description: err instanceof Error ? err.message : "Please try again from the sign-in page.",
+        });
+        goAuth();
+      }
+    };
+
+    const statusReady = () => {
+      const si = signIn.status;
+      const su = signUp.status;
+      if (si === "complete" || su === "complete") return true;
+      if (su === "missing_requirements") return true;
+      if (signIn.isTransferable || signUp.isTransferable) return true;
+      if (si === "needs_second_factor" || si === "needs_client_trust") return true;
+      if (signIn.existingSession?.sessionId || signUp.existingSession?.sessionId) return true;
+      // Still empty / needs_first_factor with nothing to do — wait for Clerk to hydrate.
+      return false;
     };
 
     void (async () => {
@@ -62,10 +89,16 @@ function SsoCallbackPage() {
           return;
         }
 
+        // Brief retry while OAuth ticket materialises into signIn/signUp status.
+        for (let attempt = 0; attempt < 8 && !statusReady(); attempt++) {
+          setMessage("Connecting your account…");
+          await sleep(200);
+        }
+
         if (signIn.status === "complete") {
           setMessage("Opening your workspace…");
           await signIn.finalize({
-            navigate: async ({ session }) => afterActivate(session),
+            navigate: async ({ session }) => routeAfterSession(session),
           });
           return;
         }
@@ -73,13 +106,11 @@ function SsoCallbackPage() {
         if (signUp.status === "complete") {
           setMessage("Creating your account…");
           await signUp.finalize({
-            navigate: async ({ session }) => afterActivate(session),
+            navigate: async ({ session }) => routeAfterSession(session),
           });
           return;
         }
 
-        // New social accounts often land here owing legal acceptance (required in production).
-        // Auth UI already states that continuing agrees to terms & privacy.
         if (signUp.status === "missing_requirements") {
           setMessage("Almost done…");
           const missing = new Set<string>(signUp.missingFields ?? []);
@@ -99,11 +130,9 @@ function SsoCallbackPage() {
             const { error } = await signUp.update(patch);
             if (error) throw error;
           }
-          // Re-read after update — TS still thinks the old status, so compare via string.
-          const nextStatus = String(signUp.status);
-          if (nextStatus === "complete") {
+          if (String(signUp.status) === "complete") {
             await signUp.finalize({
-              navigate: async ({ session }) => afterActivate(session),
+              navigate: async ({ session }) => routeAfterSession(session),
             });
             return;
           }
@@ -117,7 +146,7 @@ function SsoCallbackPage() {
           if (error) throw error;
           if (String(signIn.status) === "complete") {
             await signIn.finalize({
-              navigate: async ({ session }) => afterActivate(session),
+              navigate: async ({ session }) => routeAfterSession(session),
             });
             return;
           }
@@ -137,7 +166,7 @@ function SsoCallbackPage() {
           }
           if (next === "complete") {
             await signUp.finalize({
-              navigate: async ({ session }) => afterActivate(session),
+              navigate: async ({ session }) => routeAfterSession(session),
             });
             return;
           }
@@ -146,6 +175,7 @@ function SsoCallbackPage() {
         }
 
         if (signIn.status === "needs_second_factor" || signIn.status === "needs_client_trust") {
+          // /auth opens TOTP / email OTP (no SMS).
           goAuth();
           return;
         }
@@ -155,7 +185,7 @@ function SsoCallbackPage() {
         if (sessionId) {
           await clerk.setActive({
             session: sessionId,
-            navigate: async ({ session }) => afterActivate(session),
+            navigate: async ({ session }) => routeAfterSession(session),
           });
           return;
         }
@@ -169,7 +199,7 @@ function SsoCallbackPage() {
         goAuth();
       }
     })();
-  }, [clerk, navigate, signIn, signInFetch, signUp, signUpFetch]);
+  }, [clerk, navigate, queryClient, signIn, signInFetch, signUp, signUpFetch]);
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-sky px-6 text-center">

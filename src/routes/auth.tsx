@@ -30,8 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
-import { checkClerkSession } from "@/lib/clerk-session.functions";
-import { navigateAfterAuth } from "@/lib/rbac";
+import { continueAfterAuth } from "@/lib/after-auth";
 import { cn } from "@/lib/utils";
 import { delay } from "@/lib/motion";
 
@@ -126,17 +125,17 @@ function AuthPage() {
   // Prevents the isSignedIn effect from double-navigating after we already redirected in-submit.
   const redirectedRef = useRef(false);
 
-  // Resolve the role home and warm the authenticated session (profile provision + server auth)
-  // in parallel so the dashboard beforeLoad does not pay a cold serverless + Clerk round trip.
-  const goToWorkspace = async (resolvedUserId: string) => {
+  // Resolve MFA vs role home via the shared helper (warms checkClerkSession for beforeLoad).
+  const goToWorkspace = async (resolvedUserId: string, session?: typeof clerk.session) => {
     if (redirectedRef.current) return;
     redirectedRef.current = true;
     try {
-      const [home] = await Promise.all([
-        navigateAfterAuth(queryClient, resolvedUserId),
-        checkClerkSession().catch(() => null),
-      ]);
-      await navigate({ to: home, replace: true });
+      await continueAfterAuth({
+        queryClient,
+        userId: resolvedUserId,
+        session: session ?? clerk.session,
+        navigate: ({ to }) => navigate({ to, replace: true }),
+      });
     } catch (err) {
       redirectedRef.current = false;
       toast.error("Signed in, but we couldn't load your workspace", {
@@ -230,7 +229,7 @@ function AuthPage() {
   const availableFactors = (signIn.supportedSecondFactors ?? []).map((f) => f.strategy) as string[];
 
   // Switches the form to the code step using the first strategy in `preference` this account
-  // actually supports, sending the SMS/email first when that strategy needs one.
+  // actually supports. Authenticator/backup first — SMS is unsupported for our users' countries.
   const startCodeStep = async (preference: CodeStrategy[]) => {
     const strategy = preference.find((s) => availableFactors.includes(s)) ?? preference[0];
     if (strategy === "phone_code") {
@@ -254,15 +253,15 @@ function AuthPage() {
       if (finalizeError) throw finalizeError;
       toast.success("Signed in");
       const signedInId = clerk.session?.user?.id ?? clerk.user?.id;
-      if (signedInId) await goToWorkspace(signedInId);
+      if (signedInId) await goToWorkspace(signedInId, clerk.session);
       return true;
     } else if (signIn.status === "needs_second_factor") {
-      await startCodeStep(["totp", "phone_code", "backup_code"]);
+      await startCodeStep(["totp", "backup_code"]);
       return false;
     } else if (signIn.status === "needs_client_trust") {
-      // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — confirm it's
-      // really this user with a one-time code before the session activates.
-      await startCodeStep(["phone_code", "email_code"]);
+      // Clerk's anti-credential-stuffing check on a browser it hasn't seen before — email OTP only
+      // (SMS country support is unavailable for Uganda and many of our users).
+      await startCodeStep(["email_code"]);
       return false;
     } else {
       throw new Error("Additional verification is required for this account.");
@@ -276,7 +275,7 @@ function AuthPage() {
     if (signIn.status !== "needs_second_factor" || autoSecondFactorStarted.current) return;
     autoSecondFactorStarted.current = true;
     setMode("signin");
-    startCodeStep(["totp", "phone_code", "backup_code"]).catch((err) =>
+    startCodeStep(["totp", "backup_code"]).catch((err) =>
       toast.error(err instanceof Error ? err.message : "Couldn't start verification"),
     );
     // startCodeStep is recreated each render; keying on the status is what matters here.
@@ -453,7 +452,7 @@ function AuthPage() {
             </Button>
             <div className="space-y-1 text-center">
               {mode === "signin" &&
-                (["totp", "phone_code", "backup_code"] as CodeStrategy[])
+                (["totp", "backup_code", "email_code"] as CodeStrategy[])
                   .filter((s) => s !== codeStrategy && availableFactors.includes(s))
                   .map((s) => (
                     <button
@@ -471,8 +470,8 @@ function AuthPage() {
                     >
                       {s === "totp"
                         ? "Use your authenticator app instead"
-                        : s === "phone_code"
-                          ? "Text me a code instead"
+                        : s === "email_code"
+                          ? "Email me a code instead"
                           : "Use a backup code instead"}
                     </button>
                   ))}
