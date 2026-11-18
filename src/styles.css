@@ -906,3 +906,90 @@ html [data-sonner-toaster][data-sonner-theme="light"] {
     animation: none !important;
   }
 }
+
+/* Clerk TaskSetupMFA nested inside AuthShell — strip the default white card chrome so the
+   MFA picker reads as LegalFinder auth UI (rounded-2xl option rows, brass accents). */
+.lf-clerk-mfa {
+  width: 100%;
+}
+
+.lf-clerk-mfa .cl-rootBox,
+.lf-clerk-mfa .cl-cardBox,
+.lf-clerk-mfa .cl-card {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.lf-clerk-mfa .cl-header {
+  display: none !important;
+}
+
+.lf-clerk-mfa .cl-footer {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.lf-clerk-mfa .cl-footerPages,
+.lf-clerk-mfa .cl-internal-b3lo55,
+.lf-clerk-mfa a[href*="clerk.com"] {
+  display: none !important;
+}
+
+.lf-clerk-mfa .cl-formButtonPrimary {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-radius: 0.75rem !important;
+  min-height: 3rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.lf-clerk-mfa button.cl-button,
+.lf-clerk-mfa .cl-alternativeMethodsBlockButton,
+.lf-clerk-mfa .cl-socialButtonsBlockButton,
+.lf-clerk-mfa .cl-menuButton,
+.lf-clerk-mfa [data-variant="outline"] {
+  border-radius: 1rem !important;
+  border: 1px solid var(--border) !important;
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  box-shadow: var(--shadow-xs, 0 1px 2px oklch(0 0 0 / 0.04)) !important;
+  min-height: 3.25rem !important;
+  justify-content: flex-start !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: 600 !important;
+}
+
+.lf-clerk-mfa button.cl-button:hover,
+.lf-clerk-mfa .cl-alternativeMethodsBlockButton:hover {
+  border-color: color-mix(in oklab, var(--brass) 55%, var(--border)) !important;
+  background: color-mix(in oklab, var(--accent) 70%, var(--card)) !important;
+}
+
+.lf-clerk-mfa .cl-formFieldInput,
+.lf-clerk-mfa input.cl-input {
+  border-radius: 0.75rem !important;
+  border: 1px solid var(--input) !important;
+  min-height: 3rem !important;
+  background: color-mix(in oklab, var(--background) 60%, transparent) !important;
+}
+
+.lf-clerk-mfa .cl-identityPreview {
+  border-radius: 1rem !important;
+  border: 1px solid var(--border) !important;
+  background: color-mix(in oklab, var(--secondary) 70%, transparent) !important;
+}
+
+.lf-clerk-mfa .cl-identityPreviewEditButton,
+.lf-clerk-mfa .cl-footerActionLink,
+.lf-clerk-mfa a.cl-button {
+  color: var(--brass) !important;
+  font-weight: 600 !important;
+}
