@@ -29,21 +29,35 @@ export async function streamCounsellorReply(
     Accept: "text/event-stream",
   });
 
-  if (!headers.Authorization) {
-    throw new Error("Please sign in again.");
-  }
+  const body = JSON.stringify({
+    messages,
+    mode: handlers.mode ?? "assistant",
+    attachments: handlers.attachments,
+  });
 
-  const response = await fetch("/api/assistant/stream", {
+  // Prefer Bearer (registered from useAuth). If the JWT is still hydrating, still try with
+  // cookies — the server accepts either. Retry once on 401 after refreshing the token.
+  let response = await fetch("/api/assistant/stream", {
     method: "POST",
     credentials: "include",
     headers,
-    body: JSON.stringify({
-      messages,
-      mode: handlers.mode ?? "assistant",
-      attachments: handlers.attachments,
-    }),
+    body,
     signal: handlers.signal,
   });
+
+  if (response.status === 401) {
+    const refreshed = await clerkApiHeaders({
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    });
+    response = await fetch("/api/assistant/stream", {
+      method: "POST",
+      credentials: "include",
+      headers: refreshed,
+      body,
+      signal: handlers.signal,
+    });
+  }
 
   if (!response.ok) {
     let message = "Counsellor AI is unavailable right now.";

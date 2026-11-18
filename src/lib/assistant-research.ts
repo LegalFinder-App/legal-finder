@@ -12,9 +12,6 @@ export async function searchCounsellorResearch(
   signal?: AbortSignal,
 ): Promise<ResearchSearchResult> {
   const headers = await clerkApiHeaders({ "Content-Type": "application/json" });
-  if (!headers.Authorization) {
-    throw new Error("Please sign in again.");
-  }
 
   const response = await fetch("/api/assistant/research", {
     method: "POST",

@@ -20,6 +20,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useHideNativeSplashScreen, useNativeBackButton, useNativeStatusBar } from "@/lib/native";
 import { CounsellorFab } from "@/components/app/counsellor/fab";
+import { registerClerkBrowserTokenGetter } from "@/lib/clerk-browser-token";
 
 function NotFoundComponent() {
   return (
@@ -157,7 +158,14 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+
+  // Bridge Clerk's React getToken to non-React fetch helpers (Counsellor AI, research).
+  useEffect(() => {
+    if (!isLoaded) return;
+    registerClerkBrowserTokenGetter(isSignedIn ? () => getToken() : null);
+    return () => registerClerkBrowserTokenGetter(null);
+  }, [isLoaded, isSignedIn, getToken]);
 
   // Only re-run loaders when Clerk finishes booting — not on every isSignedIn flicker.
   // Invalidating on a brief signed-out blip during refresh was bouncing people to /auth.

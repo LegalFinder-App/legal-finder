@@ -15,7 +15,7 @@ declare global {
       session?: {
         id?: string;
         status?: string;
-        getToken(): Promise<string | null>;
+        getToken(options?: { skipCache?: boolean }): Promise<string | null>;
         user?: { id: string } | null;
       } | null;
     };
