@@ -28,9 +28,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
-import { continueAfterAuth } from "@/lib/after-auth";
+import { continueAfterAuth, isAlreadySignedInError } from "@/lib/after-auth";
 import { cn } from "@/lib/utils";
 import { delay } from "@/lib/motion";
+
+const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 type Mode = "signin" | "signup";
 
@@ -77,8 +79,8 @@ function AuthPage() {
   const navigate = useNavigate();
   const { isLoaded: authLoaded, isSignedIn, userId } = useAuth();
   const clerk = useClerk();
-  const { signIn } = useSignIn();
-  const { signUp } = useSignUp();
+  const { signIn, fetchStatus: signInFetch } = useSignIn();
+  const { signUp, fetchStatus: signUpFetch } = useSignUp();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>(initialMode || "signin");
   const [email, setEmail] = useState("");
@@ -94,33 +96,79 @@ function AuthPage() {
   const [shake, setShake] = useState(0);
   const redirectedRef = useRef(false);
 
+  // Clerk JS + sign-in/up resources ready — disable actions until then (no error toast).
+  const clerkReady =
+    Boolean(authLoaded && clerk.loaded && signIn && signUp) &&
+    signInFetch !== "fetching" &&
+    signUpFetch !== "fetching";
+
+  /** Poll briefly instead of failing with "still loading" when the user taps early. */
+  const waitForClerkReady = async (maxMs = 8_000) => {
+    const deadline = Date.now() + maxMs;
+    while (Date.now() < deadline) {
+      if (
+        authLoaded &&
+        clerk.loaded &&
+        signIn &&
+        signUp &&
+        signInFetch !== "fetching" &&
+        signUpFetch !== "fetching"
+      ) {
+        return true;
+      }
+      await sleep(100);
+    }
+    return false;
+  };
+
   const goToWorkspace = async (resolvedUserId: string) => {
     if (redirectedRef.current) {
       setBusy(false);
       return;
     }
     redirectedRef.current = true;
+    setBusy(true);
     try {
-      // Leave /auth as soon as Clerk client has a user — do not require the server cookie first.
+      // Soft SPA navigate keeps the in-memory Clerk session so the navbar flips to
+      // "Open workspace" and _authenticated can read window.Clerk immediately.
       await continueAfterAuth({
         queryClient,
         userId: resolvedUserId,
         navigate: ({ to }) => navigate({ to, replace: true }),
       });
-    } catch (err) {
-      // Absolute fallback so a signed-in user is never trapped on the auth form.
+    } catch {
+      redirectedRef.current = false;
       try {
         await navigate({ to: "/dashboard", replace: true });
-        return;
       } catch {
-        redirectedRef.current = false;
         toast.error("Signed in, but we couldn't open your workspace", {
-          description: err instanceof Error ? err.message : "Please try refreshing the page.",
+          description: "Tap Open workspace in the header, or refresh the page.",
         });
       }
     } finally {
       setBusy(false);
     }
+  };
+
+  /** If Clerk says the browser already has a session, open the workspace instead of erroring. */
+  const recoverIfAlreadySignedIn = async (err: unknown) => {
+    if (!isAlreadySignedInError(err)) return false;
+    const sessionId = signIn?.existingSession?.sessionId;
+    if (sessionId) {
+      try {
+        await clerk.setActive({ session: sessionId });
+      } catch {
+        // fall through — we may still have clerk.user from the active client
+      }
+    }
+    const id = userId ?? clerk.user?.id ?? clerk.session?.user?.id ?? null;
+    toast.success("You're already signed in");
+    if (id) {
+      await goToWorkspace(id);
+    } else {
+      await navigate({ to: "/dashboard", replace: true });
+    }
+    return true;
   };
 
   useEffect(() => {
@@ -175,6 +223,10 @@ function AuthPage() {
     setBusy(true);
     let redirecting = false;
     try {
+      const ready = clerkReady || (await waitForClerkReady());
+      if (!ready || !signIn || !signUp) {
+        throw new Error("Sign-in took too long to start. Please refresh and try again.");
+      }
       if (mode === "signup") {
         if (!legalAccepted) {
           toast.error("Please agree to the terms and privacy policy to continue.");
@@ -214,6 +266,10 @@ function AuthPage() {
         redirecting = await handleSignInOutcome();
       }
     } catch (err) {
+      if (await recoverIfAlreadySignedIn(err)) {
+        redirecting = true;
+        return;
+      }
       toast.error(err instanceof Error ? err.message : "Something went wrong");
       setShake((n) => n + 1);
     } finally {
@@ -229,6 +285,10 @@ function AuthPage() {
       if (error) throw error;
       redirecting = await handleSignInOutcome();
     } catch (err) {
+      if (await recoverIfAlreadySignedIn(err)) {
+        redirecting = true;
+        return;
+      }
       const message = err instanceof Error ? err.message : "";
       if (!/not allowed|cancel/i.test(message)) {
         toast.error(message || "Passkey sign-in failed");
@@ -291,8 +351,7 @@ function AuthPage() {
     }
   };
 
-  // Relative redirect URLs (Clerk docs) — absolute origins broke Safari allow-lists earlier.
-  // Successful SSO navigates away; unlock the button if the browser stays put.
+  // Relative redirect URLs (Clerk docs). Wait for Clerk instead of toasting "still loading".
   const startSocialSignIn = async (
     strategy: "oauth_google" | "oauth_apple" | "oauth_linkedin_oidc",
     label: string,
@@ -301,12 +360,12 @@ function AuthPage() {
       toast.error("Please agree to the terms and privacy policy to continue.");
       return;
     }
-    if (!clerk.loaded || !signIn || !signUp) {
-      toast.error("Sign-in is still loading — try again in a moment.");
-      return;
-    }
     setBusy(true);
     try {
+      const ready = clerkReady || (await waitForClerkReady());
+      if (!ready || !signIn || !signUp) {
+        throw new Error("Sign-in took too long to start. Please refresh and try again.");
+      }
       const ssoArgs = {
         strategy,
         redirectCallbackUrl: "/sso-callback",
@@ -317,8 +376,10 @@ function AuthPage() {
           ? await signUp.sso({ ...ssoArgs, legalAccepted: true })
           : await signIn.sso(ssoArgs);
       if (error) throw error;
-      window.setTimeout(() => setBusy(false), 10_000);
+      // Browser should navigate to the provider; unlock if we're still here.
+      window.setTimeout(() => setBusy(false), 12_000);
     } catch (err) {
+      if (await recoverIfAlreadySignedIn(err)) return;
       const message = err instanceof Error ? err.message : `${label} sign-in failed`;
       toast.error(message || `${label} sign-in failed`);
       setBusy(false);
@@ -335,20 +396,25 @@ function AuthPage() {
   };
 
   const onCodeStep = verificationCode !== null;
-  const title = onCodeStep
-    ? codeReason === "signup_email"
-      ? "Verify your email"
-      : "Verify this device"
-    : mode === "signin"
-      ? "Welcome back"
-      : "Create your account";
-  const subtitle = onCodeStep
-    ? codeReason === "signup_email"
-      ? `Enter the 6-digit code we sent to ${email}.`
-      : "Enter the code we just emailed you to confirm it's really you."
-    : mode === "signin"
-      ? "Sign in to reach your workspace."
-      : "Free for clients. Professionals are verified before going live.";
+  const openingWorkspace = Boolean(authLoaded && isSignedIn && userId);
+  const title = openingWorkspace
+    ? "Opening your workspace"
+    : onCodeStep
+      ? codeReason === "signup_email"
+        ? "Verify your email"
+        : "Verify this device"
+      : mode === "signin"
+        ? "Welcome back"
+        : "Create your account";
+  const subtitle = openingWorkspace
+    ? "You're signed in — taking you to your account now."
+    : onCodeStep
+      ? codeReason === "signup_email"
+        ? `Enter the 6-digit code we sent to ${email}.`
+        : "Enter the code we just emailed you to confirm it's really you."
+      : mode === "signin"
+        ? "Sign in to reach your workspace."
+        : "Free for clients. Professionals are verified before going live.";
 
   return (
     <AuthShell
@@ -359,6 +425,28 @@ function AuthPage() {
       }
     >
       <div key={shake} className={cn(shake > 0 && "animate-shake")}>
+        {openingWorkspace ? (
+          <div className="mt-8 flex flex-col items-center gap-4 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
+              <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
+            </span>
+            <h1 className="text-h3 font-bold">{title}</h1>
+            <p className="text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+            <Button
+              type="button"
+              size="lg"
+              className="mt-2 h-12 w-full"
+              onClick={() => {
+                if (!userId) return;
+                redirectedRef.current = false;
+                void goToWorkspace(userId);
+              }}
+            >
+              Open workspace now
+            </Button>
+          </div>
+        ) : (
+          <>
         {onCodeStep && (
           <span className="mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
             <MailCheck className="h-6 w-6" aria-hidden />
@@ -413,9 +501,9 @@ function AuthPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-2.5">
-              <SocialButton provider="google" onClick={google} disabled={busy} />
-              <SocialButton provider="apple" onClick={apple} disabled={busy} />
-              <SocialButton provider="linkedin" onClick={linkedin} disabled={busy} />
+              <SocialButton provider="google" onClick={google} disabled={busy || !clerkReady} />
+              <SocialButton provider="apple" onClick={apple} disabled={busy || !clerkReady} />
+              <SocialButton provider="linkedin" onClick={linkedin} disabled={busy || !clerkReady} />
             </div>
 
             <AuthDivider>or continue with email</AuthDivider>
@@ -567,7 +655,7 @@ function AuthPage() {
                 size="lg"
                 className="shine h-12 w-full"
                 loading={busy}
-                disabled={mode === "signup" && !legalAccepted}
+                disabled={!clerkReady || (mode === "signup" && !legalAccepted)}
               >
                 {mode === "signin" ? "Sign in" : "Create account"}
                 {!busy && <ArrowRight aria-hidden />}
@@ -580,7 +668,7 @@ function AuthPage() {
                 variant="outline"
                 size="lg"
                 className="mt-3 h-12 w-full"
-                disabled={busy}
+                disabled={busy || !clerkReady}
                 onClick={() => void signInWithPasskey()}
               >
                 {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Fingerprint />}
@@ -618,6 +706,8 @@ function AuthPage() {
           </Link>
           .
         </p>
+          </>
+        )}
       </div>
     </AuthShell>
   );

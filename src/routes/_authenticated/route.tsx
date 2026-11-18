@@ -10,29 +10,24 @@ import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platfor
 import { checkClerkSession } from "@/lib/clerk-session.functions";
 import { clientClerkUserId } from "@/lib/after-auth";
 
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
 /**
- * Prefer the server cookie (also provisions the profile). If the cookie is still catching up
- * after finalize(), fall back to the browser Clerk session so a signed-in user is not bounced
- * to /auth — client data calls already use window.Clerk.session.getToken().
+ * Prefer the browser Clerk session first (available immediately after finalize). Warm the
+ * server cookie / profile in the background so we never bounce a signed-in user to /auth.
  */
 async function resolveUserId(): Promise<string | null> {
-  for (let attempt = 0; attempt < 4; attempt++) {
-    try {
-      const { userId } = await checkClerkSession();
-      if (userId) return userId;
-    } catch {
-      // first-touch provisioning can flake once
-    }
-    const clientId = clientClerkUserId();
-    if (clientId) {
-      // Keep trying to provision / sync the cookie without blocking entry.
-      void checkClerkSession().catch(() => {});
-      return clientId;
-    }
-    await sleep(150 + attempt * 100);
+  const clientId = clientClerkUserId();
+  if (clientId) {
+    void checkClerkSession().catch(() => {});
+    return clientId;
   }
+
+  try {
+    const { userId } = await checkClerkSession();
+    if (userId) return userId;
+  } catch {
+    // ignore — fall through
+  }
+
   return clientClerkUserId();
 }
 
@@ -54,6 +49,8 @@ function WorkspaceLayout() {
     if (!user?.id) return;
 
     void registerAppServiceWorker();
+    // Ensure profile + role rows exist even when we entered via the client-session fallback.
+    void checkClerkSession().catch(() => {});
 
     const channel = supabase
       .channel(`workspace-live-${user.id}`)

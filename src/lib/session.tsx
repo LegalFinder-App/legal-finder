@@ -31,6 +31,7 @@ export interface SessionState {
   user: SessionUser | null;
   roles: AppRole[];
   primaryRole: AppRole;
+  /** True only while Clerk itself is still booting — not while roles are fetching. */
   loading: boolean;
 }
 
@@ -44,20 +45,22 @@ export function useSession(): SessionState {
   const { isLoaded: authLoaded, userId, isSignedIn } = useAuth();
   const { user: clerkUser } = useUser();
   const rolesQuery = useQuery(userRolesQuery(userId ?? undefined));
-  const roles = rolesQuery.data ?? [];
+  const roles = (rolesQuery.data ?? []) as AppRole[];
 
+  // Prefer Clerk's user object, but userId alone is enough for "signed in" UI (navbar). Waiting
+  // on useUser() or roles used to keep the header stuck on Sign in / Get started after login.
   const user: SessionUser | null =
-    isSignedIn && clerkUser
+    isSignedIn && userId
       ? {
-          id: clerkUser.id,
-          email: clerkUser.primaryEmailAddress?.emailAddress ?? null,
-          fullName: clerkUser.fullName,
+          id: userId,
+          email: clerkUser?.primaryEmailAddress?.emailAddress ?? null,
+          fullName: clerkUser?.fullName ?? null,
         }
       : null;
 
   const primaryRole = primaryRoleFrom(roles);
 
-  return { user, roles, primaryRole, loading: !authLoaded || rolesQuery.isLoading };
+  return { user, roles, primaryRole, loading: !authLoaded };
 }
 
 export function initials(name: string | null | undefined, fallback = "LF") {

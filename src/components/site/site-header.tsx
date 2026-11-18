@@ -32,7 +32,8 @@ export function SiteHeader() {
   const scrolled = useScrolled();
   const { user, primaryRole, loading } = useSession();
   const { canInstall, promptInstall } = usePwaInstall();
-  const signedIn = !loading && !!user;
+  // While Clerk boots, don't flash Sign in for an already-signed-in session.
+  const signedIn = !!user;
 
   return (
     <header
@@ -78,7 +79,7 @@ export function SiteHeader() {
               <Download /> Install
             </Button>
           )}
-          {signedIn ? (
+          {loading ? null : signedIn ? (
             <Button asChild size="sm" className="shine">
               <Link to={ROLE_HOME[primaryRole]}>
                 Open workspace <ArrowRight />
@@ -141,7 +142,7 @@ export function SiteHeader() {
                     <Download /> Install app
                   </Button>
                 )}
-                {signedIn ? (
+                {loading ? null : signedIn ? (
                   <Button asChild size="lg">
                     <Link to={ROLE_HOME[primaryRole]} onClick={() => setOpen(false)}>
                       Open workspace <ArrowRight />

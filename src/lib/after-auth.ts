@@ -16,30 +16,42 @@ export function clientClerkUserId(): string | null {
   return clerk?.user?.id ?? clerk?.session?.user?.id ?? null;
 }
 
-/**
- * Best-effort: warm the server session / profile provision. Do not block the UI on this —
- * client `isSignedIn` is enough to enter the workspace; Supabase uses `getToken()` from the
- * browser SDK, not the cookie gate.
- */
-export async function warmServerSession(maxMs = 2_500): Promise<string | null> {
-  const deadline = Date.now() + maxMs;
-  let delay = 120;
-  while (Date.now() < deadline) {
-    try {
-      const { userId } = await checkClerkSession();
-      if (userId) return userId;
-    } catch {
-      // ignore — cookie / provision may still be catching up
+/** Clerk errors when the browser already has an active session and you try to sign in again. */
+export function isAlreadySignedInError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err ?? "");
+  const code =
+    err && typeof err === "object" && "errors" in err
+      ? JSON.stringify((err as { errors?: unknown }).errors)
+      : "";
+  const haystack = `${message} ${code}`.toLowerCase();
+  return (
+    haystack.includes("already signed in") ||
+    haystack.includes("already logged in") ||
+    haystack.includes("session_exists") ||
+    haystack.includes("identifier_already_signed_in") ||
+    haystack.includes("you're already signed in")
+  );
+}
+
+/** Background-only: provision profile / sync cookie. Never block leaving /auth on this. */
+export function warmServerSessionInBackground() {
+  void (async () => {
+    for (let i = 0; i < 12; i++) {
+      try {
+        const { userId } = await checkClerkSession();
+        if (userId) return;
+      } catch {
+        // keep trying
+      }
+      await sleep(250 + i * 100);
     }
-    await sleep(delay);
-    delay = Math.min(delay + 80, 400);
-  }
-  return null;
+  })();
 }
 
 /**
- * Leave /auth for the role home as soon as we have a user id. Briefly tries to warm the
- * server cookie; navigates either way so a cookie lag cannot trap a signed-in user on /auth.
+ * Soft-navigate to the role home. Soft SPA nav keeps the in-memory Clerk session (navbar +
+ * workspace). Hard-nav was wiping that session when the cookie lagged, which left people
+ * "already signed in" to Clerk but stuck on marketing Sign in buttons.
  */
 export async function continueAfterAuth(opts: {
   queryClient: QueryClient;
@@ -48,28 +60,22 @@ export async function continueAfterAuth(opts: {
 }): Promise<AfterAuthDestination> {
   const { queryClient, userId, navigate } = opts;
 
-  const withTimeout = <T,>(promise: Promise<T>, ms: number, fallback: T) =>
-    Promise.race([
-      promise,
-      new Promise<T>((resolve) => window.setTimeout(() => resolve(fallback), ms)),
-    ]);
+  warmServerSessionInBackground();
+  void queryClient.invalidateQueries({ queryKey: ["roles", userId] });
+  void queryClient.invalidateQueries({ queryKey: ["profile", userId] });
 
-  // Kick provisioning / cookie visibility, but never block leaving /auth on it.
-  const serverUserId = await warmServerSession(2_500);
-  const resolvedId = serverUserId ?? userId;
+  const home = await Promise.race([
+    navigateAfterAuth(queryClient, userId).catch(() => "/dashboard" as AfterAuthDestination),
+    new Promise<AfterAuthDestination>((resolve) =>
+      window.setTimeout(() => resolve("/dashboard"), 800),
+    ),
+  ]);
 
-  const home = await withTimeout(
-    navigateAfterAuth(queryClient, resolvedId).catch(() => "/dashboard" as AfterAuthDestination),
-    6_000,
-    "/dashboard",
-  );
   await navigate({ to: home });
-  // Keep warming in the background so the next full page load sees the cookie.
-  if (!serverUserId) void warmServerSession(8_000);
   return home;
 }
 
-/** Hard navigation — useful after OAuth when a full document load helps some browsers. */
+/** Full document navigation — OAuth callback only, after the provider round-trip. */
 export function hardNavigateTo(path: string) {
   window.location.assign(path);
 }
