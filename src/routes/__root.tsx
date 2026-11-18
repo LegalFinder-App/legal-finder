@@ -159,11 +159,14 @@ function RootComponent() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
 
+  // Only re-run loaders when Clerk finishes booting — not on every isSignedIn flicker.
+  // Invalidating on a brief signed-out blip during refresh was bouncing people to /auth.
   useEffect(() => {
     if (!isLoaded) return;
     router.invalidate();
     if (isSignedIn) queryClient.invalidateQueries();
-  }, [isLoaded, isSignedIn, router, queryClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: isSignedIn alone must not invalidate
+  }, [isLoaded]);
 
   return (
     <ThemeProvider>

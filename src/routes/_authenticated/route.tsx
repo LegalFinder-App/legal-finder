@@ -10,22 +10,50 @@ import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platfor
 import { checkClerkSession } from "@/lib/clerk-session.functions";
 import { clientClerkUserId } from "@/lib/after-auth";
 
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 /**
- * Prefer the browser Clerk session first (available immediately after finalize). Warm the
- * server cookie / profile in the background so we never bounce a signed-in user to /auth.
+ * On a hard refresh, Clerk JS boots a moment after the first beforeLoad. Returning null too
+ * early was bouncing signed-in people to /auth "at random". Wait for Clerk, then the cookie
+ * check, before giving up.
  */
 async function resolveUserId(): Promise<string | null> {
-  const clientId = clientClerkUserId();
-  if (clientId) {
-    void checkClerkSession().catch(() => {});
-    return clientId;
+  if (typeof window !== "undefined") {
+    const deadline = Date.now() + 8_000;
+    while (Date.now() < deadline) {
+      const clerk = window.Clerk;
+      if (clerk && !clerk.loaded) {
+        await clerk.load().catch(() => undefined);
+      }
+      if (clerk?.loaded) {
+        const id = clerk.user?.id ?? clerk.session?.user?.id ?? null;
+        if (id) {
+          void checkClerkSession().catch(() => {});
+          return id;
+        }
+        // Clerk finished loading with no user — fall through to the server cookie check.
+        break;
+      }
+      await sleep(50);
+    }
   }
 
-  try {
-    const { userId } = await checkClerkSession();
-    if (userId) return userId;
-  } catch {
-    // ignore — fall through
+  const immediate = clientClerkUserId();
+  if (immediate) {
+    void checkClerkSession().catch(() => {});
+    return immediate;
+  }
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const { userId } = await checkClerkSession();
+      if (userId) return userId;
+    } catch {
+      // provisioning / transport blip
+    }
+    await sleep(150 + attempt * 100);
+    const again = clientClerkUserId();
+    if (again) return again;
   }
 
   return clientClerkUserId();
@@ -49,7 +77,6 @@ function WorkspaceLayout() {
     if (!user?.id) return;
 
     void registerAppServiceWorker();
-    // Ensure profile + role rows exist even when we entered via the client-session fallback.
     void checkClerkSession().catch(() => {});
 
     const channel = supabase

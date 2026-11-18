@@ -20,13 +20,13 @@ export function WelcomeScreen({ onSend, sending, researchMode = false }: Props) 
         </p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {researchMode
-            ? "Search first. Then ask with the sources open."
-            : "Your questions deserve clearer answers."}
+            ? "Search LegalFinder first. Then ask with the sources open."
+            : "Clear guidance. Grounded in Ugandan law."}
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
           {researchMode
-            ? "Use the research panel to filter judgments, library texts and guides, then ask Counsellor AI about what you find."
-            : "Explore legal information, understand judgments, discover relevant legislation, and find professional legal assistance with Counsellor AI."}
+            ? "Filter judgements, library texts and guides on this platform, then ask Counsellor AI about what you find — answers stay private to your account."
+            : "Ask about process, rights, documents, or finding a verified advocate. Counsellor AI uses LegalFinder’s directory and publications, and keeps your chat private to you."}
         </p>
       </div>
 

@@ -233,13 +233,18 @@ export function AdvocateProfileCard({ advocate }: { advocate: CounsellorAdvocate
             <ShieldCheck className="h-4 w-4 shrink-0 text-brass" aria-label="Verified" />
           )}
         </div>
-        {advocate.headline && (
-          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{advocate.headline}</p>
+        {(advocate.headline || advocate.bio) && (
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+            {advocate.headline || advocate.bio}
+          </p>
         )}
         <p className="mt-1.5 text-[11px] text-muted-foreground">
           {[advocate.city, advocate.county].filter(Boolean).join(", ") || "Uganda"}
           {advocate.practiceAreas.length > 0
             ? ` · ${advocate.practiceAreas.slice(0, 2).join(", ")}`
+            : ""}
+          {advocate.consultationFee != null && advocate.consultationFee > 0
+            ? ` · from UGX ${Math.round(advocate.consultationFee).toLocaleString("en-UG")}`
             : ""}
         </p>
       </div>

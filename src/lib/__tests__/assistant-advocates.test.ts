@@ -7,8 +7,13 @@ describe("shouldSuggestAdvocates", () => {
     expect(shouldSuggestAdvocates("I need a lawyer for employment")).toBe(true);
   });
 
-  it("stays quiet for general legal questions", () => {
-    expect(shouldSuggestAdvocates("What are my rights after an arrest?")).toBe(false);
-    expect(shouldSuggestAdvocates("Explain a tenancy notice")).toBe(false);
+  it("suggests advocates for high-stakes situations even without the word lawyer", () => {
+    expect(shouldSuggestAdvocates("What are my rights after an arrest?")).toBe(true);
+    expect(shouldSuggestAdvocates("Explain a tenancy notice after eviction threats")).toBe(true);
+  });
+
+  it("stays quiet for pure definitions with no representation need", () => {
+    expect(shouldSuggestAdvocates("What is a plaint in civil procedure?")).toBe(false);
+    expect(shouldSuggestAdvocates("Define habeas corpus briefly")).toBe(false);
   });
 });

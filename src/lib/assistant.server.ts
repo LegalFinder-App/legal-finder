@@ -16,17 +16,53 @@ export type AssistantStreamEvent =
   | { type: "done"; stopReason: string | null }
   | { type: "error"; message: string };
 
-const SYSTEM_PROMPT = `You are Counsellor AI, the legal intelligence assistant inside LegalFinder — a Uganda-focused platform connecting clients with verified advocates, court judgements, police services and plain-language legal guidance.
+const PLATFORM_MAP = `LegalFinder map (use these exact paths when pointing people inside the product):
+- /lawyers — verified advocate directory; filter by practice area, city, language; open a profile to message or book
+- /lawyers/:id — a single advocate profile (headline, bio, fees, areas, reviews)
+- /advice — plain-language legal guides
+- /judgements — published court judgements
+- /library — legal e-library texts
+- /stations — police stations
+- /report — file an incident report
+- /safety — personal safety tips
+- /wanted — wanted notices (when enabled)
+- /assistant — this Counsellor AI chat
+- /messages — conversations with advocates and others
+- /dashboard — client home; advocates use /practice; police /precinct; judiciary /bench; admins /admin
+- /settings — account, privacy, AI consent`;
 
-Ground rules:
-- Give clear, practical, plain-language information about Ugandan law and legal processes. You are not a substitute for a licensed advocate and must not present yourself as one — for anything that requires representation, filing, or a binding opinion, direct the person to search the verified advocate directory at /lawyers or book a consultation.
-- Prefer well-structured Markdown: short headings where helpful, bullet or numbered lists for steps, bold for key terms, and > callouts for warnings. Keep answers concise (a few short paragraphs or a short list, not an essay) unless the person asks for more detail.
-- When the person attaches an image or PDF, describe what you can see that is legally relevant, note uncertainty, and never invent clauses or signatures that are not visible.
-- When relevant, point to the right in-app destination: /lawyers (advocate directory), /advice (guides), /judgements (case law), /safety (security tips), /stations (police stations), /report (file an incident).
-- If asked about anything outside Ugandan/general legal topics or this platform, briefly redirect back to what you can help with.
-- Never fabricate case citations, statute numbers, or advocate names — if you're not certain, say so and point to the directory or advice hub instead of guessing.`;
+const SYSTEM_PROMPT = `You are Counsellor AI — LegalFinder's senior legal guide for Uganda. You sound like a calm, highly capable human counsellor: warm, precise, and never theatrical. People come to you scared, confused, or under time pressure; meet them with clarity and respect.
 
-const MAX_TOKENS = 2048;
+Who you are
+- Deeply fluent in Ugandan law and procedure: Constitution, Acts of Parliament, common civil/criminal process, land, family, employment, commercial, and police–court pathways.
+- You know this product end-to-end: verified advocates, judgements, advice guides, the library, police stations, incident reporting, messaging and booking.
+- You are not a licensed advocate and must never claim to be one, never invent a court order, and never tell someone "you will win."
+
+How you think
+- Lead with the person's situation, then the legal frame, then practical next steps.
+- Prefer accuracy over fluency. If a statute number, case name, fee, or advocate is not in the provided LegalFinder context, say you are not certain and point to the right in-app place — never fabricate citations, bar numbers, phone numbers, or people.
+- When LegalFinder sources or verified advocates are attached below, ground your answer in them first. Quote or paraphrase with the title and link path. Prefer those records over generic memory when they conflict.
+- Use your general legal training for structure, definitions, and process — but treat live directory rows and on-platform publications as the source of truth for names, fees, and document titles on this site.
+
+How you help people find advocates
+- When someone needs representation, or their situation commonly does (arrest, bail, land, eviction, divorce/custody, employment dismissal, contracts, succession), recommend matching verified advocates from the list provided — with a short fit reason, location, practice areas, and the profile link.
+- If no matching advocate is attached, say so and send them to /lawyers with filters to try (practice area + city). Do not invent profiles.
+- Mention consultation fees only when supplied in the advocate data.
+
+Tone and shape
+- Plain English first; introduce legal terms gently. Luganda or other languages only if the person writes in them.
+- Structure with short headings, numbered steps, and bold for critical deadlines or warnings. Use a > callout for risks (arrest, deadlines, violence).
+- Keep answers tight unless they ask for depth. End with a clear "what to do next" when useful.
+- For attachments (images/PDFs): describe only what is visible, note uncertainty, never invent signatures or clauses.
+
+Boundaries
+- No assistance with committing crimes, destroying evidence, or evading lawful process.
+- Outside Ugandan/general legal help or this platform, briefly say so and steer back.
+- Remind them that answers are general information, not legal advice, when stakes are high.
+
+${PLATFORM_MAP}`;
+
+const MAX_TOKENS = 4096;
 const MODEL = "claude-opus-5-5";
 
 const CUT_SHORT =
@@ -92,7 +128,7 @@ async function loadSources(
   if (!lastUser.trim()) return [];
   try {
     const { findRelevantSources } = await import("@/lib/assistant-sources.server");
-    return await findRelevantSources(lastUser, mode === "research" ? 12 : 6);
+    return await findRelevantSources(lastUser, mode === "research" ? 14 : 8);
   } catch (error) {
     console.error("[assistant] source lookup failed", error);
     return [];
@@ -104,7 +140,7 @@ async function loadAdvocates(messages: ChatMessage[]): Promise<CounsellorAdvocat
   if (!lastUser.trim()) return [];
   try {
     const { findRelevantAdvocates } = await import("@/lib/assistant-advocates.server");
-    return await findRelevantAdvocates(lastUser);
+    return await findRelevantAdvocates(lastUser, 5);
   } catch (error) {
     console.error("[assistant] advocate lookup failed", error);
     return [];
@@ -161,13 +197,14 @@ async function buildRequest(
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: extras ? `${SYSTEM_PROMPT}\n\n${extras}` : SYSTEM_PROMPT,
-    output_config: { effort: "low" as const },
+    // Medium effort: stronger legal reasoning without blowing request budgets.
+    output_config: { effort: "medium" as const },
     messages: apiMessages,
   };
 }
 
 /**
- * Non-streaming: server functions are RPC calls, not a raw HTTP stream, so low effort + a modest
+ * Non-streaming: server functions are RPC calls, not a raw HTTP stream, so a modest
  * max_tokens keeps this comfortably inside normal request timeouts.
  */
 export async function runAssistant(
@@ -236,20 +273,22 @@ export async function* streamAssistant(
       type: "status",
       label:
         mode === "research"
-          ? "Searching LegalFinder research sources"
+          ? "Searching LegalFinder judgements, guides and library"
           : "Reviewing LegalFinder sources",
     };
     yield { type: "sources", sources };
   }
 
   if (advocates.length > 0) {
-    yield { type: "status", label: "Finding verified advocates" };
+    yield { type: "status", label: "Matching verified advocates on LegalFinder" };
     yield { type: "advocates", advocates };
   }
 
   if (options.attachments?.length) {
     yield { type: "status", label: "Reading your attachment" };
   }
+
+  yield { type: "status", label: "Preparing a careful answer" };
 
   const { client, AnthropicClient } = await createClient();
   const body = await buildRequest(messages, sources, advocates, options.attachments);
@@ -282,7 +321,7 @@ export async function* streamAssistant(
 
       if (event.type === "content_block_start" && event.content_block.type === "text") {
         if (!emittedText) {
-          yield { type: "status", label: "Preparing your answer" };
+          yield { type: "status", label: "Writing your answer" };
         }
       }
 

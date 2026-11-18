@@ -30,33 +30,37 @@ export type CounsellorMode = "assistant" | "research";
 export const PROMPT_CARDS = [
   {
     id: "rights",
-    title: "Understand my legal rights",
-    prompt: "Explain my basic legal rights in Uganda in plain language.",
+    title: "Understand my rights",
+    prompt:
+      "Explain my basic legal rights in Uganda in plain language, and when I should speak to a verified advocate.",
   },
   {
     id: "laws",
-    title: "Find relevant Ugandan laws",
-    prompt: "Which Ugandan laws should I look at for an employment dispute?",
+    title: "Employment dispute",
+    prompt:
+      "I may have been unfairly dismissed in Uganda. What laws and first steps should I know, and can you suggest a matching advocate on LegalFinder?",
   },
   {
     id: "judgments",
-    title: "Explore recent court judgments",
-    prompt: "How do I find and read relevant Ugandan court judgments?",
+    title: "Read a judgement",
+    prompt: "How do I find and read relevant Ugandan court judgements on LegalFinder?",
   },
   {
     id: "advocate",
     title: "Find an advocate",
-    prompt: "How do I find a verified advocate on LegalFinder for a family matter in Kampala?",
+    prompt:
+      "Recommend a verified advocate on LegalFinder for a family matter in Kampala, with a short description of why they fit.",
   },
   {
     id: "document",
-    title: "Explain a legal document",
+    title: "Before I sign",
     prompt: "What should I check carefully in a retainer agreement before I sign?",
   },
   {
-    id: "employment",
-    title: "Research an employment dispute",
-    prompt: "What are the first steps if my employer dismisses me unfairly in Uganda?",
+    id: "arrest",
+    title: "After an arrest",
+    prompt:
+      "What are my rights after an arrest in Uganda, what should I do next, and who on LegalFinder could help?",
   },
 ] as const;
 
