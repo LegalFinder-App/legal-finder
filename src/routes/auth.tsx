@@ -126,14 +126,25 @@ function AuthPage() {
   const redirectedRef = useRef(false);
 
   // Resolve MFA vs role home via the shared helper (warms checkClerkSession for beforeLoad).
+  // Always clear `busy` — including early returns when another path already claimed the redirect
+  // (pending MFA listener), otherwise the Sign in button spins forever on /auth.
   const goToWorkspace = async (resolvedUserId: string, session?: typeof clerk.session) => {
-    if (redirectedRef.current) return;
+    if (redirectedRef.current) {
+      setBusy(false);
+      return;
+    }
     redirectedRef.current = true;
     try {
+      const activeSession = session ?? clerk.session;
+      // Pending MFA: go straight there. Do not wait on Supabase roles (token may not be ready yet).
+      if (activeSession?.status === "pending" && activeSession.currentTask?.key === "setup-mfa") {
+        await navigate({ to: "/session-tasks/setup-mfa", replace: true });
+        return;
+      }
       await continueAfterAuth({
         queryClient,
         userId: resolvedUserId,
-        session: session ?? clerk.session,
+        session: activeSession,
         navigate: ({ to }) => navigate({ to, replace: true }),
       });
     } catch (err) {
@@ -152,8 +163,10 @@ function AuthPage() {
   useEffect(() => {
     const forwardPendingTask = (session: typeof clerk.session) => {
       if (session?.status === "pending" && session.currentTask?.key === "setup-mfa") {
+        if (redirectedRef.current) return;
         redirectedRef.current = true;
-        navigate({ to: "/session-tasks/setup-mfa", replace: true });
+        setBusy(false);
+        void navigate({ to: "/session-tasks/setup-mfa", replace: true });
       }
     };
     forwardPendingTask(clerk.session);
@@ -172,12 +185,8 @@ function AuthPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    // Reaching Clerk's "complete" status below hands off to the isSignedIn effect above, which
-    // still has its own Supabase round trip (role lookup) before the redirect actually happens.
-    // Clearing busy here rather than leaving it to that effect made the button/spinner stop
-    // *before* anything visible had happened yet, reading as a stall -- so on that path we
-    // deliberately leave busy on and let the effect's own finally() above clear it once the
-    // redirect (or a failure) actually occurs.
+    // Reaching Clerk's "complete" status below hands off to goToWorkspace, which clears busy
+    // in its finally. Other paths must clear busy in this finally when not redirecting.
     let redirecting = false;
     try {
       if (mode === "signup") {
@@ -348,7 +357,11 @@ function AuthPage() {
       if (signedInId) {
         await goToWorkspace(signedInId);
       }
-      // If the session user isn't readable yet, leave busy on — the isSignedIn effect finishes it.
+      // If the session user isn't readable yet, the isSignedIn effect finishes routing; unlock UI
+      // after a short beat so the button never spins forever on this page.
+      if (!signedInId) {
+        window.setTimeout(() => setBusy(false), 4000);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Verification failed");
       setShake((n) => n + 1);

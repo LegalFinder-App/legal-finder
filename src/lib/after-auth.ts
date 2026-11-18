@@ -33,8 +33,18 @@ export async function continueAfterAuth(opts: {
     return;
   }
 
-  const homePromise = navigateAfterAuth(queryClient, userId);
-  const warmPromise = warmSession ? checkClerkSession().catch(() => null) : Promise.resolve(null);
+  // Roles + session warm can stall if the Clerk token isn't ready yet — fail fast to /dashboard
+  // rather than leave the auth button spinning forever.
+  const withTimeout = <T,>(promise: Promise<T>, ms: number, fallback: T) =>
+    Promise.race([
+      promise,
+      new Promise<T>((resolve) => window.setTimeout(() => resolve(fallback), ms)),
+    ]);
+
+  const homePromise = withTimeout(navigateAfterAuth(queryClient, userId), 12_000, "/dashboard");
+  const warmPromise = warmSession
+    ? withTimeout(checkClerkSession().catch(() => null), 8_000, null)
+    : Promise.resolve(null);
   const [home] = await Promise.all([homePromise, warmPromise]);
   await navigate({ to: home });
 }
