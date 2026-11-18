@@ -45,6 +45,8 @@ function SsoCallbackPage() {
       }
       try {
         setMessage("Opening your workspace…");
+        // Soft-nav after the server confirms the cookie (continueAfterAuth waits). Hard-nav only
+        // as a fallback if the SPA navigate somehow leaves us on this page.
         await continueAfterAuth({
           queryClient,
           userId,

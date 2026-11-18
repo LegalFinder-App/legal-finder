@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
-import { continueAfterAuth, hardNavigateTo } from "@/lib/after-auth";
+import { continueAfterAuth } from "@/lib/after-auth";
 import { cn } from "@/lib/utils";
 import { delay } from "@/lib/motion";
 
@@ -101,18 +101,16 @@ function AuthPage() {
     }
     redirectedRef.current = true;
     try {
+      // Wait until the server sees the Clerk cookie, then soft-navigate. Hard-nav was racing the
+      // cookie and bouncing brand-new accounts straight back to /auth after the success toast.
       await continueAfterAuth({
         queryClient,
         userId: resolvedUserId,
-        navigate: ({ to }) => {
-          // Hard nav after auth so every browser applies the Clerk session cookie before the
-          // authenticated routes run (soft SPA nav is flaky after OAuth on Safari).
-          hardNavigateTo(to);
-        },
+        navigate: ({ to }) => navigate({ to, replace: true }),
       });
     } catch (err) {
       redirectedRef.current = false;
-      toast.error("Signed in, but we couldn't load your workspace", {
+      toast.error("Signed in, but we couldn't open your workspace", {
         description: err instanceof Error ? err.message : "Please try refreshing the page.",
       });
     } finally {
@@ -270,7 +268,12 @@ function AuthPage() {
         if (finalizeError) throw finalizeError;
         toast.success("Signed in");
       }
-      const signedInId = clerk.session?.user?.id ?? clerk.user?.id;
+      // Prefer the just-activated session; fall back to waiting briefly for Clerk to hydrate.
+      let signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? null;
+      for (let i = 0; !signedInId && i < 20; i++) {
+        await new Promise((r) => window.setTimeout(r, 100));
+        signedInId = clerk.session?.user?.id ?? clerk.user?.id ?? null;
+      }
       if (signedInId) {
         await goToWorkspace(signedInId);
       } else {

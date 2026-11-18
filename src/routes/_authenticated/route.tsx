@@ -9,10 +9,26 @@ import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
 
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** Fresh sign-up/sign-in can race the Clerk cookie by a few hundred ms — retry before bouncing. */
+async function requireUserId(): Promise<string | null> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      const { userId } = await checkClerkSession();
+      if (userId) return userId;
+    } catch {
+      // keep retrying — first-touch provisioning can flake once
+    }
+    await sleep(200 + attempt * 150);
+  }
+  return null;
+}
+
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { userId } = await checkClerkSession();
+    const userId = await requireUserId();
     if (!userId) throw redirect({ to: "/auth" });
     return { user: { id: userId } };
   },
