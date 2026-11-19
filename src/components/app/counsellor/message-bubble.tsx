@@ -5,6 +5,7 @@ import { resolveSourcesFromText, type CounsellorSource } from "@/lib/assistant-s
 import { cn } from "@/lib/utils";
 import { AssistantMarkdown } from "./assistant-markdown";
 import { CitationCard, SourcePreview } from "./citation";
+import { GroundingPill } from "./grounding-pill";
 import { AdvocateCardRow, ImageLightbox, MessageAttachments } from "./media";
 import type { ChatMessage } from "./types";
 
@@ -87,10 +88,17 @@ export function MessageBubble({
           )}
         >
           {!isUser && (
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brass">
-                Counsellor AI
-              </p>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brass">
+                  Counsellor AI
+                </p>
+                {(message.sources?.length ?? 0) > 0 ? (
+                  <GroundingPill grounded />
+                ) : !streaming ? (
+                  <GroundingPill grounded={false} />
+                ) : null}
+              </div>
               {streaming && (
                 <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                   Writing

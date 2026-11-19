@@ -587,7 +587,12 @@ export function CounsellorWorkspace() {
       </section>
 
       {mode !== "research" && (
-        <SourcePanel mode={mode} sources={activeSources} onOpenSource={setPanelSource} />
+        <SourcePanel
+          mode={mode}
+          sources={activeSources}
+          onOpenSource={setPanelSource}
+          retrieving={sending && activeSources.length === 0}
+        />
       )}
 
       {mode === "research" && isNarrow && (

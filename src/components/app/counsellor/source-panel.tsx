@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Gavel, Newspaper, ShieldCheck, Users } from "lucide-react";
 import { EmptyState, SectionHeading } from "@/components/common/bits";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CounsellorMark } from "@/components/brand/counsellor-mark";
 import type { CounsellorSource } from "@/lib/assistant-sources";
 import { adviceListQuery, judgementsQuery, publicLawyersQuery } from "@/lib/queries";
 import { CitationCard } from "./citation";
@@ -12,13 +13,14 @@ type Props = {
   mode: CounsellorMode;
   sources: CounsellorSource[];
   onOpenSource: (source: CounsellorSource) => void;
+  retrieving?: boolean;
 };
 
 /**
  * Right rail: when the active turn has retrieved sources, lead with those citation cards;
  * otherwise keep the verified-advocate / advice / judgment shortcuts.
  */
-export function SourcePanel({ mode, sources, onOpenSource }: Props) {
+export function SourcePanel({ mode, sources, onOpenSource, retrieving = false }: Props) {
   const lawyers = useQuery(publicLawyersQuery());
   const advice = useQuery(adviceListQuery);
   const judgements = useQuery(judgementsQuery);
@@ -40,19 +42,42 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
             : "Counsellor can point you here when you need representation."}
       </p>
 
-      {hasSources ? (
+      {retrieving && !hasSources ? (
+        <div className="mt-5 space-y-2.5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="counsellor-shimmer h-[4.5rem] rounded-2xl border border-border/60 bg-secondary/40"
+              style={{ animationDelay: `${i * 70}ms` }}
+            />
+          ))}
+        </div>
+      ) : hasSources ? (
         <div className="mt-5 space-y-2.5">
           {sources.map((source, index) => (
-            <CitationCard
+            <div
               key={`${source.kind}-${source.id}`}
-              source={source}
-              index={index + 1}
-              onOpen={onOpenSource}
-              compact
-            />
+              className="counsellor-rail-item"
+              style={{ animationDelay: `${index * 45}ms` }}
+            >
+              <CitationCard
+                source={source}
+                index={index + 1}
+                onOpen={onOpenSource}
+                compact
+              />
+            </div>
           ))}
           <p className="pt-1 text-[11px] leading-relaxed text-muted-foreground">
             Open a card to verify against the original. Editorial guides are not official law.
+          </p>
+        </div>
+      ) : mode === "research" ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-border/80 bg-card/50 px-4 py-8 text-center">
+          <CounsellorMark className="mx-auto h-8 w-8 text-brass" title="Counsellor AI" />
+          <p className="mt-3 text-sm font-medium text-foreground">No sources yet</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Run a research search or ask a question to fill this rail.
           </p>
         </div>
       ) : (
@@ -64,12 +89,13 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
           ) : (lawyers.data ?? []).length === 0 ? (
             <EmptyState title="No advocates listed yet" />
           ) : (
-            (lawyers.data ?? []).slice(0, 3).map((lawyer) => (
+            (lawyers.data ?? []).slice(0, 3).map((lawyer, index) => (
               <Link
                 key={lawyer.id}
                 to="/lawyers/$lawyerId"
                 params={{ lawyerId: lawyer.id }}
-                className="block rounded-2xl border border-border/80 bg-card/80 p-3.5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-md"
+                style={{ animationDelay: `${index * 40}ms` }}
+                className="counsellor-rail-item block rounded-2xl border border-border/80 bg-card/80 p-3.5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>

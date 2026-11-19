@@ -57,3 +57,4 @@ Authority labels match Counsellor citations: `judgment` | `legislation` | `edito
 - **Phase 3** — Section-aware statute chunking; `ug-*` stay link-only until hostable PDFs (`PHASE3_CORE_PACK.md`).
 - **Phase 4** — Senior-counsel prompt, FTS-first research, creator credit, UI polish (`PHASE4_SENIOR_COUNSEL.md`).
 - **Phase 5** — Rate-limited index, citation trust chrome, honest marketing (`PHASE5_OPS_TRUST.md`).
+- **Phase 6** — Silicon Valley Counsellor UI craft (`PHASE6_COUNSELLOR_UI.md`).

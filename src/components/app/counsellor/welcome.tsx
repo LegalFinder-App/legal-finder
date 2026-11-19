@@ -31,7 +31,7 @@ export function WelcomeScreen({ onSend, sending, researchMode = false }: Props) 
         <p className="eyebrow mt-5 text-brass">
           {researchMode ? "Legal Research" : "Counsellor AI"}
         </p>
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="mt-2 text-balance font-display text-[1.85rem] font-semibold tracking-tight text-foreground sm:text-4xl">
           {researchMode
             ? "Search the corpus first. Ask with the sources open."
             : "Clear guidance. Grounded in Ugandan law."}

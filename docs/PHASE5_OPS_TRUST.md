@@ -26,9 +26,11 @@ Shared Postgres counter when `consume_rate_limit` is available; in-memory fallba
 
 ## SQL
 
-Apply after Phase 1–2 FTS:
+Apply after Phase 1–2 FTS. Postgres cannot widen a function’s return row type with
+`CREATE OR REPLACE` — if Dashboard returns `42P13`, run the drop follow-up:
 
-`supabase/migrations/20261119230000_legal_chunks_search_verified.sql`
+1. Prefer: `supabase/migrations/20261119230100_legal_chunks_search_verified_drop.sql`
+2. Or the fixed `20261119230000_…` (now includes `DROP FUNCTION` for fresh installs)
 
 Extends `search_legal_chunks` with `published_at` / `updated_at` for UI dates.
 

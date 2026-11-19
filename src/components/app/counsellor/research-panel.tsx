@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   ChevronRight,
@@ -79,6 +79,7 @@ export function ResearchPanel({
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<"results" | "preview">("results");
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (seededSources.length > 0) {
@@ -86,6 +87,41 @@ export function ResearchPanel({
       if (seededQuery) setQuery(seededQuery);
     }
   }, [seededSources, seededQuery]);
+
+  useEffect(() => {
+    if (!open || sources.length === 0) return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) {
+        return;
+      }
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp" && event.key !== "Enter") return;
+      event.preventDefault();
+      const keys = sources.map((s) => `${s.kind}:${s.id}`);
+      const current = selectedId && keys.includes(selectedId) ? keys.indexOf(selectedId) : 0;
+      if (event.key === "Enter") {
+        const pick = sources[current];
+        if (pick) {
+          setSelectedId(`${pick.kind}:${pick.id}`);
+          if (isSheet) setMobilePane("preview");
+          onOpenSource(pick);
+        }
+        return;
+      }
+      const next =
+        event.key === "ArrowDown"
+          ? Math.min(keys.length - 1, current + 1)
+          : Math.max(0, current - 1);
+      setSelectedId(keys[next] ?? null);
+      if (isSheet) setMobilePane("results");
+      const button = resultsRef.current?.querySelectorAll<HTMLButtonElement>("[data-research-result]")[
+        next
+      ];
+      button?.scrollIntoView({ block: "nearest" });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, sources, selectedId, isSheet, onOpenSource]);
 
   const runSearch = async (nextQuery = query, nextFilters = filters, recordHistory = true) => {
     setLoading(true);
@@ -173,11 +209,29 @@ export function ResearchPanel({
           <p className="mt-1 text-xs text-muted-foreground">
             Try broader keywords or clear the date and court filters.
           </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+            {["bail after arrest", "unfair dismissal", "land succession"].map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className="rounded-full border border-border/80 bg-background px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-brass/40 hover:text-foreground"
+                onClick={() => {
+                  setQuery(suggestion);
+                  void runSearch(suggestion, filters);
+                }}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div ref={resultsRef} className="space-y-2" role="listbox" aria-label="Research results">
           <p className="px-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             {sources.length} result{sources.length === 1 ? "" : "s"}
+            <span className="ml-1.5 font-normal normal-case tracking-normal">
+              · ↑↓ Enter
+            </span>
           </p>
           {sources.map((source, index) => {
             const key = `${source.kind}:${source.id}`;
@@ -186,16 +240,20 @@ export function ResearchPanel({
               <button
                 key={key}
                 type="button"
+                data-research-result
+                role="option"
+                aria-selected={active}
                 onClick={() => {
                   setSelectedId(key);
                   if (isSheet) setMobilePane("preview");
                 }}
                 className={cn(
-                  "w-full rounded-xl border p-3 text-left transition-colors",
+                  "counsellor-rail-item w-full rounded-xl border p-3 text-left transition-colors",
                   active
                     ? "border-brass/40 bg-brass/10"
                     : "border-border/70 bg-card/80 hover:border-brass/30",
                 )}
+                style={{ animationDelay: `${index * 35}ms` }}
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brass">

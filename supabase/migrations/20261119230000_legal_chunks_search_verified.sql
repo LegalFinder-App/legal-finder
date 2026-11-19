@@ -1,5 +1,9 @@
 -- Phase 5: expose publish/index timestamps from FTS so Counsellor can show “source date”
 -- and “last indexed” on citation cards. No scrape; metadata only.
+-- Return row type changed vs 20261119210000 — must DROP before recreate (CREATE OR REPLACE
+-- cannot widen OUT columns). Live DBs that hit 42P13: run 20261119230100_… instead.
+
+DROP FUNCTION IF EXISTS public.search_legal_chunks(text, integer, text[], text, text);
 
 CREATE OR REPLACE FUNCTION public.search_legal_chunks(
   query_text text,

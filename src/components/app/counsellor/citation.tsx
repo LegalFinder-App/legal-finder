@@ -8,6 +8,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import {
   Sheet,
   SheetContent,
@@ -68,18 +69,50 @@ export function CitationInline({
   index: number;
   onOpen: (source: CounsellorSource) => void;
 }) {
+  const sourceDate = source.decidedOn ?? source.publishedAt ?? null;
+
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(source)}
-      className="counsellor-cite-chip mx-0.5 inline-flex translate-y-[-1px] items-center gap-1 rounded-md border border-brass/30 bg-brass/10 px-1.5 py-0.5 align-baseline text-[11px] font-semibold text-brass shadow-[inset_0_1px_0_oklch(1_0_0/0.25)] transition-[background-color,box-shadow,transform] hover:bg-brass/20 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40 active:scale-[0.98]"
-      aria-label={`Open source ${index}: ${source.title}`}
-    >
-      <span aria-hidden>[{index}]</span>
-      <span className="max-w-[min(9rem,40vw)] truncate font-medium sm:max-w-[12rem]">
-        {source.title}
-      </span>
-    </button>
+    <HoverCard openDelay={140} closeDelay={90}>
+      <HoverCardTrigger asChild>
+        <button
+          type="button"
+          onClick={() => onOpen(source)}
+          className="counsellor-cite-chip counsellor-cite-pop mx-0.5 inline-flex translate-y-[-1px] items-center gap-1 rounded-md border border-brass/30 bg-brass/10 px-1.5 py-0.5 align-baseline text-[11px] font-semibold text-brass shadow-[inset_0_1px_0_oklch(1_0_0/0.25)] transition-[background-color,box-shadow,transform] hover:bg-brass/20 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40 active:scale-[0.98]"
+          aria-label={`Open source ${index}: ${source.title}`}
+        >
+          <span aria-hidden>[{index}]</span>
+          <span className="max-w-[min(9rem,40vw)] truncate font-medium sm:max-w-[12rem]">
+            {source.title}
+          </span>
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent
+        side="top"
+        align="start"
+        className="w-[min(18rem,calc(100vw-2rem))] rounded-2xl border-border/80 bg-card/95 p-3 shadow-lg backdrop-blur-md"
+      >
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
+            AUTHORITY_STYLES[source.authority],
+          )}
+        >
+          <SourceIcon authority={source.authority} />
+          {AUTHORITY_LABEL[source.authority]}
+        </span>
+        <p className="mt-2 font-display text-sm font-semibold leading-snug text-foreground">
+          {source.title}
+        </p>
+        {source.subtitle && (
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{source.subtitle}</p>
+        )}
+        <div className="mt-2 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+          {source.court && <span>{source.court}</span>}
+          {sourceDate && <span>{formatDate(sourceDate)}</span>}
+        </div>
+        <p className="mt-2 text-[10px] text-muted-foreground">Click to open full preview</p>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
