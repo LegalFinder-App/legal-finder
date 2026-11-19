@@ -58,3 +58,4 @@ Authority labels match Counsellor citations: `judgment` | `legislation` | `edito
 - **Phase 4** — Senior-counsel prompt, FTS-first research, creator credit, UI polish (`PHASE4_SENIOR_COUNSEL.md`).
 - **Phase 5** — Rate-limited index, citation trust chrome, honest marketing (`PHASE5_OPS_TRUST.md`).
 - **Phase 6** — Silicon Valley Counsellor UI craft (`PHASE6_COUNSELLOR_UI.md`).
+- **Phase 7** — Mobile/desktop Counsellor citation parity (`PHASE7_MOBILE_PARITY.md`).

@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Linking,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 import { Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
-import { SendHorizontal, ShieldCheck } from "lucide-react-native";
+import * as WebBrowser from "expo-web-browser";
+import { BookOpen, ExternalLink, SendHorizontal, ShieldCheck } from "lucide-react-native";
 import { CounsellorMark } from "@/components/CounsellorMark";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useWideLayout, wideColumn } from "@/lib/layout";
@@ -14,6 +23,7 @@ import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { AiConsentGate } from "@/components/AiConsent";
 import { api, type AssistantAdvocate, type AssistantSource } from "@/lib/api";
+import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 import { mediaUrl } from "@/lib/media";
 import { appSettingsQuery } from "@/lib/queries";
 import { errorMessage } from "@/lib/toast";
@@ -55,21 +65,105 @@ function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** Replace [[cite:]] tokens with numbered markers so mobile Markdown stays clean. */
 function displayText(content: string) {
-  return content.replace(/\[\[cite:(advice|judgment|library):([a-zA-Z0-9_-]+)\]\]/g, "").trim();
+  let n = 0;
+  const order = new Map<string, number>();
+  return content
+    .replace(/\[\[cite:(advice|judgment|library|news):([a-zA-Z0-9_-]+)\]\]/g, (_m, kind, id) => {
+      const key = `${kind}:${id}`;
+      if (!order.has(key)) order.set(key, ++n);
+      return ` [${order.get(key)}]`;
+    })
+    .trim();
 }
 
-function sourceHref(source: AssistantSource): string {
-  if (source.kind === "advice") return "/(tabs)/learn";
-  if (source.kind === "judgment") return "/judgements";
-  return "/library";
+function openExternal(url: string) {
+  WebBrowser.openBrowserAsync(url).catch(() => Linking.openURL(url));
+}
+
+function openSource(source: AssistantSource) {
+  if (source.kind === "news" && source.externalUrl) {
+    openExternal(source.externalUrl);
+    return;
+  }
+  if (source.externalUrl?.startsWith("http")) {
+    openExternal(source.externalUrl);
+    return;
+  }
+  if (source.kind === "advice") {
+    router.push("/(tabs)/learn" as never);
+    return;
+  }
+  if (source.kind === "judgment") {
+    router.push("/judgements" as never);
+    return;
+  }
+  router.push("/library" as never);
 }
 
 function authorityLabel(authority: AssistantSource["authority"]) {
   if (authority === "judgment") return "Court judgment";
   if (authority === "legislation") return "Legislation";
   if (authority === "editorial") return "LegalFinder guide";
+  if (authority === "news") return "Official headline";
   return "Library";
+}
+
+function authorityTint(
+  authority: AssistantSource["authority"],
+  colors: { brass: string; success: string; muted: string; mutedForeground: string },
+) {
+  if (authority === "judgment") return colors.brass;
+  if (authority === "legislation") return "#3b82f6";
+  if (authority === "news") return colors.success;
+  return colors.mutedForeground;
+}
+
+function GroundingPill({
+  grounded,
+  colors,
+}: {
+  grounded: boolean;
+  colors: {
+    brass: string;
+    border: string;
+    muted: string;
+    mutedForeground: string;
+    accent: string;
+  };
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 999,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: grounded ? colors.brass : colors.border,
+        backgroundColor: grounded ? colors.accent : colors.muted,
+      }}
+    >
+      {grounded ? (
+        <ShieldCheck size={11} color={colors.brass} />
+      ) : (
+        <BookOpen size={11} color={colors.mutedForeground} />
+      )}
+      <Text
+        variant="caption"
+        style={{
+          color: grounded ? colors.brass : colors.mutedForeground,
+          fontFamily: fonts.sansSemiBold,
+          fontSize: 10,
+        }}
+      >
+        {grounded ? "Grounded" : "General guidance"}
+      </Text>
+    </View>
+  );
 }
 
 function Counsellor() {
@@ -143,7 +237,7 @@ function Counsellor() {
           ListHeaderComponent={
             <View style={{ gap: 10, marginBottom: 6 }}>
               <Text variant="caption" tone="muted" align="center">
-                Counsellor AI · general information only — not legal advice.
+                Grounded in LegalFinder’s Uganda corpus · not legal advice
               </Text>
               {turns.length > 0 ? (
                 <Pressable
@@ -169,9 +263,12 @@ function Counsellor() {
             <View style={{ gap: 18, marginTop: 12 }}>
               <EmptyState
                 icon={<CounsellorMark size={24} color={colors.brass} />}
-                title="Your questions deserve clearer answers."
-                description="Explore legal information, understand judgments, and find professional help with Counsellor AI."
+                title="Clear guidance. Grounded in Ugandan law."
+                description="Counsellor retrieves LegalFinder publications and directory rows — never invents cites."
               />
+              <Text variant="caption" tone="muted" align="center">
+                Created for LegalFinder by {COUNSELLOR_CREATOR}
+              </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {STARTERS.map((s) => (
                   <Chip key={s} label={s} onPress={() => void ask(s)} />
@@ -196,45 +293,115 @@ function Counsellor() {
                   { backgroundColor: colors.card, borderColor: colors.border },
                 ]}
               >
-                <Text
-                  variant="caption"
+                <View
                   style={{
-                    color: colors.brass,
-                    fontFamily: fonts.sansSemiBold,
-                    letterSpacing: 0.8,
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
-                  COUNSELLOR AI
-                </Text>
+                  <Text
+                    variant="caption"
+                    style={{
+                      color: colors.brass,
+                      fontFamily: fonts.sansSemiBold,
+                      letterSpacing: 0.8,
+                    }}
+                  >
+                    COUNSELLOR AI
+                  </Text>
+                  {!item.content.startsWith("⚠️") ? (
+                    <GroundingPill
+                      grounded={(item.sources?.length ?? 0) > 0}
+                      colors={colors}
+                    />
+                  ) : null}
+                </View>
                 <Markdown text={displayText(item.content)} />
                 {(item.sources?.length ?? 0) > 0 && (
                   <View style={{ gap: 8 }}>
                     <Text variant="caption" tone="muted">
                       Sources on LegalFinder
                     </Text>
-                    {item.sources!.slice(0, 4).map((source) => (
-                      <Pressable
-                        key={`${source.kind}-${source.id}`}
-                        accessibilityRole="button"
-                        onPress={() => router.push(sourceHref(source) as never)}
-                        style={[
-                          styles.sourceCard,
-                          { borderColor: colors.border, backgroundColor: colors.background },
-                        ]}
-                      >
-                        <Text variant="caption" style={{ color: colors.brass }}>
-                          {authorityLabel(source.authority)}
-                        </Text>
-                        <Text variant="small" style={{ fontFamily: fonts.sansSemiBold }}>
-                          {source.title}
-                        </Text>
-                        {source.subtitle ? (
-                          <Text variant="caption" tone="muted">
-                            {source.subtitle}
+                    {item.sources!.slice(0, 6).map((source, index) => {
+                      const tint = authorityTint(source.authority, colors);
+                      const dated = source.decidedOn ?? source.publishedAt ?? null;
+                      return (
+                        <Pressable
+                          key={`${source.kind}-${source.id}`}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Open source ${index + 1}: ${source.title}`}
+                          onPress={() => openSource(source)}
+                          style={[
+                            styles.sourceCard,
+                            { borderColor: colors.border, backgroundColor: colors.background },
+                          ]}
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 8,
+                            }}
+                          >
+                            <Text
+                              variant="caption"
+                              style={{ color: tint, fontFamily: fonts.sansSemiBold, flex: 1 }}
+                              numberOfLines={1}
+                            >
+                              {authorityLabel(source.authority)}
+                            </Text>
+                            <Text variant="caption" tone="muted">
+                              [{index + 1}]
+                            </Text>
+                          </View>
+                          <Text variant="small" style={{ fontFamily: fonts.sansSemiBold }}>
+                            {source.title}
                           </Text>
-                        ) : null}
-                      </Pressable>
-                    ))}
+                          {source.subtitle ? (
+                            <Text variant="caption" tone="muted" numberOfLines={2}>
+                              {source.subtitle}
+                            </Text>
+                          ) : null}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              gap: 8,
+                              marginTop: 2,
+                              alignItems: "center",
+                            }}
+                          >
+                            {source.court ? (
+                              <Text variant="caption" tone="muted">
+                                {source.court}
+                              </Text>
+                            ) : null}
+                            {dated ? (
+                              <Text variant="caption" tone="muted">
+                                {String(dated).slice(0, 10)}
+                              </Text>
+                            ) : null}
+                            {source.externalUrl ? (
+                              <View
+                                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                              >
+                                <ExternalLink size={11} color={colors.brass} />
+                                <Text variant="caption" style={{ color: colors.brass }}>
+                                  Open original
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                    <Text variant="caption" tone="muted">
+                      Guides are editorial. Prefer the original when it matters — we do not scrape
+                      ULII.
+                    </Text>
                   </View>
                 )}
                 {(item.advocates?.length ?? 0) > 0 && (
@@ -321,7 +488,12 @@ function Counsellor() {
                 ]}
               >
                 <ActivityIndicator color={colors.brass} />
-                <Text tone="muted">Counsellor AI is drafting…</Text>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ fontFamily: fonts.sansSemiBold }}>Retrieving LegalFinder sources</Text>
+                  <Text variant="caption" tone="muted">
+                    Counsellor AI is drafting a careful reply…
+                  </Text>
+                </View>
               </View>
             ) : lastAssistant && !lastAssistant.content.startsWith("⚠️") ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingTop: 4 }}>
@@ -334,7 +506,7 @@ function Counsellor() {
         />
         <View
           style={[
-            styles.composer,
+            styles.composerWrap,
             {
               borderTopColor: colors.border,
               backgroundColor: colors.card,
@@ -342,38 +514,50 @@ function Counsellor() {
             },
           ]}
         >
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Ask Counsellor AI…"
-            placeholderTextColor={colors.mutedForeground}
-            multiline
-            maxLength={4000}
-            accessibilityLabel="Message to Counsellor AI"
-            style={[
-              styles.input,
-              {
-                color: colors.foreground,
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-              },
-            ]}
-          />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Send"
-            disabled={!draft.trim() || thinking}
-            onPress={() => void ask(draft)}
-            style={[
-              styles.send,
-              { backgroundColor: draft.trim() && !thinking ? colors.brass : colors.muted },
-            ]}
-          >
-            <SendHorizontal
-              size={20}
-              color={draft.trim() && !thinking ? colors.brassForeground : colors.mutedForeground}
+          <View style={styles.composer}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="Ask Counsellor AI…"
+              placeholderTextColor={colors.mutedForeground}
+              multiline
+              maxLength={4000}
+              accessibilityLabel="Message to Counsellor AI"
+              style={[
+                styles.input,
+                {
+                  color: colors.foreground,
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}
             />
-          </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Send"
+              disabled={!draft.trim() || thinking}
+              onPress={() => void ask(draft)}
+              style={[
+                styles.send,
+                { backgroundColor: draft.trim() && !thinking ? colors.brass : colors.muted },
+              ]}
+            >
+              <SendHorizontal
+                size={20}
+                color={
+                  draft.trim() && !thinking ? colors.brassForeground : colors.mutedForeground
+                }
+              />
+            </Pressable>
+          </View>
+          <Text
+            variant="caption"
+            tone="muted"
+            align="center"
+            style={{ paddingHorizontal: 12, paddingTop: 8 }}
+          >
+            Links to originals · honest authority labels · we do not scrape ULII
+          </Text>
         </View>
       </View>
     </KeyboardLift>
@@ -447,13 +631,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  composerWrap: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+  },
   composer: {
     flexDirection: "row",
     alignItems: "flex-end",
     gap: 10,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   input: {
     flex: 1,

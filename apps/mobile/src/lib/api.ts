@@ -6,12 +6,20 @@ import type { DocumentRow } from "./queries";
 
 export type AssistantSource = {
   id: string;
-  kind: "advice" | "judgment" | "library";
-  authority: "judgment" | "legislation" | "editorial" | "catalogue";
+  kind: "advice" | "judgment" | "library" | "news";
+  authority: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
   title: string;
   subtitle: string | null;
   summary: string | null;
   href: string;
+  externalUrl?: string | null;
+  court?: string | null;
+  decidedOn?: string | null;
+  category?: string | null;
+  year?: number | null;
+  caseNumber?: string | null;
+  publishedAt?: string | null;
+  indexedAt?: string | null;
 };
 
 export type AssistantAdvocate = {
