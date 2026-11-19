@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -79,22 +80,25 @@ export function CounsellorSettingsDialog({ open, onOpenChange, variant = "settin
               <>
                 <p>
                   <span className="font-semibold text-foreground">Everyday</span> — ask
-                  plain-language questions. Counsellor streams an answer with citations when
+                  plain-language questions. Counsellor streams an answer with inline citations when
                   matching LegalFinder sources exist.
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Research</span> — split workspace
-                  with search, court/category/date filters, and a collapsible source panel.
+                  with corpus search, court/category/date filters, and a collapsible source panel.
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">Citations</span> — tap a chip or
+                  card to open the source. Guides are editorial; judgments, legislation and
+                  headlines are labelled honestly. Prefer the original when it matters.
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Attachments</span> — add images or
                   PDFs (up to 3). They are uploaded securely and sent to our AI provider only for
                   that answer.
                 </p>
-                <p>
-                  <span className="font-semibold text-foreground">Authority labels</span> —
-                  LegalFinder guides are editorial; judgment and legislation labels mark catalogue
-                  entries, not a guarantee of official text.
+                <p className="text-muted-foreground">
+                  Counsellor AI was created for LegalFinder by {COUNSELLOR_CREATOR}.
                 </p>
               </>
             ) : (
@@ -105,6 +109,7 @@ export function CounsellorSettingsDialog({ open, onOpenChange, variant = "settin
                 </p>
                 <p className="text-muted-foreground">
                   Answers are general information — not a substitute for a licensed advocate.
+                  Counsellor AI was created for LegalFinder by {COUNSELLOR_CREATOR}.
                 </p>
               </>
             )}

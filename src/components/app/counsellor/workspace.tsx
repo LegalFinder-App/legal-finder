@@ -474,7 +474,9 @@ export function CounsellorWorkspace() {
               )}
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {mode === "research" ? "Split research workspace" : "Everyday legal assistant"}
+              {mode === "research"
+                ? "Corpus-first research · cite what you open"
+                : "Senior Uganda guide · grounded answers"}
               {sending ? " · drafting" : " · ready"}
             </p>
           </div>

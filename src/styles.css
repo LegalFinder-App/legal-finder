@@ -910,6 +910,10 @@ html [data-sonner-toaster][data-sonner-theme="light"] {
   font-size: 0.875rem;
 }
 
+.counsellor-cite-chip:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-brass, #b8944a) 45%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .counsellor-shell,
   .counsellor-welcome,
@@ -920,6 +924,10 @@ html [data-sonner-toaster][data-sonner-theme="light"] {
   .counsellor-jump,
   .counsellor-fab {
     animation: none !important;
+  }
+
+  .counsellor-cite-chip {
+    transition: none !important;
   }
 }
 

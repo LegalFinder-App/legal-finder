@@ -32,18 +32,19 @@ export const PROMPT_CARDS = [
     id: "rights",
     title: "Understand my rights",
     prompt:
-      "Explain my basic legal rights in Uganda in plain language, and when I should speak to a verified advocate.",
+      "Explain my basic legal rights in Uganda in plain language, cite any LegalFinder sources you use, and say when I should speak to a verified advocate.",
   },
   {
     id: "laws",
     title: "Employment dispute",
     prompt:
-      "I may have been unfairly dismissed in Uganda. What laws and first steps should I know, and can you suggest a matching advocate on LegalFinder?",
+      "I may have been unfairly dismissed in Uganda. What laws and first steps should I know from LegalFinder sources, and can you suggest a matching advocate?",
   },
   {
     id: "judgments",
-    title: "Read a judgement",
-    prompt: "How do I find and read relevant Ugandan court judgements on LegalFinder?",
+    title: "Read a judgment",
+    prompt:
+      "How do I find and read relevant Ugandan court judgments on LegalFinder, and what should I check before relying on a summary?",
   },
   {
     id: "advocate",
@@ -54,13 +55,13 @@ export const PROMPT_CARDS = [
   {
     id: "document",
     title: "Before I sign",
-    prompt: "What should I check carefully in a retainer agreement before I sign?",
+    prompt: "What should I check carefully in a retainer agreement before I sign in Uganda?",
   },
   {
     id: "arrest",
     title: "After an arrest",
     prompt:
-      "What are my rights after an arrest in Uganda, what should I do next, and who on LegalFinder could help?",
+      "What are my rights after an arrest in Uganda under the Constitution and related guides on LegalFinder, what should I do next, and who could help?",
   },
 ] as const;
 

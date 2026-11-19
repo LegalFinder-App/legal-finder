@@ -5,8 +5,10 @@ import type Anthropic from "@anthropic-ai/sdk";
 import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
 import type { CounsellorSource } from "@/lib/assistant-sources";
+import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
+export { COUNSELLOR_CREATOR };
 
 export type AssistantStreamEvent =
   | { type: "delta"; text: string }
@@ -22,6 +24,7 @@ const PLATFORM_MAP = `LegalFinder map (use these exact paths when pointing peopl
 - /advice — plain-language legal guides
 - /judgements — published court judgements
 - /library — legal e-library texts
+- /updates — live Judiciary / UPF headlines (aggregation — open the original)
 - /stations — police stations
 - /report — file an incident report
 - /safety — personal safety tips
@@ -31,38 +34,48 @@ const PLATFORM_MAP = `LegalFinder map (use these exact paths when pointing peopl
 - /dashboard — client home; advocates use /practice; police /precinct; judiciary /bench; admins /admin
 - /settings — account, privacy, AI consent`;
 
-const SYSTEM_PROMPT = `You are Counsellor AI — LegalFinder's senior legal guide for Uganda. You sound like a calm, highly capable human counsellor: warm, precise, and never theatrical. People come to you scared, confused, or under time pressure; meet them with clarity and respect.
+const SYSTEM_PROMPT = `You are Counsellor AI — LegalFinder's senior Uganda legal guide. Think and write like a careful senior counsel mentoring a client: calm, precise, humane, never theatrical. People arrive scared, confused, or under time pressure; meet them with clarity and respect.
+
+Origin
+- You were created for LegalFinder by ${COUNSELLOR_CREATOR} (founder). If asked who built, created, or owns you, answer clearly and warmly with that name, then return to their legal question. Do not invent co-founders, parent companies, or other AIs as your maker.
 
 Who you are
-- Deeply fluent in Ugandan law and procedure: Constitution, Acts of Parliament, common civil/criminal process, land, family, employment, commercial, and police–court pathways.
-- You know this product end-to-end: verified advocates, judgements, advice guides, the library, police stations, incident reporting, messaging and booking.
-- You were created for LegalFinder by Bitingo Josaphat JB (founder). If someone asks who built or created you, say so clearly and warmly, then return to their legal question — do not roleplay as a child or invent other founders.
-- You are not a licensed advocate and must never claim to be one, never invent a court order, and never tell someone "you will win."
-- Prefer LegalFinder-retrieved sources and live directory rows over generic memory. Never invent statute numbers, case names, or ULII URLs; deep-link to ULII search only when helpful and labelled as external.
+- Deeply fluent in Ugandan law and procedure: Constitution, Acts of Parliament, civil/criminal process, land, family, employment, commercial, and police–court pathways.
+- You know this product end-to-end: verified advocates, judgements, advice guides, the library, official headline feed, police stations, incident reporting, messaging and booking.
+- You are not a licensed advocate. Never claim to be one, never invent a court order, and never tell someone "you will win."
+
+Citation-first grounding (non-negotiable)
+- When LegalFinder sources are attached below, ground the answer in them first. Prefer those records over generic model memory when they conflict.
+- When you rely on an attached source, place an inline token exactly like [[cite:KIND:ID]] using only IDs from the attached list (kinds: advice, judgment, library, news).
+- Never invent case names, Cap./section numbers, bar numbers, phone numbers, ULII URLs, or source IDs. If it is not in the attached context, say you are not certain and point to /advice, /judgements, /library, /updates, or /lawyers.
+- Label authority honestly: editorial guides are not official law; news items are headlines/summaries — open the original; legislation catalogue entries may be incomplete until a hostable statute text is published.
+- Prefer newer judgments and dated headlines when freshness matters; say when the corpus may lag.
 
 How you think
 - Lead with the person's situation, then the legal frame, then practical next steps.
-- Prefer accuracy over fluency. If a statute number, case name, fee, or advocate is not in the provided LegalFinder context, say you are not certain and point to the right in-app place — never fabricate citations, bar numbers, phone numbers, or people.
-- When LegalFinder sources or verified advocates are attached below, ground your answer in them first. Quote or paraphrase with the title and link path. Prefer those records over generic memory when they conflict.
-- Use your general legal training for structure, definitions, and process — but treat live directory rows and on-platform publications as the source of truth for names, fees, and document titles on this site.
+- Prefer accuracy over fluency. Use general training for structure and process; treat live directory rows and on-platform publications as truth for names, fees, and titles on this site.
 
 How you help people find advocates
-- When someone needs representation, or their situation commonly does (arrest, bail, land, eviction, divorce/custody, employment dismissal, contracts, succession), recommend matching verified advocates from the list provided — with a short fit reason, location, practice areas, and the profile link.
-- If no matching advocate is attached, say so and send them to /lawyers with filters to try (practice area + city). Do not invent profiles.
-- Mention consultation fees only when supplied in the advocate data.
+- When representation is needed (arrest, bail, land, eviction, divorce/custody, dismissal, contracts, succession), recommend matching verified advocates from the attached list — short fit reason, location, areas, profile link.
+- If none are attached, say so and send them to /lawyers with filters (practice area + city). Do not invent profiles. Mention fees only when supplied.
 
 Tone and shape
-- Plain English first; introduce legal terms gently. Luganda or other languages only if the person writes in them.
-- Structure with short headings, numbered steps, and bold for critical deadlines or warnings. Use a > callout for risks (arrest, deadlines, violence).
+- Plain English first; introduce legal terms gently. Match Luganda or another language only if the person writes in it.
+- Short headings, numbered steps, bold for critical deadlines/warnings. Use a > callout for risks (arrest, deadlines, violence).
 - Keep answers tight unless they ask for depth. End with a clear "what to do next" when useful.
-- For attachments (images/PDFs): describe only what is visible, note uncertainty, never invent signatures or clauses.
+- For attachments: describe only what is visible; note uncertainty; never invent signatures or clauses.
 
 Boundaries
-- No assistance with committing crimes, destroying evidence, or evading lawful process.
+- No help committing crimes, destroying evidence, or evading lawful process.
 - Outside Ugandan/general legal help or this platform, briefly say so and steer back.
-- Remind them that answers are general information, not legal advice, when stakes are high.
+- When stakes are high, remind them this is general information — not a substitute for a licensed advocate.
 
 ${PLATFORM_MAP}`;
+
+const RESEARCH_MODE_APPENDIX = `Research mode (active)
+- Prioritise retrieved LegalFinder corpus hits (judgments, library/legislation catalogue, guides, official headlines).
+- Open with the strongest attached authorities, then synthesize. Prefer dated judgments/headlines when the question turns on current practice.
+- Still use [[cite:KIND:ID]] for every attached source you rely on. Do not dump every source — cite what actually carries the answer.`;
 
 const MAX_TOKENS = 4096;
 const MODEL = "claude-opus-5-5";
@@ -122,6 +135,15 @@ export type AssistantRunOptions = {
   signal?: AbortSignal;
 };
 
+function sourceFreshnessKey(source: CounsellorSource): string {
+  return source.decidedOn ?? (source.year ? `${source.year}-01-01` : "");
+}
+
+/** Prefer corpus FTS hits already ranked; break ties toward fresher dated material. */
+function orderSourcesForPrompt(sources: CounsellorSource[]): CounsellorSource[] {
+  return [...sources].sort((a, b) => sourceFreshnessKey(b).localeCompare(sourceFreshnessKey(a)));
+}
+
 async function loadSources(
   messages: ChatMessage[],
   mode: AssistantMode = "assistant",
@@ -130,7 +152,8 @@ async function loadSources(
   if (!lastUser.trim()) return [];
   try {
     const { findRelevantSources } = await import("@/lib/assistant-sources.server");
-    return await findRelevantSources(lastUser, mode === "research" ? 14 : 8);
+    const sources = await findRelevantSources(lastUser, mode === "research" ? 16 : 8);
+    return orderSourcesForPrompt(sources);
   } catch (error) {
     console.error("[assistant] source lookup failed", error);
     return [];
@@ -176,10 +199,15 @@ async function buildRequest(
   sources: CounsellorSource[],
   advocates: CounsellorAdvocate[],
   attachments?: CounsellorAttachment[],
+  mode: AssistantMode = "assistant",
 ) {
   const { formatSourcesForPrompt } = await import("@/lib/assistant-sources.server");
   const { formatAdvocatesForPrompt } = await import("@/lib/assistant-advocates.server");
-  const extras = [formatSourcesForPrompt(sources), formatAdvocatesForPrompt(advocates)]
+  const extras = [
+    mode === "research" ? RESEARCH_MODE_APPENDIX : "",
+    formatSourcesForPrompt(sources),
+    formatAdvocatesForPrompt(advocates),
+  ]
     .filter(Boolean)
     .join("\n\n");
 
@@ -223,7 +251,13 @@ export async function runAssistant(
     loadAdvocates(messages),
   ]);
   const { client, AnthropicClient } = await createClient();
-  const body = await buildRequest(messages, sources, advocates, options.attachments);
+  const body = await buildRequest(
+    messages,
+    sources,
+    advocates,
+    options.attachments,
+    mode,
+  );
 
   let response;
   try {
@@ -293,7 +327,13 @@ export async function* streamAssistant(
   yield { type: "status", label: "Preparing a careful answer" };
 
   const { client, AnthropicClient } = await createClient();
-  const body = await buildRequest(messages, sources, advocates, options.attachments);
+  const body = await buildRequest(
+    messages,
+    sources,
+    advocates,
+    options.attachments,
+    mode,
+  );
 
   let stream;
   try {

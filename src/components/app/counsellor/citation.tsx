@@ -45,7 +45,7 @@ export function CitationInline({
     <button
       type="button"
       onClick={() => onOpen(source)}
-      className="mx-0.5 inline-flex translate-y-[-1px] items-center gap-1 rounded-md border border-brass/30 bg-brass/10 px-1.5 py-0.5 align-baseline text-[11px] font-semibold text-brass transition-colors hover:bg-brass/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40"
+      className="counsellor-cite-chip mx-0.5 inline-flex translate-y-[-1px] items-center gap-1 rounded-md border border-brass/30 bg-brass/10 px-1.5 py-0.5 align-baseline text-[11px] font-semibold text-brass shadow-[inset_0_1px_0_oklch(1_0_0/0.25)] transition-[background-color,box-shadow,transform] hover:bg-brass/20 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40 active:scale-[0.98]"
       aria-label={`Open source ${index}: ${source.title}`}
     >
       <span aria-hidden>[{index}]</span>
@@ -70,10 +70,14 @@ export function CitationCard({
       type="button"
       onClick={() => onOpen(source)}
       className={cn(
-        "group w-full rounded-2xl border border-border/80 bg-card/90 text-left shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40",
+        "group relative w-full overflow-hidden rounded-2xl border border-border/80 bg-card/90 text-left shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40",
         compact ? "p-3" : "p-3.5",
       )}
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/35 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+      />
       <div className="flex items-start justify-between gap-2">
         <span
           className={cn(
@@ -100,8 +104,9 @@ export function CitationCard({
       <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         {source.court && <span>{source.court}</span>}
         {source.decidedOn && <span>{formatDate(source.decidedOn)}</span>}
-        {source.year && <span>{source.year}</span>}
+        {source.year && !source.decidedOn && <span>{source.year}</span>}
         {source.caseNumber && <span>{source.caseNumber}</span>}
+        {source.externalUrl && <span className="text-brass/80">Original available</span>}
       </div>
     </button>
   );
@@ -120,8 +125,12 @@ export function SourcePreview({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="space-y-3 text-left">
+      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+        <SheetHeader className="relative space-y-3 text-left">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-brass/10 blur-2xl"
+          />
           <span
             className={cn(
               "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]",

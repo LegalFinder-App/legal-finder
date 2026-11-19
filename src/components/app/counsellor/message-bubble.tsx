@@ -189,8 +189,8 @@ export function MessageBubble({
               </div>
             )}
             <p className="text-[11px] leading-relaxed text-muted-foreground">
-              Guides are editorial. Judgments and legislation labels mark LegalFinder catalogue
-              entries — verify against the original authority when it matters.
+              Guides are editorial. Judgments, legislation and headlines are labelled honestly —
+              verify against the original when it matters.
             </p>
           </div>
         )}

@@ -289,22 +289,29 @@ export async function searchLegalResearch(
   limit = 24,
 ): Promise<ResearchSearchResult> {
   try {
-    const keyword = await keywordSearch(query, filters, limit);
+    // FTS corpus first (indexed chunks). Keyword catalogue is a sparse fallback/merge only.
     const vector = query.trim()
-      ? await vectorSearchSources(query, limit, {
+      ? await vectorSearchSources(query, Math.min(40, Math.max(limit * 2, 16)), {
           kinds: filters.kinds.length ? filters.kinds : undefined,
           court: filters.court,
           category: filters.category,
         })
       : [];
-
     const vectorFiltered = vector.filter((item) => matchesFilters(item, filters));
+
+    const needKeyword = vectorFiltered.length < Math.min(limit, 8);
+    const keyword = needKeyword
+      ? await keywordSearch(query, filters, limit)
+      : { sources: [] as CounsellorSource[], facets: buildFacets(vectorFiltered) };
+
     const sources = mergeSources(vectorFiltered, keyword.sources, limit);
+    // Facets should reflect the wider catalogue when we scanned it; otherwise the FTS hits.
+    const facets = needKeyword ? keyword.facets : buildFacets(vectorFiltered);
 
     return {
       query: query.trim(),
       sources,
-      facets: keyword.facets,
+      facets,
     };
   } catch (error) {
     console.error("[assistant-sources] research search failed", error);
@@ -338,19 +345,24 @@ export function formatSourcesForPrompt(sources: CounsellorSource[]): string {
             : source.authority === "news"
               ? "OFFICIAL HEADLINE (aggregation — open original)"
               : "LIBRARY catalogue entry";
-    return `${index + 1}. [${source.kind}:${source.id}] (${authority}) ${source.title}${
+    const dated =
+      source.decidedOn || source.year
+        ? ` · ${source.decidedOn ?? String(source.year)}`
+        : "";
+    return `${index + 1}. [${source.kind}:${source.id}] (${authority}${dated}) ${source.title}${
       source.subtitle ? ` — ${source.subtitle}` : ""
     }${source.summary ? `\n   Summary: ${source.summary.slice(0, 280)}` : ""}`;
   });
 
-  return `LegalFinder sources retrieved for this question (cite only from this list):
+  return `LegalFinder sources retrieved for this question (cite only from this list; prefer fresher dated items when relevant):
 ${lines.join("\n")}
 
 Citation rules:
 - When you rely on one of these sources, place an inline citation token exactly like [[cite:KIND:ID]] (example: [[cite:${sources[0]?.kind ?? "advice"}:${exampleId}]]).
-- Only cite IDs from the list above. Never invent case numbers, statute citations, or source IDs.
+- Only cite IDs from the list above. Never invent case numbers, Cap./section numbers, or source IDs.
 - If a source is marked EDITORIAL, say it is a LegalFinder guide — do not present it as official legislation.
-- If none of the sources fit, answer without citations and point the reader to /advice, /judgements or /library.`;
+- If a source is an OFFICIAL HEADLINE, treat it as a short aggregation — point readers to the original URL / /updates.
+- If none of the sources fit, answer without citations and point the reader to /advice, /judgements, /library or /updates.`;
 }
 
 export type { SourceKind };

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, Gavel, ShieldCheck, Users } from "lucide-react";
+import { BookOpen, Gavel, Newspaper, ShieldCheck, Users } from "lucide-react";
 import { EmptyState, SectionHeading } from "@/components/common/bits";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CounsellorSource } from "@/lib/assistant-sources";
@@ -25,7 +25,7 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
   const hasSources = sources.length > 0;
 
   return (
-    <aside className="hidden h-full w-[17.5rem] shrink-0 flex-col overflow-y-auto border-l border-border/70 bg-card/40 px-4 py-5 lg:flex xl:w-[20rem]">
+    <aside className="counsellor-drawer hidden h-full w-[17.5rem] shrink-0 flex-col overflow-y-auto border-l border-border/70 bg-gradient-to-b from-card/70 via-card/40 to-background/40 px-4 py-5 lg:flex xl:w-[20rem]">
       <SectionHeading
         eyebrow={mode === "research" || hasSources ? "Sources" : "Quick lookup"}
         title={
@@ -34,10 +34,10 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
       />
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
         {hasSources
-          ? "Retrieved from LegalFinder for this question. Labels distinguish editorial guides from judgments and catalogue entries."
+          ? "Retrieved from LegalFinder for this question. Authority labels separate guides, judgments, statutes and official headlines."
           : mode === "research"
-            ? "Ask a question to retrieve matching judgments, guides and library items."
-            : "Counsellor AI can point you here when you need representation."}
+            ? "Ask a question to retrieve matching judgments, guides, library items and headlines."
+            : "Counsellor can point you here when you need representation."}
       </p>
 
       {hasSources ? (
@@ -51,6 +51,9 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
               compact
             />
           ))}
+          <p className="pt-1 text-[11px] leading-relaxed text-muted-foreground">
+            Open a card to verify against the original. Editorial guides are not official law.
+          </p>
         </div>
       ) : (
         <div className="mt-5 space-y-3">
@@ -87,7 +90,7 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
         </div>
       )}
 
-      <div className="mt-6 rounded-2xl border border-border/80 bg-card/70 p-4">
+      <div className="mt-6 rounded-2xl border border-border/80 bg-card/80 p-4 shadow-sm">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4 text-brass" />
           <p className="text-sm font-semibold">Latest advice</p>
@@ -116,7 +119,7 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-border/80 bg-card/70 p-4">
+      <div className="mt-4 rounded-2xl border border-border/80 bg-card/80 p-4 shadow-sm">
         <div className="flex items-center gap-2">
           <Gavel className="h-4 w-4 text-brass" />
           <p className="text-sm font-semibold">Recent judgments</p>
@@ -138,6 +141,14 @@ export function SourcePanel({ mode, sources, onOpenSource }: Props) {
               ))}
         </div>
       </div>
+
+      <Link
+        to="/updates"
+        className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-xs font-medium text-emerald-900 transition-colors hover:border-emerald-500/40 dark:text-emerald-200"
+      >
+        <Newspaper className="h-3.5 w-3.5" />
+        Official headlines on Updates
+      </Link>
     </aside>
   );
 }

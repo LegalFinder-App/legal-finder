@@ -55,4 +55,5 @@ Authority labels match Counsellor citations: `judgment` | `legislation` | `edito
 - **Phase 1** — FTS RAG on advice / judgments / library (`PHASE1_RAG.md`).
 - **Phase 2** — Judiciary/UPF headlines as `news` cites + Admin → Corpus (`PHASE2_FEED_CITES.md`).
 - **Phase 3** — Section-aware statute chunking; `ug-*` stay link-only until hostable PDFs (`PHASE3_CORE_PACK.md`).
-- **Phase 4 next** — Counsellor senior-counsel prompt + creator credit + eval set.
+- **Phase 4** — Senior-counsel prompt, FTS-first research, creator credit, UI polish (`PHASE4_SENIOR_COUNSEL.md`).
+- **Phase 5 next** — Ops/trust polish and honest marketing.
