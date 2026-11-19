@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
+import { clearCounsellorDataForUser } from "@/components/app/counsellor/storage";
 
 // The assistant and AI-assisted drafting send what the person types to Anthropic
 // (assistant.server.ts, document-drafting.server.ts). The privacy policy names consent as the
@@ -34,7 +35,11 @@ export function useAiConsent() {
     try {
       // The stored value is the time of the yes, in case it is ever needed as a record.
       if (allowed) window.localStorage.setItem(storageKey(userId), new Date().toISOString());
-      else window.localStorage.removeItem(storageKey(userId));
+      else {
+        window.localStorage.removeItem(storageKey(userId));
+        // Withdrawing consent also clears on-device Counsellor history for this account.
+        clearCounsellorDataForUser(userId);
+      }
     } catch {
       // kept for this visit by the query cache below
     }

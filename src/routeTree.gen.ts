@@ -63,6 +63,7 @@ import { Route as ApiMobileSessionRouteImport } from './routes/api.mobile.sessio
 import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
 import { Route as ApiPesapalCallbackMobileRouteImport } from './routes/api.pesapal.callback-mobile'
 import { Route as ApiPesapalIpnRouteImport } from './routes/api.pesapal.ipn'
+import { Route as ApiUploadsImageAuthRouteImport } from './routes/api.uploads.image-auth'
 import { Route as AuthenticatedAdminContentIndexRouteImport } from './routes/_authenticated/admin/content/index'
 import { Route as AuthenticatedAdminContentAdviceRouteImport } from './routes/_authenticated/admin/content/advice'
 import { Route as AuthenticatedAdminContentJudgementsRouteImport } from './routes/_authenticated/admin/content/judgements'
@@ -359,6 +360,11 @@ const ApiPesapalIpnRoute = ApiPesapalIpnRouteImport.update({
   path: '/api/pesapal/ipn',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUploadsImageAuthRoute = ApiUploadsImageAuthRouteImport.update({
+  id: '/api/uploads/image-auth',
+  path: '/api/uploads/image-auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminContentIndexRoute =
   AuthenticatedAdminContentIndexRouteImport.update({
     id: '/',
@@ -516,6 +522,7 @@ export interface FileRoutesByFullPath {
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
+  '/api/uploads/image-auth': typeof ApiUploadsImageAuthRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
   '/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
@@ -587,6 +594,7 @@ export interface FileRoutesByTo {
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
+  '/api/uploads/image-auth': typeof ApiUploadsImageAuthRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
   '/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
@@ -662,6 +670,7 @@ export interface FileRoutesById {
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
   '/api/pesapal/ipn': typeof ApiPesapalIpnRoute
+  '/api/uploads/image-auth': typeof ApiUploadsImageAuthRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/content/advice': typeof AuthenticatedAdminContentAdviceRoute
   '/_authenticated/admin/content/judgements': typeof AuthenticatedAdminContentJudgementsRoute
@@ -737,6 +746,7 @@ export interface FileRouteTypes {
     | '/api/pesapal/callback'
     | '/api/pesapal/callback-mobile'
     | '/api/pesapal/ipn'
+    | '/api/uploads/image-auth'
     | '/admin/'
     | '/admin/content/advice'
     | '/admin/content/judgements'
@@ -808,6 +818,7 @@ export interface FileRouteTypes {
     | '/api/pesapal/callback'
     | '/api/pesapal/callback-mobile'
     | '/api/pesapal/ipn'
+    | '/api/uploads/image-auth'
     | '/admin'
     | '/admin/content/advice'
     | '/admin/content/judgements'
@@ -882,6 +893,7 @@ export interface FileRouteTypes {
     | '/api/pesapal/callback'
     | '/api/pesapal/callback-mobile'
     | '/api/pesapal/ipn'
+    | '/api/uploads/image-auth'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/content/advice'
     | '/_authenticated/admin/content/judgements'
@@ -938,6 +950,7 @@ export interface RootRouteChildren {
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
   ApiPesapalCallbackMobileRoute: typeof ApiPesapalCallbackMobileRoute
   ApiPesapalIpnRoute: typeof ApiPesapalIpnRoute
+  ApiUploadsImageAuthRoute: typeof ApiUploadsImageAuthRoute
   ApiMobileAccountDeleteRoute: typeof ApiMobileAccountDeleteRoute
   ApiMobileDocumentsDraftRoute: typeof ApiMobileDocumentsDraftRoute
   ApiMobileDocumentsGenerateRoute: typeof ApiMobileDocumentsGenerateRoute
@@ -1329,6 +1342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPesapalIpnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/uploads/image-auth': {
+      id: '/api/uploads/image-auth'
+      path: '/api/uploads/image-auth'
+      fullPath: '/api/uploads/image-auth'
+      preLoaderRoute: typeof ApiUploadsImageAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/content/': {
       id: '/_authenticated/admin/content/'
       path: '/'
@@ -1598,6 +1618,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
   ApiPesapalCallbackMobileRoute: ApiPesapalCallbackMobileRoute,
   ApiPesapalIpnRoute: ApiPesapalIpnRoute,
+  ApiUploadsImageAuthRoute: ApiUploadsImageAuthRoute,
   ApiMobileAccountDeleteRoute: ApiMobileAccountDeleteRoute,
   ApiMobileDocumentsDraftRoute: ApiMobileDocumentsDraftRoute,
   ApiMobileDocumentsGenerateRoute: ApiMobileDocumentsGenerateRoute,

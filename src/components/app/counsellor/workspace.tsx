@@ -14,12 +14,15 @@ import { SourcePreview } from "./citation";
 import { ResearchPanel } from "./research-panel";
 import { CounsellorSidebar } from "./sidebar";
 import {
-  loadConversations,
-  loadResearchHistory,
+  loadConversationsAsync,
+  loadResearchHistoryAsync,
   saveConversations,
   saveResearchHistory,
   type ResearchHistoryEntry,
 } from "./storage";
+import { isSessionExpiredError, recoverExpiredSession } from "@/lib/session-watchdog";
+import { useAuth } from "@clerk/tanstack-react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { ThinkingIndicator } from "./thinking-indicator";
 import {
   newId,
@@ -57,6 +60,8 @@ function emptyConversation(): Conversation {
 
 export function CounsellorWorkspace() {
   const { user } = useSession();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const userId = user?.id ?? null;
 
   const [hydrated, setHydrated] = useState(false);
@@ -92,6 +97,7 @@ export function CounsellorWorkspace() {
 
   useEffect(() => {
     // Wait for a real account id so we never hydrate under a shared key (privacy).
+    let cancelled = false;
     if (!userId) {
       setHydrated(false);
       setConversations([]);
@@ -99,17 +105,25 @@ export function CounsellorWorkspace() {
       setResearchHistory([]);
       return;
     }
-    const stored = loadConversations(userId);
-    if (stored.length > 0) {
-      setConversations(stored);
-      setActiveId(stored[0]?.id ?? null);
-    } else {
-      const first = emptyConversation();
-      setConversations([first]);
-      setActiveId(first.id);
-    }
-    setResearchHistory(loadResearchHistory(userId));
-    setHydrated(true);
+    setHydrated(false);
+    void (async () => {
+      const stored = await loadConversationsAsync(userId);
+      const research = await loadResearchHistoryAsync(userId);
+      if (cancelled) return;
+      if (stored.length > 0) {
+        setConversations(stored);
+        setActiveId(stored[0]?.id ?? null);
+      } else {
+        const first = emptyConversation();
+        setConversations([first]);
+        setActiveId(first.id);
+      }
+      setResearchHistory(research);
+      setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   useEffect(() => {
@@ -344,9 +358,17 @@ export function CounsellorWorkspace() {
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        toast.error(
-          error instanceof Error ? error.message : "Counsellor AI is unavailable right now.",
-        );
+        if (isSessionExpiredError(error)) {
+          await recoverExpiredSession({
+            userId,
+            signOut,
+            navigateToAuth: () => navigate({ to: "/auth", replace: true }),
+          });
+        } else {
+          toast.error(
+            error instanceof Error ? error.message : "Counsellor AI is unavailable right now.",
+          );
+        }
       }
       setConversations((prev) =>
         prev.map((conversation) => {

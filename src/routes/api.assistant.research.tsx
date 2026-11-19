@@ -51,7 +51,10 @@ export const Route = createFileRoute("/api/assistant/research")({
               { status: 400 },
             );
           }
-          console.error("[api/assistant/research]", error);
+          console.error(
+            "[api/assistant/research]",
+            error instanceof Error ? error.name : "error",
+          );
           return Response.json(
             { error: "Research search is unavailable right now." },
             { status: 500 },

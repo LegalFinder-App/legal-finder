@@ -1,9 +1,64 @@
 import { upload } from "@imagekit/javascript";
 import { supabase } from "@/integrations/supabase/client";
-import { getImageKitUploadAuth } from "@/lib/imagekit.functions";
+import { clerkApiHeaders } from "@/lib/clerk-browser-token";
 
 const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+type ImageKitUploadAuth = {
+  token: string;
+  expire: number;
+  signature: string;
+  publicKey: string;
+  urlEndpoint: string;
+  folder: string;
+  fileName: string;
+};
+
+/**
+ * Signs an ImageKit upload via /api/uploads/image-auth (Bearer + cookies), matching Counsellor
+ * stream auth so cookie lag cannot surface "No active Clerk session" while the UI is signed in.
+ */
+async function fetchImageKitUploadAuth(input: {
+  extension: string;
+  purpose: "profile" | "content" | "assistant";
+}): Promise<ImageKitUploadAuth> {
+  const body = JSON.stringify(input);
+
+  const post = async (headers: Record<string, string>) =>
+    fetch("/api/uploads/image-auth", {
+      method: "POST",
+      credentials: "include",
+      headers,
+      body,
+    });
+
+  let response = await post(
+    await clerkApiHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+  );
+
+  if (response.status === 401) {
+    response = await post(
+      await clerkApiHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+    );
+  }
+
+  if (!response.ok) {
+    let message = "Couldn't prepare the upload.";
+    try {
+      const payload = (await response.json()) as { error?: string };
+      if (payload.error) message = payload.error;
+    } catch {
+      // Non-JSON body.
+    }
+    if (response.status === 401 || /clerk session|sign in again|unauthorized/i.test(message)) {
+      throw new Error("Please sign in again.");
+    }
+    throw new Error(message);
+  }
+
+  return (await response.json()) as ImageKitUploadAuth;
+}
 
 export async function uploadProfileImage(file: File, userId: string): Promise<string> {
   if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
@@ -13,8 +68,9 @@ export async function uploadProfileImage(file: File, userId: string): Promise<st
     throw new Error("Profile images must be 5 MB or smaller.");
   }
 
-  const auth = await getImageKitUploadAuth({
-    data: { extension: extensionFor(file), purpose: "profile" },
+  const auth = await fetchImageKitUploadAuth({
+    extension: extensionFor(file),
+    purpose: "profile",
   });
   const response = await upload({
     file,
@@ -68,8 +124,9 @@ export async function uploadContentImage(file: File): Promise<string> {
     throw new Error("Images must be 5 MB or smaller.");
   }
 
-  const auth = await getImageKitUploadAuth({
-    data: { extension: extensionFor(file), purpose: "content" },
+  const auth = await fetchImageKitUploadAuth({
+    extension: extensionFor(file),
+    purpose: "content",
   });
   const response = await upload({
     file,
@@ -116,8 +173,9 @@ export async function uploadAssistantAttachment(file: File): Promise<{
   }
 
   const extension = isPdf ? ".pdf" : extensionFor(file);
-  const auth = await getImageKitUploadAuth({
-    data: { extension, purpose: "assistant" },
+  const auth = await fetchImageKitUploadAuth({
+    extension,
+    purpose: "assistant",
   });
   const response = await upload({
     file,

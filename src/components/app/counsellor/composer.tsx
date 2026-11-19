@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@clerk/tanstack-react-start";
 import { Paperclip, Send, Square } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { uploadAssistantAttachment } from "@/lib/imagekit";
 import { MAX_ATTACHMENTS, type CounsellorAttachment } from "@/lib/assistant-attachments";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/session";
+import { isSessionExpiredError, recoverExpiredSession } from "@/lib/session-watchdog";
 import { AttachmentPreviewStrip } from "./media";
 import { newId } from "./types";
 
@@ -36,6 +40,9 @@ export function MessageComposer({
   className,
   allowAttachments = true,
 }: Props) {
+  const { user } = useSession();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -72,7 +79,15 @@ export function MessageComposer({
       }
       onAttachmentsChange(next);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed.");
+      if (isSessionExpiredError(error)) {
+        await recoverExpiredSession({
+          userId: user?.id,
+          signOut,
+          navigateToAuth: () => navigate({ to: "/auth", replace: true }),
+        });
+      } else {
+        toast.error(error instanceof Error ? error.message : "Upload failed.");
+      }
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";

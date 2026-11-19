@@ -84,9 +84,13 @@ export const Route = createFileRoute("/api/assistant/stream")({
               { status: 400 },
             );
           }
-          console.error("[api/assistant/stream]", error);
+          console.error(
+            "[api/assistant/stream]",
+            error instanceof Error ? error.name : "error",
+          );
           const message =
-            error instanceof Error && !/supabase|fetch|ECONN|undefined|null/i.test(error.message)
+            error instanceof Error &&
+            !/supabase|fetch|ECONN|undefined|null|token|jwt|authorization/i.test(error.message)
               ? error.message
               : "Something went wrong. Please try again.";
           return Response.json({ error: message }, { status: 500 });

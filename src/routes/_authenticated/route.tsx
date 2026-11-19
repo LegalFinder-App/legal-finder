@@ -1,6 +1,7 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/tanstack-react-start";
 import { toast } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/shell/app-shell";
@@ -9,6 +10,7 @@ import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
 import { clientClerkUserId } from "@/lib/after-auth";
+import { startSessionWatchdog } from "@/lib/session-watchdog";
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -72,6 +74,17 @@ export const Route = createFileRoute("/_authenticated")({
 function WorkspaceLayout() {
   const { user } = useSession();
   const queryClient = useQueryClient();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user?.id) return;
+    return startSessionWatchdog({
+      userId: user.id,
+      signOut: () => signOut(),
+      navigateToAuth: () => navigate({ to: "/auth", replace: true }),
+    });
+  }, [navigate, signOut, user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;

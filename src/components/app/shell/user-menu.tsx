@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileImageUploader } from "@/components/app/profile-image-uploader";
 import { profileQuery } from "@/lib/queries";
 import { initials, ROLE_LABELS, useSession } from "@/lib/session";
+import { clearCounsellorDataForUser } from "@/components/app/counsellor/storage";
 
 export function UserMenu() {
   const { user, primaryRole } = useSession();
@@ -26,6 +27,7 @@ export function UserMenu() {
   const label = initials(profile.data?.full_name ?? user?.email ?? null);
 
   const signOut = async () => {
+    clearCounsellorDataForUser(user?.id);
     await clerkSignOut();
     navigate({ to: "/auth", replace: true });
   };

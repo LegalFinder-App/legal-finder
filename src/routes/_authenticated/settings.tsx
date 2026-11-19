@@ -30,6 +30,7 @@ import { useSession } from "@/lib/session";
 import { useAiConsent } from "@/lib/ai-consent";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { clearAllCounsellorData, clearCounsellorDataForUser } from "@/components/app/counsellor/storage";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "LegalFinder | Settings" }] }),
@@ -81,6 +82,8 @@ function SettingsPage() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
+      clearCounsellorDataForUser(user?.id);
+      clearAllCounsellorData();
       await deleteOwnAccount();
       toast.success("Account deleted");
       await signOut();
@@ -167,7 +170,8 @@ function SettingsPage() {
             <Label htmlFor="ai-features">AI features</Label>
             <p className="mt-1 text-sm text-muted-foreground">
               Let Counsellor AI and AI-assisted drafting send what you type (and any attachments) to
-              Anthropic, which provides the AI model. Off: both ask again before they are used.
+              Anthropic, which provides the AI model. Off: both ask again before they are used, and
+              Counsellor chats stored on this device are cleared.
             </p>
           </div>
           <Switch
