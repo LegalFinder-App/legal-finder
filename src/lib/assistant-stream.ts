@@ -1,6 +1,7 @@
 import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
 import type { CounsellorSource } from "@/lib/assistant-sources";
+import type { CounsellorWebSource } from "@/lib/assistant-web-sources";
 import { clerkApiHeaders } from "@/lib/clerk-browser-token";
 
 export type StreamChatMessage = { role: "user" | "assistant"; content: string };
@@ -9,10 +10,12 @@ export type StreamHandlers = {
   onStatus?: (label: string) => void;
   onDelta?: (text: string) => void;
   onSources?: (sources: CounsellorSource[]) => void;
+  onWebSources?: (sources: CounsellorWebSource[]) => void;
   onAdvocates?: (advocates: CounsellorAdvocate[]) => void;
   onDone?: (stopReason: string | null) => void;
   signal?: AbortSignal;
   mode?: "assistant" | "research";
+  webSearch?: boolean;
   attachments?: CounsellorAttachment[];
 };
 
@@ -32,6 +35,7 @@ export async function streamCounsellorReply(
   const body = JSON.stringify({
     messages,
     mode: handlers.mode ?? "assistant",
+    webSearch: handlers.webSearch ?? false,
     attachments: handlers.attachments,
   });
 
@@ -100,11 +104,16 @@ export async function streamCounsellorReply(
             label?: string;
             message?: string;
             stopReason?: string | null;
-            sources?: CounsellorSource[];
+            sources?: CounsellorSource[] | CounsellorWebSource[];
             advocates?: CounsellorAdvocate[];
           };
           if (event.type === "status" && event.label) handlers.onStatus?.(event.label);
-          if (event.type === "sources" && event.sources) handlers.onSources?.(event.sources);
+          if (event.type === "sources" && event.sources) {
+            handlers.onSources?.(event.sources as CounsellorSource[]);
+          }
+          if (event.type === "web_sources" && event.sources) {
+            handlers.onWebSources?.(event.sources as CounsellorWebSource[]);
+          }
           if (event.type === "advocates" && event.advocates) {
             handlers.onAdvocates?.(event.advocates);
           }

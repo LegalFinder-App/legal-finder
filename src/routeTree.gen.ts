@@ -76,6 +76,7 @@ import { Route as AuthenticatedAdminContentSecurityTipsRouteImport } from './rou
 import { Route as AuthenticatedAdminContentStationsRouteImport } from './routes/_authenticated/admin/content/stations'
 import { Route as AuthenticatedAdminContentWantedRouteImport } from './routes/_authenticated/admin/content/wanted'
 import { Route as ApiMobileAccountDeleteRouteImport } from './routes/api.mobile.account.delete'
+import { Route as ApiMobileAssistantResearchRouteImport } from './routes/api.mobile.assistant.research'
 import { Route as ApiMobileDocumentsDraftRouteImport } from './routes/api.mobile.documents.draft'
 import { Route as ApiMobileDocumentsGenerateRouteImport } from './routes/api.mobile.documents.generate'
 import { Route as ApiMobileDocumentsTemplatesRouteImport } from './routes/api.mobile.documents.templates'
@@ -437,6 +438,12 @@ const ApiMobileAccountDeleteRoute = ApiMobileAccountDeleteRouteImport.update({
   path: '/api/mobile/account/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileAssistantResearchRoute =
+  ApiMobileAssistantResearchRouteImport.update({
+    id: '/research',
+    path: '/research',
+    getParentRoute: () => ApiMobileAssistantRoute,
+  } as any)
 const ApiMobileDocumentsDraftRoute = ApiMobileDocumentsDraftRouteImport.update({
   id: '/api/mobile/documents/draft',
   path: '/api/mobile/documents/draft',
@@ -532,7 +539,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
-  '/api/mobile/assistant': typeof ApiMobileAssistantRoute
+  '/api/mobile/assistant': typeof ApiMobileAssistantRouteWithChildren
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
@@ -548,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/assistant/research': typeof ApiMobileAssistantResearchRoute
   '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
   '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
   '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
@@ -606,7 +614,7 @@ export interface FileRoutesByTo {
   '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
-  '/api/mobile/assistant': typeof ApiMobileAssistantRoute
+  '/api/mobile/assistant': typeof ApiMobileAssistantRouteWithChildren
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
@@ -622,6 +630,7 @@ export interface FileRoutesByTo {
   '/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/assistant/research': typeof ApiMobileAssistantResearchRoute
   '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
   '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
   '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
@@ -684,7 +693,7 @@ export interface FileRoutesById {
   '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
-  '/api/mobile/assistant': typeof ApiMobileAssistantRoute
+  '/api/mobile/assistant': typeof ApiMobileAssistantRouteWithChildren
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
   '/api/pesapal/callback-mobile': typeof ApiPesapalCallbackMobileRoute
@@ -700,6 +709,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/content/stations': typeof AuthenticatedAdminContentStationsRoute
   '/_authenticated/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
+  '/api/mobile/assistant/research': typeof ApiMobileAssistantResearchRoute
   '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
   '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
   '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
@@ -778,6 +788,7 @@ export interface FileRouteTypes {
     | '/admin/content/stations'
     | '/admin/content/wanted'
     | '/api/mobile/account/delete'
+    | '/api/mobile/assistant/research'
     | '/api/mobile/documents/draft'
     | '/api/mobile/documents/generate'
     | '/api/mobile/documents/templates'
@@ -852,6 +863,7 @@ export interface FileRouteTypes {
     | '/admin/content/stations'
     | '/admin/content/wanted'
     | '/api/mobile/account/delete'
+    | '/api/mobile/assistant/research'
     | '/api/mobile/documents/draft'
     | '/api/mobile/documents/generate'
     | '/api/mobile/documents/templates'
@@ -929,6 +941,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content/stations'
     | '/_authenticated/admin/content/wanted'
     | '/api/mobile/account/delete'
+    | '/api/mobile/assistant/research'
     | '/api/mobile/documents/draft'
     | '/api/mobile/documents/generate'
     | '/api/mobile/documents/templates'
@@ -971,7 +984,7 @@ export interface RootRouteChildren {
   ApiCronLegalIndexRoute: typeof ApiCronLegalIndexRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
   ApiMobileSplatRoute: typeof ApiMobileSplatRoute
-  ApiMobileAssistantRoute: typeof ApiMobileAssistantRoute
+  ApiMobileAssistantRoute: typeof ApiMobileAssistantRouteWithChildren
   ApiMobileSessionRoute: typeof ApiMobileSessionRoute
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
   ApiPesapalCallbackMobileRoute: typeof ApiPesapalCallbackMobileRoute
@@ -1459,6 +1472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobileAccountDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/assistant/research': {
+      id: '/api/mobile/assistant/research'
+      path: '/research'
+      fullPath: '/api/mobile/assistant/research'
+      preLoaderRoute: typeof ApiMobileAssistantResearchRouteImport
+      parentRoute: typeof ApiMobileAssistantRoute
+    }
     '/api/mobile/documents/draft': {
       id: '/api/mobile/documents/draft'
       path: '/api/mobile/documents/draft'
@@ -1625,6 +1645,17 @@ const WantedRouteChildren: WantedRouteChildren = {
 const WantedRouteWithChildren =
   WantedRoute._addFileChildren(WantedRouteChildren)
 
+interface ApiMobileAssistantRouteChildren {
+  ApiMobileAssistantResearchRoute: typeof ApiMobileAssistantResearchRoute
+}
+
+const ApiMobileAssistantRouteChildren: ApiMobileAssistantRouteChildren = {
+  ApiMobileAssistantResearchRoute: ApiMobileAssistantResearchRoute,
+}
+
+const ApiMobileAssistantRouteWithChildren =
+  ApiMobileAssistantRoute._addFileChildren(ApiMobileAssistantRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1656,7 +1687,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronLegalIndexRoute: ApiCronLegalIndexRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
   ApiMobileSplatRoute: ApiMobileSplatRoute,
-  ApiMobileAssistantRoute: ApiMobileAssistantRoute,
+  ApiMobileAssistantRoute: ApiMobileAssistantRouteWithChildren,
   ApiMobileSessionRoute: ApiMobileSessionRoute,
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
   ApiPesapalCallbackMobileRoute: ApiPesapalCallbackMobileRoute,

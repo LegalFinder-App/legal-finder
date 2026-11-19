@@ -28,6 +28,8 @@ type Props = {
   onTogglePin: (id: string) => void;
   mode: CounsellorMode;
   onModeChange: (mode: CounsellorMode) => void;
+  webSearch: boolean;
+  onWebSearchChange: (enabled: boolean) => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
 };
@@ -44,6 +46,8 @@ export function CounsellorSidebar({
   onTogglePin,
   mode,
   onModeChange,
+  webSearch,
+  onWebSearchChange,
   onOpenSettings,
   onOpenHelp,
 }: Props) {
@@ -169,6 +173,38 @@ export function CounsellorSidebar({
             Research
           </button>
         </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={webSearch}
+          onClick={() => onWebSearchChange(!webSearch)}
+          className={cn(
+            "flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left transition-colors",
+            webSearch
+              ? "border-brass/40 bg-brass/10"
+              : "border-border/70 bg-secondary/30 hover:border-border",
+          )}
+        >
+          <span>
+            <span className="block text-xs font-semibold text-foreground">Web search</span>
+            <span className="block text-[10px] text-muted-foreground">
+              {webSearch ? "Live web · verify carefully" : "Corpus only · toggle to search"}
+            </span>
+          </span>
+          <span
+            className={cn(
+              "relative h-5 w-9 rounded-full transition-colors",
+              webSearch ? "bg-brass" : "bg-muted",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform",
+                webSearch ? "translate-x-4" : "translate-x-0.5",
+              )}
+            />
+          </span>
+        </button>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-2 pb-3">

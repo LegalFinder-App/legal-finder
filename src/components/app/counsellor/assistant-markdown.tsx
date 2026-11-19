@@ -3,6 +3,7 @@ import { AlertTriangle, Info, Scale } from "lucide-react";
 import type { CounsellorSource, SourceKind } from "@/lib/assistant-sources";
 import { cn } from "@/lib/utils";
 import { CitationInline } from "./citation";
+import { ExternalImageFigure, MermaidBlock, SvgBlock } from "./visuals";
 
 type MarkdownContext = {
   sources?: CounsellorSource[];
@@ -46,7 +47,7 @@ function renderInline(text: string, keyPrefix: string, ctx: MarkdownContext): Re
   const nodes: ReactNode[] = [];
   // Citations first, then links/bold/italic, then bare Act/Cap./Art. style cues.
   const regex =
-    /\[\[cite:(advice|judgment|library|news):([a-zA-Z0-9_-]+)\]\]|\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)|(\b(?:Art(?:icle)?\.?\s*\d+[A-Za-z0-9.-]*|Cap\.?\s*\d+|Act\s+No\.?\s*\d+|\d{4}\s+[A-Z][A-Za-z\s]{2,40}Act)\b)/g;
+    /!\[([^\]]*)\]\((https:\/\/[^)\s]+)\)|\[\[cite:(advice|judgment|library|news):([a-zA-Z0-9_-]+)\]\]|\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)|(\b(?:Art(?:icle)?\.?\s*\d+[A-Za-z0-9.-]*|Cap\.?\s*\d+|Act\s+No\.?\s*\d+|\d{4}\s+[A-Z][A-Za-z\s]{2,40}Act)\b)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let index = 0;
@@ -54,8 +55,14 @@ function renderInline(text: string, keyPrefix: string, ctx: MarkdownContext): Re
   while ((match = regex.exec(text))) {
     if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
     if (match[1] !== undefined && match[2] !== undefined) {
-      const kind = match[1] as SourceKind;
-      const id = match[2];
+      nodes.push(
+        <span key={`${keyPrefix}-img-${index++}`} className="my-2 block">
+          <ExternalImageFigure alt={match[1]} src={match[2]} />
+        </span>,
+      );
+    } else if (match[3] !== undefined && match[4] !== undefined) {
+      const kind = match[3] as SourceKind;
+      const id = match[4];
       const source = ctx.sources?.find((s) => s.kind === kind && s.id === id);
       const key = citeKey(kind, id);
       if (!ctx.citeOrder.has(key)) ctx.citeOrder.set(key, ctx.citeOrder.size + 1);
@@ -79,12 +86,12 @@ function renderInline(text: string, keyPrefix: string, ctx: MarkdownContext): Re
           </sup>,
         );
       }
-    } else if (match[3] !== undefined) {
-      nodes.push(<strong key={`${keyPrefix}-b-${index++}`}>{match[3]}</strong>);
-    } else if (match[4] !== undefined) {
-      nodes.push(<em key={`${keyPrefix}-i-${index++}`}>{match[4]}</em>);
-    } else if (match[5] !== undefined && match[6] !== undefined) {
-      const href = match[6];
+    } else if (match[5] !== undefined) {
+      nodes.push(<strong key={`${keyPrefix}-b-${index++}`}>{match[5]}</strong>);
+    } else if (match[6] !== undefined) {
+      nodes.push(<em key={`${keyPrefix}-i-${index++}`}>{match[6]}</em>);
+    } else if (match[7] !== undefined && match[8] !== undefined) {
+      const href = match[8];
       const external = href.startsWith("http");
       nodes.push(
         <a
@@ -93,16 +100,16 @@ function renderInline(text: string, keyPrefix: string, ctx: MarkdownContext): Re
           {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
           className="font-medium text-brass underline underline-offset-2 hover:no-underline"
         >
-          {match[5]}
+          {match[7]}
         </a>,
       );
-    } else if (match[7] !== undefined) {
+    } else if (match[9] !== undefined) {
       nodes.push(
         <span
           key={`${keyPrefix}-l-${index++}`}
           className="rounded-sm bg-brass/10 px-1 py-0.5 font-medium text-foreground"
         >
-          {match[7]}
+          {match[9]}
         </span>,
       );
     }
@@ -197,14 +204,70 @@ function parseBlocks(text: string, ctx: MarkdownContext): ReactNode[] {
     );
   };
 
+  let fenceLang: string | null = null;
+  let fenceLines: string[] = [];
+
+  const flushFence = (key: string) => {
+    if (fenceLang === null) return;
+    const code = fenceLines.join("\n");
+    const lang = fenceLang.toLowerCase();
+    fenceLang = null;
+    fenceLines = [];
+    if (lang === "mermaid") {
+      blocks.push(<MermaidBlock key={key} code={code} />);
+      return;
+    }
+    if (lang === "svg") {
+      blocks.push(<SvgBlock key={key} code={code} />);
+      return;
+    }
+    blocks.push(
+      <pre
+        key={key}
+        className="overflow-x-auto rounded-xl border border-border/80 bg-secondary/40 p-3 text-xs text-muted-foreground"
+      >
+        {code}
+      </pre>,
+    );
+  };
+
   lines.forEach((rawLine, lineIndex) => {
-    const line = rawLine.trim();
     const key = `b-${lineIndex}`;
+    const fenceOpen = /^```([\w-]*)\s*$/.exec(rawLine.trim());
+    if (fenceLang !== null) {
+      if (fenceOpen && fenceOpen[1] === "") {
+        flushFence(key);
+        return;
+      }
+      fenceLines.push(rawLine);
+      return;
+    }
+    if (fenceOpen) {
+      flushParagraph(key);
+      flushList(key);
+      flushTable(key);
+      fenceLang = fenceOpen[1] || "text";
+      fenceLines = [];
+      return;
+    }
+
+    const line = rawLine.trim();
 
     if (line === "") {
       flushParagraph(key);
       flushList(key);
       flushTable(key);
+      return;
+    }
+
+    const loneImage = /^!\[([^\]]*)\]\((https:\/\/[^)\s]+)\)$/.exec(line);
+    if (loneImage) {
+      flushParagraph(key);
+      flushList(key);
+      flushTable(key);
+      blocks.push(
+        <ExternalImageFigure key={key} alt={loneImage[1]} src={loneImage[2]} />,
+      );
       return;
     }
 
@@ -317,6 +380,7 @@ function parseBlocks(text: string, ctx: MarkdownContext): ReactNode[] {
     paragraphBuffer.push(line);
   });
 
+  flushFence("b-last-fence");
   flushParagraph("b-last");
   flushList("b-last-list");
   flushTable("b-last-table");

@@ -23,7 +23,12 @@ const sdk = vi.hoisted(() => {
 vi.mock("@anthropic-ai/sdk", () => ({ default: sdk.Client }));
 
 import { chatRequestSchema } from "../assistant.functions";
-import { runAssistant, streamAssistant } from "../assistant.server";
+import {
+  buildAssistantRequestForTest,
+  extractWebSourcesFromContent,
+  runAssistant,
+  streamAssistant,
+} from "../assistant.server";
 import { draftDocument } from "../document-drafting.server";
 
 async function collectStream(messages: typeof question) {
@@ -59,11 +64,14 @@ describe("runAssistant", () => {
       reply: "Go to the police.",
       sources: [],
       advocates: [],
+      webSources: [],
     });
-    const request = sdk.create.mock.calls[0][0];
-    expect(request.model).toBe("claude-opus-5-5");
-    expect(request.output_config).toEqual({ effort: "low" });
+    // Source lookup may also call Anthropic (query expand uses Haiku) — assert the Counsellor turn.
+    const request = sdk.create.mock.calls.map((c) => c[0]).find((r) => r.model === "claude-opus-5-5");
+    expect(request).toBeTruthy();
+    expect(request.output_config).toEqual({ effort: "medium" });
     expect(request.messages).toEqual(question);
+    expect(request).not.toHaveProperty("tools");
     // Rejected by this model: thinking can't be switched off or budgeted, and sampling is fixed.
     expect(request).not.toHaveProperty("thinking");
     expect(request).not.toHaveProperty("temperature");
@@ -75,7 +83,38 @@ describe("runAssistant", () => {
       reply: "Answer.",
       sources: [],
       advocates: [],
+      webSources: [],
     });
+  });
+
+  it("includes the Anthropic web_search tool only when webSearch is on", async () => {
+    const off = await buildAssistantRequestForTest(question, { webSearch: false });
+    expect(off).not.toHaveProperty("tools");
+    const on = await buildAssistantRequestForTest(question, { webSearch: true });
+    expect(on.tools).toEqual([
+      expect.objectContaining({ type: "web_search_20250305", name: "web_search" }),
+    ]);
+    expect(on.system).toMatch(/Web search \(enabled/);
+  });
+
+  it("parses web_search_tool_result blocks into webSources", () => {
+    const sources = extractWebSourcesFromContent([
+      {
+        type: "web_search_tool_result",
+        tool_use_id: "srvtoolu_1",
+        content: [
+          {
+            type: "web_search_result",
+            title: "Judiciary of Uganda",
+            url: "https://judiciary.go.ug/example",
+            encrypted_content: "x",
+            page_age: null,
+          },
+        ],
+      } as never,
+    ]);
+    expect(sources).toHaveLength(1);
+    expect(sources[0]?.url).toBe("https://judiciary.go.ug/example");
   });
 
   it("tells the reader when the answer hit the length limit", async () => {

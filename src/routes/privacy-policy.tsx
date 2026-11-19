@@ -107,11 +107,14 @@ const SECTIONS: Section[] = [
           If you use Counsellor AI or AI-assisted document drafting, what you type into them — your
           questions, drafting instructions, the draft you are revising, and any images or PDFs you
           attach — is sent to Anthropic, the provider of the Claude AI model, to generate a
-          response. Your name, email address, and account details are not sent with it. We ask for
-          your permission before these features are first used, and you can withdraw it at any time
-          in Settings. We do not keep a copy of your conversation with the assistant; a draft you
-          choose to save is stored with your other documents. Avoid sharing information in these
-          features that you would not want processed to answer your request.
+          response. When you enable Web search in Counsellor AI, that query is also used by
+          Anthropic to retrieve live web results so the model can check freshness and outside
+          sources; LegalFinder still prefers its own Uganda corpus when both are available. Your
+          name, email address, and account details are not sent with it. We ask for your permission
+          before these features are first used, and you can withdraw it at any time in Settings. We
+          do not keep a copy of your conversation with the assistant; a draft you choose to save is
+          stored with your other documents. Avoid sharing information in these features that you
+          would not want processed to answer your request.
         </p>
         <p>
           <span className="font-medium text-foreground">Device and usage data.</span> We use

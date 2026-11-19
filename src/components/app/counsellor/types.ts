@@ -1,6 +1,7 @@
 import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
 import type { CounsellorSource } from "@/lib/assistant-sources";
+import type { CounsellorWebSource } from "@/lib/assistant-web-sources";
 
 export type ChatRole = "user" | "assistant";
 
@@ -13,6 +14,8 @@ export type ChatMessage = {
   attachments?: CounsellorAttachment[];
   /** LegalFinder sources retrieved for this turn (assistant messages only). */
   sources?: CounsellorSource[];
+  /** Live web citations when Web search was on for this turn. */
+  webSources?: CounsellorWebSource[];
   /** Verified advocate suggestions for this turn (assistant messages only). */
   advocates?: CounsellorAdvocate[];
 };

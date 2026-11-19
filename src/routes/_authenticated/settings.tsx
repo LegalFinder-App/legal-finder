@@ -170,8 +170,9 @@ function SettingsPage() {
             <Label htmlFor="ai-features">AI features</Label>
             <p className="mt-1 text-sm text-muted-foreground">
               Let Counsellor AI and AI-assisted drafting send what you type (and any attachments) to
-              our AI provider to generate replies. Off: both ask again before they are used, and
-              Counsellor chats stored on this device are cleared.
+              Anthropic to generate replies. With Web search on in Counsellor, the query also
+              retrieves live web results. Off: both ask again before they are used, and Counsellor
+              chats stored on this device are cleared.
             </p>
           </div>
           <Switch

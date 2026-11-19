@@ -36,6 +36,7 @@ export const Route = createFileRoute("/api/assistant/stream")({
                 for await (const event of streamAssistant(body.messages, {
                   signal,
                   mode: body.mode ?? "assistant",
+                  webSearch: body.webSearch ?? false,
                   attachments: body.attachments,
                 })) {
                   send(event);

@@ -35,6 +35,14 @@ export type AssistantAdvocate = {
   href: string;
 };
 
+export type AssistantWebSource = {
+  id: string;
+  title: string;
+  url: string;
+  snippet: string | null;
+  pageAge?: string | null;
+};
+
 // TanStack Start's answer to a JSON request for a path it has no route for (status 500).
 const ROUTE_MISSING = "Only HTML requests are supported here";
 
@@ -94,12 +102,39 @@ export async function apiPost<T>(path: string, body: unknown = {}): Promise<T> {
 export const api = {
   /** Provisions the profile/default role on first sign-in and returns the caller's roles. */
   session: () => apiPost<{ userId: string; roles: string[] }>("/api/mobile/session"),
-  askAssistant: (messages: { role: "user" | "assistant"; content: string }[]) =>
+  askAssistant: (
+    messages: { role: "user" | "assistant"; content: string }[],
+    options: { mode?: "assistant" | "research"; webSearch?: boolean } = {},
+  ) =>
     apiPost<{
       reply: string;
       sources?: AssistantSource[];
       advocates?: AssistantAdvocate[];
-    }>("/api/mobile/assistant", { messages }),
+      webSources?: AssistantWebSource[];
+    }>("/api/mobile/assistant", {
+      messages,
+      mode: options.mode,
+      webSearch: options.webSearch ?? false,
+    }),
+  /** Corpus search for Legal Research mode — same backend as the website research pane. */
+  searchResearch: (request: {
+    query?: string;
+    kinds?: Array<"advice" | "judgment" | "library" | "news">;
+    court?: string | null;
+    category?: string | null;
+    dateFrom?: string | null;
+    dateTo?: string | null;
+    limit?: number;
+  }) =>
+    apiPost<{
+      query: string;
+      sources: AssistantSource[];
+      facets: {
+        courts: string[];
+        categories: string[];
+        counts: Record<"advice" | "judgment" | "library" | "news", number>;
+      };
+    }>("/api/mobile/assistant/research", request),
   startPayment: (paymentId: string) =>
     apiPost<{ redirectUrl: string }>("/api/mobile/payments/initiate", { paymentId }),
   imageUploadAuth: (extension: string, purpose: "profile" | "content" | "assistant" = "profile") =>

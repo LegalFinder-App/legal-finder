@@ -7,6 +7,7 @@ import { AssistantMarkdown } from "./assistant-markdown";
 import { CitationCard, SourcePreview } from "./citation";
 import { GroundingPill } from "./grounding-pill";
 import { AdvocateCardRow, ImageLightbox, MessageAttachments } from "./media";
+import { WebSourceChip } from "./visuals";
 import type { ChatMessage } from "./types";
 
 export function MessageBubble({
@@ -199,6 +200,23 @@ export function MessageBubble({
             <p className="text-[11px] leading-relaxed text-muted-foreground">
               Guides are editorial. Judgments, legislation and headlines are labelled honestly —
               verify against the original when it matters.
+            </p>
+          </div>
+        )}
+
+        {!isUser && !streaming && (message.webSources?.length ?? 0) > 0 && (
+          <div className="mt-3 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Web · verify independently
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {message.webSources!.slice(0, 8).map((source) => (
+                <WebSourceChip key={source.id} title={source.title} url={source.url} />
+              ))}
+            </div>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Live web pages are not LegalFinder catalogue entries. Prefer official Uganda sources
+              and open the original when it matters.
             </p>
           </div>
         )}

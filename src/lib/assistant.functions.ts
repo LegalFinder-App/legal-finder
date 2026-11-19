@@ -31,6 +31,8 @@ export const chatRequestSchema = z.object({
       message: "The last message must be a question from you.",
     }),
   mode: z.enum(["assistant", "research"]).optional(),
+  /** Live Anthropic web_search; UI defaults on in Research, off in Everyday. */
+  webSearch: z.boolean().optional(),
   /** Applied to the latest user turn for multimodal Counsellor requests. */
   attachments: z.array(attachmentSchema).max(3).optional(),
 });
@@ -39,7 +41,7 @@ export const researchRequestSchema = z.object({
   query: z.string().max(400).default(""),
   kinds: z
     .array(z.enum(["advice", "judgment", "library", "news"]))
-    .max(3)
+    .max(4)
     .optional(),
   court: z.string().max(120).nullable().optional(),
   category: z.string().max(120).nullable().optional(),
@@ -67,6 +69,7 @@ export const askAssistant = createServerFn({ method: "POST" })
     const { runAssistant } = await import("@/lib/assistant.server");
     return runAssistant(data.messages, {
       mode: data.mode ?? "assistant",
+      webSearch: data.webSearch ?? false,
       attachments: data.attachments,
     });
   });

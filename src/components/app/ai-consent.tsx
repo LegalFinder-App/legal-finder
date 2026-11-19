@@ -86,7 +86,7 @@ export function AiConsentGate({
         <ConsentPoint
           icon={<Lock className="h-4 w-4" />}
           title="What you type is sent to generate a reply"
-          body="Questions, drafting instructions, and any images or PDFs you attach go to our AI provider for that answer. Your name and email are not sent with them."
+          body="Questions, drafting instructions, and any images or PDFs you attach go to Anthropic for that answer. If you turn on Web search, your query is also used for live web results through Anthropic. Your name and email are not sent with them."
         />
         <ConsentPoint
           icon={<Shield className="h-4 w-4" />}

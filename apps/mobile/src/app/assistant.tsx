@@ -13,21 +13,29 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
-import { BookOpen, ExternalLink, SendHorizontal, ShieldCheck } from "lucide-react-native";
+import { BookOpen, ExternalLink, Globe, SendHorizontal, ShieldCheck } from "lucide-react-native";
 import { CounsellorMark } from "@/components/CounsellorMark";
+import { CounsellorResearch } from "@/components/CounsellorResearch";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useWideLayout, wideColumn } from "@/lib/layout";
 import { fonts } from "@/theme/tokens";
-import { Chip, EmptyState, KeyboardLift, Text } from "@/components/ui";
+import { Chip, EmptyState, KeyboardLift, Segmented, Text } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { AiConsentGate } from "@/components/AiConsent";
-import { api, type AssistantAdvocate, type AssistantSource } from "@/lib/api";
+import {
+  api,
+  type AssistantAdvocate,
+  type AssistantSource,
+  type AssistantWebSource,
+} from "@/lib/api";
 import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 import { mediaUrl } from "@/lib/media";
 import { appSettingsQuery } from "@/lib/queries";
 import { errorMessage } from "@/lib/toast";
 import { Image } from "expo-image";
+
+type CounsellorMode = "assistant" | "research";
 
 type Turn = {
   id: string;
@@ -35,6 +43,7 @@ type Turn = {
   content: string;
   sources?: AssistantSource[];
   advocates?: AssistantAdvocate[];
+  webSources?: AssistantWebSource[];
 };
 
 const STARTERS = [
@@ -170,10 +179,17 @@ function Counsellor() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const wide = useWideLayout();
+  const [mode, setMode] = useState<CounsellorMode>("assistant");
+  const [webSearch, setWebSearch] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [researchSeed, setResearchSeed] = useState("");
   const listRef = useRef<FlatList<Turn>>(null);
+
+  useEffect(() => {
+    setWebSearch(mode === "research");
+  }, [mode]);
 
   useEffect(() => {
     const sub = KeyboardEvents.addListener("keyboardDidShow", () =>
@@ -182,9 +198,11 @@ function Counsellor() {
     return () => sub.remove();
   }, []);
 
-  const ask = async (text: string) => {
+  const ask = async (text: string, askMode: CounsellorMode = mode) => {
     const content = text.trim();
     if (!content || thinking) return;
+    // Phone Research tab hides chat — switch so the reply is visible. Desktop keeps the split.
+    if (!wide) setMode("assistant");
     const userTurn: Turn = { id: newId(), role: "user", content };
     const next = [...turns, userTurn].slice(-20);
     setTurns(next);
@@ -192,7 +210,10 @@ function Counsellor() {
     setThinking(true);
     try {
       const payload = next.map(({ role, content: body }) => ({ role, content: body }));
-      const { reply, sources, advocates } = await api.askAssistant(payload);
+      const { reply, sources, advocates, webSources } = await api.askAssistant(payload, {
+        mode: askMode,
+        webSearch,
+      });
       setTurns((t) => [
         ...t,
         {
@@ -201,6 +222,7 @@ function Counsellor() {
           content: reply,
           sources: sources ?? [],
           advocates: advocates ?? [],
+          webSources: webSources ?? [],
         },
       ]);
     } catch (error) {
@@ -217,11 +239,17 @@ function Counsellor() {
     }
   };
 
-  const lastAssistant = [...turns].reverse().find((t) => t.role === "assistant");
+  const askAboutSource = (source: AssistantSource) => {
+    const prompt = `Explain how “${source.title}” applies under Ugandan law, what it covers, and what a careful next step looks like. Prefer LegalFinder sources.`;
+    void ask(prompt, "research");
+  };
 
-  return (
-    <KeyboardLift style={{ flex: 1, backgroundColor: colors.background }} gap={10}>
-      <View style={[{ flex: 1 }, wide && wideColumn]}>
+  const lastAssistant = [...turns].reverse().find((t) => t.role === "assistant");
+  const showResearchPane = mode === "research";
+  const splitResearch = wide && showResearchPane;
+
+  const chatColumn = (
+    <View style={{ flex: 1 }}>
         <FlatList
           ref={listRef}
           data={turns}
@@ -237,7 +265,9 @@ function Counsellor() {
           ListHeaderComponent={
             <View style={{ gap: 10, marginBottom: 6 }}>
               <Text variant="caption" tone="muted" align="center">
-                Grounded in LegalFinder’s Uganda corpus · not legal advice
+                {mode === "research"
+                  ? "Research mode · deeper corpus grounding"
+                  : "Grounded in LegalFinder’s Uganda corpus · not legal advice"}
               </Text>
               {turns.length > 0 ? (
                 <Pressable
@@ -319,6 +349,32 @@ function Counsellor() {
                   ) : null}
                 </View>
                 <Markdown text={displayText(item.content)} />
+                {(item.webSources?.length ?? 0) > 0 && (
+                  <View style={{ gap: 8 }}>
+                    <Text variant="caption" tone="muted">
+                      Web · verify independently
+                    </Text>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      {item.webSources!.slice(0, 8).map((source) => (
+                        <Pressable
+                          key={source.id}
+                          accessibilityRole="link"
+                          onPress={() => openExternal(source.url)}
+                          style={[
+                            styles.webChip,
+                            { borderColor: colors.border, backgroundColor: colors.secondary },
+                          ]}
+                        >
+                          <Globe size={12} color={colors.mutedForeground} />
+                          <Text variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
+                            {source.title}
+                          </Text>
+                          <ExternalLink size={11} color={colors.brass} />
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                )}
                 {(item.sources?.length ?? 0) > 0 && (
                   <View style={{ gap: 8 }}>
                     <Text variant="caption" tone="muted">
@@ -536,7 +592,7 @@ function Counsellor() {
               accessibilityRole="button"
               accessibilityLabel="Send"
               disabled={!draft.trim() || thinking}
-              onPress={() => void ask(draft)}
+              onPress={() => void ask(draft, mode === "research" ? "research" : "assistant")}
               style={[
                 styles.send,
                 { backgroundColor: draft.trim() && !thinking ? colors.brass : colors.muted },
@@ -559,6 +615,92 @@ function Counsellor() {
             Links to originals · honest authority labels · we do not scrape ULII
           </Text>
         </View>
+    </View>
+  );
+
+  const researchColumn = (
+    <CounsellorResearch
+      seededQuery={researchSeed}
+      onOpenSource={openSource}
+      onAskAboutSource={askAboutSource}
+      onUseInChat={(q) => {
+        setDraft(q);
+        setMode("assistant");
+      }}
+    />
+  );
+
+  return (
+    <KeyboardLift style={{ flex: 1, backgroundColor: colors.background }} gap={10}>
+      <View style={[{ flex: 1 }, wide && !splitResearch && wideColumn]}>
+        <View
+          style={{
+            paddingHorizontal: 12,
+            paddingTop: 8,
+            paddingBottom: 6,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: colors.border,
+          }}
+        >
+          <Segmented
+            options={[
+              { value: "assistant", label: "Everyday" },
+              { value: "research", label: "Research" },
+            ]}
+            value={mode}
+            onChange={(next) => {
+              setMode(next);
+              if (next === "research" && draft.trim()) setResearchSeed(draft.trim());
+            }}
+          />
+          <Pressable
+            accessibilityRole="switch"
+            accessibilityState={{ checked: webSearch }}
+            onPress={() => setWebSearch((v) => !v)}
+            style={{
+              marginTop: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              borderRadius: 12,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: webSearch ? colors.brass : colors.border,
+              backgroundColor: webSearch ? colors.accent : colors.card,
+            }}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text variant="small" style={{ fontFamily: fonts.sansSemiBold }}>
+                Web search
+              </Text>
+              <Text variant="caption" tone="muted">
+                {webSearch ? "Live web · verify carefully" : "Corpus only · tap to enable"}
+              </Text>
+            </View>
+            <Globe size={18} color={webSearch ? colors.brass : colors.mutedForeground} />
+          </Pressable>
+        </View>
+
+        {splitResearch ? (
+          <View style={{ flex: 1, flexDirection: "row" }}>
+            <View style={{ flex: 1, minWidth: 0 }}>{chatColumn}</View>
+            <View
+              style={{
+                width: 380,
+                maxWidth: "42%",
+                borderLeftWidth: StyleSheet.hairlineWidth,
+                borderLeftColor: colors.border,
+              }}
+            >
+              {researchColumn}
+            </View>
+          </View>
+        ) : showResearchPane ? (
+          researchColumn
+        ) : (
+          chatColumn
+        )}
       </View>
     </KeyboardLift>
   );
@@ -655,4 +797,14 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   send: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
+  webChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    maxWidth: "100%",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
 });

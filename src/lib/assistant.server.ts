@@ -5,15 +5,22 @@ import type Anthropic from "@anthropic-ai/sdk";
 import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
 import type { CounsellorSource } from "@/lib/assistant-sources";
+import {
+  dedupeWebSources,
+  webSourceId,
+  type CounsellorWebSource,
+} from "@/lib/assistant-web-sources";
 import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export { COUNSELLOR_CREATOR };
+export type { CounsellorWebSource };
 
 export type AssistantStreamEvent =
   | { type: "delta"; text: string }
   | { type: "status"; label: string }
   | { type: "sources"; sources: CounsellorSource[] }
+  | { type: "web_sources"; sources: CounsellorWebSource[] }
   | { type: "advocates"; advocates: CounsellorAdvocate[] }
   | { type: "done"; stopReason: string | null }
   | { type: "error"; message: string };
@@ -77,8 +84,32 @@ const RESEARCH_MODE_APPENDIX = `Research mode (active)
 - Open with the strongest attached authorities, then synthesize. Prefer dated judgments/headlines when the question turns on current practice.
 - Still use [[cite:KIND:ID]] for every attached source you rely on. Do not dump every source — cite what actually carries the answer.`;
 
+const WEB_SEARCH_APPENDIX = `Web search (enabled for this turn)
+- You may use the web_search tool for freshness, gaps in the attached LegalFinder corpus, or non-catalogue facts.
+- Prefer official Uganda sources (.go.ug, Judiciary, Parliament, ULII) and LegalFinder itself. Treat blogs, social posts, forums, and aggregators as unverified rumour unless corroborated.
+- LegalFinder attached sources win on conflict — say so plainly when web pages disagree with the corpus.
+- Never invent URLs, case names, Cap./section numbers, or cite IDs. Link only to pages the tool actually returned.
+- When you used web search, end with a short **Confidence:** High / Mixed / Low line and one sentence why.
+- Diagrams: when a process, timeline, or relationship helps, emit a fenced \`\`\`mermaid block (or a tiny \`\`\`svg). Diagrams are illustrative — not official forms or court orders.
+- Images: only when a figure from search is necessary, emit markdown ![alt](https://…) using a real https URL from search results. Never invent image URLs. Never treat external images as verified evidence.`;
+
+const VISUALS_APPENDIX = `Visuals (when helpful)
+- Prefer a clear Mermaid flowchart/sequence/timeline over a long prose list for multi-step legal processes.
+- Keep diagrams short (under ~20 nodes). No scripts inside SVG. No invented seals, letterheads, or signatures.`;
+
 const MAX_TOKENS = 4096;
 const MODEL = "claude-opus-5-5";
+const WEB_SEARCH_TOOL = {
+  type: "web_search_20250305" as const,
+  name: "web_search" as const,
+  max_uses: 5,
+  // Opus 5.5 without programmatic tool calling needs direct search.
+  allowed_callers: ["direct" as const],
+  user_location: {
+    type: "approximate" as const,
+    country: "UG",
+  },
+};
 
 const CUT_SHORT =
   "\n\n(This answer was cut short. Ask me to continue, or ask about one part at a time.)";
@@ -131,9 +162,66 @@ export type AssistantMode = "assistant" | "research";
 
 export type AssistantRunOptions = {
   mode?: AssistantMode;
+  /** Live Anthropic web_search — UI defaults on in Research, off in Everyday. */
+  webSearch?: boolean;
   attachments?: CounsellorAttachment[];
   signal?: AbortSignal;
 };
+
+function isWebSearchDisabledError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return (
+    message.includes("web search") &&
+    (message.includes("not enabled") ||
+      message.includes("disabled") ||
+      message.includes("invalid_request"))
+  );
+}
+
+/** Extract web_search_result rows (and text citations) into UI-facing web sources. */
+export function extractWebSourcesFromContent(
+  content: Anthropic.ContentBlock[] | undefined,
+): CounsellorWebSource[] {
+  if (!content?.length) return [];
+  const found: CounsellorWebSource[] = [];
+  let index = 0;
+
+  for (const block of content) {
+    if (block.type === "web_search_tool_result") {
+      const payload = block.content;
+      if (!Array.isArray(payload)) continue;
+      for (const result of payload) {
+        if (result.type !== "web_search_result" || !result.url) continue;
+        found.push({
+          id: webSourceId(result.url, index++),
+          title: result.title || result.url,
+          url: result.url,
+          snippet: null,
+          pageAge: result.page_age ?? null,
+        });
+      }
+    }
+    if (block.type === "text" && Array.isArray(block.citations)) {
+      for (const citation of block.citations) {
+        if (!("url" in citation) || typeof citation.url !== "string") continue;
+        found.push({
+          id: webSourceId(citation.url, index++),
+          title:
+            ("title" in citation && typeof citation.title === "string" && citation.title) ||
+            citation.url,
+          url: citation.url,
+          snippet:
+            "cited_text" in citation && typeof citation.cited_text === "string"
+              ? citation.cited_text
+              : null,
+        });
+      }
+    }
+  }
+
+  return dedupeWebSources(found);
+}
 
 function sourceFreshnessKey(source: CounsellorSource): string {
   return source.decidedOn ?? (source.year ? `${source.year}-01-01` : "");
@@ -200,11 +288,13 @@ async function buildRequest(
   advocates: CounsellorAdvocate[],
   attachments?: CounsellorAttachment[],
   mode: AssistantMode = "assistant",
+  webSearch = false,
 ) {
   const { formatSourcesForPrompt } = await import("@/lib/assistant-sources.server");
   const { formatAdvocatesForPrompt } = await import("@/lib/assistant-advocates.server");
   const extras = [
     mode === "research" ? RESEARCH_MODE_APPENDIX : "",
+    webSearch ? WEB_SEARCH_APPENDIX : VISUALS_APPENDIX,
     formatSourcesForPrompt(sources),
     formatAdvocatesForPrompt(advocates),
   ]
@@ -230,7 +320,23 @@ async function buildRequest(
     // Medium effort: stronger legal reasoning without blowing request budgets.
     output_config: { effort: "medium" as const },
     messages: apiMessages,
+    ...(webSearch ? { tools: [WEB_SEARCH_TOOL] } : {}),
   };
+}
+
+/** Test helper — same request shape sent to Anthropic. */
+export async function buildAssistantRequestForTest(
+  messages: ChatMessage[],
+  options: Pick<AssistantRunOptions, "mode" | "webSearch" | "attachments"> = {},
+) {
+  return buildRequest(
+    messages,
+    [],
+    [],
+    options.attachments,
+    options.mode ?? "assistant",
+    options.webSearch ?? false,
+  );
 }
 
 /**
@@ -244,30 +350,52 @@ export async function runAssistant(
   reply: string;
   sources: CounsellorSource[];
   advocates: CounsellorAdvocate[];
+  webSources: CounsellorWebSource[];
 }> {
   const mode = options.mode ?? "assistant";
+  let webSearch = options.webSearch ?? false;
   const [sources, advocates] = await Promise.all([
     loadSources(messages, mode),
     loadAdvocates(messages),
   ]);
   const { client, AnthropicClient } = await createClient();
-  const body = await buildRequest(
+  let body = await buildRequest(
     messages,
     sources,
     advocates,
     options.attachments,
     mode,
+    webSearch,
   );
 
   let response;
   try {
     response = await client.messages.create(body);
   } catch (error) {
-    mapAnthropicError(error, AnthropicClient);
+    if (webSearch && isWebSearchDisabledError(error)) {
+      webSearch = false;
+      body = await buildRequest(
+        messages,
+        sources,
+        advocates,
+        options.attachments,
+        mode,
+        false,
+      );
+      try {
+        response = await client.messages.create(body);
+      } catch (retryError) {
+        mapAnthropicError(retryError, AnthropicClient);
+      }
+    } else {
+      mapAnthropicError(error, AnthropicClient);
+    }
   }
 
+  const webSources = webSearch ? extractWebSourcesFromContent(response.content) : [];
+
   if (response.stop_reason === "refusal") {
-    return { reply: REFUSAL, sources, advocates };
+    return { reply: REFUSAL, sources, advocates, webSources };
   }
 
   const textBlock = response.content.find(
@@ -279,12 +407,14 @@ export async function runAssistant(
       reply: text ? `${text}${CUT_SHORT}` : EMPTY_CUT,
       sources,
       advocates,
+      webSources,
     };
   }
   return {
     reply: text || "I didn't get a response — please try again.",
     sources,
     advocates,
+    webSources,
   };
 }
 
@@ -299,6 +429,7 @@ export async function* streamAssistant(
   yield { type: "status", label: "Understanding your question" };
 
   const mode = options.mode ?? "assistant";
+  let webSearch = options.webSearch ?? false;
   const [sources, advocates] = await Promise.all([
     loadSources(messages, mode),
     loadAdvocates(messages),
@@ -324,16 +455,33 @@ export async function* streamAssistant(
     yield { type: "status", label: "Reading your attachment" };
   }
 
+  if (webSearch) {
+    yield { type: "status", label: "Searching the open web carefully" };
+  }
+
   yield { type: "status", label: "Preparing a careful answer" };
 
   const { client, AnthropicClient } = await createClient();
-  const body = await buildRequest(
+  let body = await buildRequest(
     messages,
     sources,
     advocates,
     options.attachments,
     mode,
+    webSearch,
   );
+
+  const collectedWeb: CounsellorWebSource[] = [];
+  let emittedWeb = false;
+
+  const emitWebIfReady = function* () {
+    if (emittedWeb || collectedWeb.length === 0) return;
+    emittedWeb = true;
+    yield {
+      type: "web_sources" as const,
+      sources: dedupeWebSources(collectedWeb),
+    };
+  };
 
   let stream;
   try {
@@ -343,14 +491,43 @@ export async function* streamAssistant(
       yield { type: "done", stopReason: "aborted" };
       return;
     }
-    try {
-      mapAnthropicError(error, AnthropicClient);
-    } catch (mapped) {
+    if (webSearch && isWebSearchDisabledError(error)) {
+      webSearch = false;
       yield {
-        type: "error",
-        message: mapped instanceof Error ? mapped.message : "Counsellor AI is unavailable.",
+        type: "status",
+        label: "Web search unavailable — answering from LegalFinder sources",
       };
-      return;
+      body = await buildRequest(
+        messages,
+        sources,
+        advocates,
+        options.attachments,
+        mode,
+        false,
+      );
+      try {
+        stream = client.messages.stream(body, { signal: options.signal });
+      } catch (retryError) {
+        try {
+          mapAnthropicError(retryError, AnthropicClient);
+        } catch (mapped) {
+          yield {
+            type: "error",
+            message: mapped instanceof Error ? mapped.message : "Counsellor AI is unavailable.",
+          };
+          return;
+        }
+      }
+    } else {
+      try {
+        mapAnthropicError(error, AnthropicClient);
+      } catch (mapped) {
+        yield {
+          type: "error",
+          message: mapped instanceof Error ? mapped.message : "Counsellor AI is unavailable.",
+        };
+        return;
+      }
     }
   }
 
@@ -361,9 +538,18 @@ export async function* streamAssistant(
     for await (const event of stream) {
       if (options.signal?.aborted) break;
 
-      if (event.type === "content_block_start" && event.content_block.type === "text") {
-        if (!emittedText) {
+      if (event.type === "content_block_start") {
+        const block = event.content_block;
+        if (block.type === "text" && !emittedText) {
           yield { type: "status", label: "Writing your answer" };
+        }
+        if (block.type === "web_search_tool_result") {
+          const parsed = extractWebSourcesFromContent([block]);
+          collectedWeb.push(...parsed);
+          yield* emitWebIfReady();
+        }
+        if (block.type === "server_tool_use" && block.name === "web_search") {
+          yield { type: "status", label: "Checking live web results" };
         }
       }
 
@@ -385,14 +571,59 @@ export async function* streamAssistant(
       yield { type: "done", stopReason: "aborted" };
       return;
     }
-    try {
-      mapAnthropicError(error, AnthropicClient);
-    } catch (mapped) {
+    // Stream start can fail mid-flight when web search is disabled on the org.
+    if (webSearch && isWebSearchDisabledError(error) && !emittedText) {
+      webSearch = false;
       yield {
-        type: "error",
-        message: mapped instanceof Error ? mapped.message : "Counsellor AI is unavailable.",
+        type: "status",
+        label: "Web search unavailable — answering from LegalFinder sources",
       };
-      return;
+      body = await buildRequest(
+        messages,
+        sources,
+        advocates,
+        options.attachments,
+        mode,
+        false,
+      );
+      try {
+        const retryStream = client.messages.stream(body, { signal: options.signal });
+        for await (const event of retryStream) {
+          if (options.signal?.aborted) break;
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta" &&
+            event.delta.text
+          ) {
+            if (!emittedText) yield { type: "status", label: "Writing your answer" };
+            emittedText = true;
+            yield { type: "delta", text: event.delta.text };
+          }
+          if (event.type === "message_delta") {
+            stopReason = event.delta.stop_reason ?? stopReason;
+          }
+        }
+      } catch (retryError) {
+        try {
+          mapAnthropicError(retryError, AnthropicClient);
+        } catch (mapped) {
+          yield {
+            type: "error",
+            message: mapped instanceof Error ? mapped.message : "Counsellor AI is unavailable.",
+          };
+          return;
+        }
+      }
+    } else {
+      try {
+        mapAnthropicError(error, AnthropicClient);
+      } catch (mapped) {
+        yield {
+          type: "error",
+          message: mapped instanceof Error ? mapped.message : "Counsellor AI is unavailable.",
+        };
+        return;
+      }
     }
   }
 
@@ -400,6 +631,8 @@ export async function* streamAssistant(
     yield { type: "done", stopReason: "aborted" };
     return;
   }
+
+  yield* emitWebIfReady();
 
   if (stopReason === "refusal") {
     if (!emittedText) yield { type: "delta", text: REFUSAL };

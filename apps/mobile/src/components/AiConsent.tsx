@@ -78,7 +78,7 @@ export function AiConsentGate({
         <Point
           icon={<Lock size={16} color={colors.brass} />}
           title="What you type generates the reply"
-          body="Questions, drafts, and attachments go to our AI provider. Your name and email are not sent with them."
+          body="Questions, drafts, and attachments go to Anthropic. With Web search on, your query also retrieves live web results. Your name and email are not sent with them."
           colors={colors}
         />
         <Point

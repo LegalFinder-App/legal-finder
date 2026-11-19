@@ -76,6 +76,7 @@ export function CounsellorWorkspace() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<CounsellorMode>("assistant");
+  const [webSearch, setWebSearch] = useState(false);
   const [researchOpen, setResearchOpen] = useState(true);
   const [researchHistory, setResearchHistory] = useState<ResearchHistoryEntry[]>([]);
   const [panelSource, setPanelSource] = useState<CounsellorSource | null>(null);
@@ -142,7 +143,12 @@ export function CounsellorWorkspace() {
   }, []);
 
   useEffect(() => {
-    if (mode === "research") setResearchOpen(true);
+    if (mode === "research") {
+      setResearchOpen(true);
+      setWebSearch(true);
+    } else {
+      setWebSearch(false);
+    }
   }, [mode]);
 
   useEffect(() => {
@@ -265,6 +271,24 @@ export function CounsellorWorkspace() {
     );
   };
 
+  const attachWebSources = (
+    conversationId: string,
+    assistantId: string,
+    webSources: import("@/lib/assistant-web-sources").CounsellorWebSource[],
+  ) => {
+    setConversations((prev) =>
+      prev.map((conversation) => {
+        if (conversation.id !== conversationId) return conversation;
+        return {
+          ...conversation,
+          messages: conversation.messages.map((message) =>
+            message.id === assistantId ? { ...message, webSources } : message,
+          ),
+        };
+      }),
+    );
+  };
+
   const activeSources = useMemo(() => {
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
     return lastAssistant?.sources ?? [];
@@ -337,9 +361,11 @@ export function CounsellorWorkspace() {
       await streamCounsellorReply(payload, {
         signal: controller.signal,
         mode,
+        webSearch,
         attachments: pendingAttachments,
         onStatus: (label) => setStatusLabel(label),
         onSources: (sources) => attachSources(conversationId, assistantId, sources),
+        onWebSources: (sources) => attachWebSources(conversationId, assistantId, sources),
         onAdvocates: (advocates) => attachAdvocates(conversationId, assistantId, advocates),
         onDelta: (chunk) => {
           sawDelta = true;
@@ -451,6 +477,8 @@ export function CounsellorWorkspace() {
         }
         mode={mode}
         onModeChange={setMode}
+        webSearch={webSearch}
+        onWebSearchChange={setWebSearch}
         onOpenSettings={() => setDialog("settings")}
         onOpenHelp={() => setDialog("help")}
       />
@@ -475,8 +503,12 @@ export function CounsellorWorkspace() {
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               {mode === "research"
-                ? "Corpus-first research · cite what you open"
-                : "Senior Uganda guide · grounded answers"}
+                ? webSearch
+                  ? "Corpus-first · web search on · verify carefully"
+                  : "Corpus-first research · cite what you open"
+                : webSearch
+                  ? "Senior Uganda guide · live web search on"
+                  : "Senior Uganda guide · grounded answers"}
               {sending ? " · drafting" : " · ready"}
             </p>
           </div>
