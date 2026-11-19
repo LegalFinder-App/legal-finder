@@ -53,6 +53,7 @@ export function mergeFacets(current: ResearchFacets, next: ResearchFacets): Rese
       advice: Math.max(current.counts.advice, next.counts.advice),
       judgment: Math.max(current.counts.judgment, next.counts.judgment),
       library: Math.max(current.counts.library, next.counts.library),
+      news: Math.max(current.counts.news, next.counts.news),
     },
   };
 }

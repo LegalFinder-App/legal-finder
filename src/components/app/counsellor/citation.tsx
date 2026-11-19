@@ -21,12 +21,14 @@ const AUTHORITY_STYLES: Record<SourceAuthority, string> = {
   legislation: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   editorial: "border-border bg-secondary text-muted-foreground",
   catalogue: "border-border bg-secondary/80 text-muted-foreground",
+  news: "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
 };
 
 function SourceIcon({ authority }: { authority: SourceAuthority }) {
   if (authority === "judgment") return <Gavel className="h-3.5 w-3.5" aria-hidden />;
   if (authority === "legislation") return <Scale className="h-3.5 w-3.5" aria-hidden />;
   if (authority === "editorial") return <BookOpen className="h-3.5 w-3.5" aria-hidden />;
+  if (authority === "news") return <ExternalLink className="h-3.5 w-3.5" aria-hidden />;
   return <Library className="h-3.5 w-3.5" aria-hidden />;
 }
 
@@ -190,18 +192,32 @@ export function SourcePreview({
           )}
 
           <div className="flex flex-wrap gap-2 pt-2">
-            <Button asChild variant="brass" size="sm" className="gap-1.5">
-              <a href={source.href}>
-                Open on LegalFinder <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-            </Button>
-            {source.externalUrl && (
+            {source.kind === "news" && source.externalUrl ? (
+              <Button asChild variant="brass" size="sm" className="gap-1.5">
+                <a href={source.externalUrl} target="_blank" rel="noreferrer">
+                  Open original <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+            ) : (
+              <Button asChild variant="brass" size="sm" className="gap-1.5">
+                <a href={source.href}>
+                  Open on LegalFinder <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+            )}
+            {source.kind === "news" ? (
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <a href={source.href}>
+                  Updates feed <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+            ) : source.externalUrl ? (
               <Button asChild variant="outline" size="sm" className="gap-1.5">
                 <a href={source.externalUrl} target="_blank" rel="noreferrer">
                   Original document <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </SheetContent>

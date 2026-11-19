@@ -50,7 +50,9 @@ Authority labels match Counsellor citations: `judgment` | `legislation` | `edito
 - Registry writes: service role + admin only; public may read non-secret catalogue rows (name, authority, attribution).
 - Secrets (`ULII_API_TOKEN`, embed keys later): server env only.
 
-## Next (Phase 1)
+## Status
 
-- `legal_chunks` + `pgvector` embeddings from `lf-judgements`, `lf-library`, `lf-advice` only where `host_full_text` and `api_status` allow.
-- Hybrid retrieve wired into Counsellor; UI citation polish (Phase 5) in parallel.
+- **Phase 1** — FTS RAG on advice / judgments / library (`PHASE1_RAG.md`).
+- **Phase 2** — Judiciary/UPF headlines as `news` cites + Admin → Corpus (`PHASE2_FEED_CITES.md`).
+- **Phase 3** — Section-aware statute chunking; `ug-*` stay link-only until hostable PDFs (`PHASE3_CORE_PACK.md`).
+- **Phase 4 next** — Counsellor senior-counsel prompt + creator credit + eval set.

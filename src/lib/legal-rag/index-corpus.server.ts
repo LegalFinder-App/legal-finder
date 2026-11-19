@@ -2,9 +2,9 @@
 // No OpenAI — chunks are searched with Postgres FTS; Claude (ANTHROPIC_API_KEY) answers + expands queries.
 import { createHash } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { chunkText, hashContent, stripHtml } from "@/lib/legal-rag/chunk";
+import { chunkStatuteText, chunkText, hashContent, stripHtml } from "@/lib/legal-rag/chunk";
 
-type SourceKind = "advice" | "judgment" | "library";
+type SourceKind = "advice" | "judgment" | "library" | "news";
 
 type DocToIndex = {
   kind: SourceKind;
@@ -12,7 +12,7 @@ type DocToIndex = {
   registrySlug: string;
   title: string;
   citation: string | null;
-  authority: "judgment" | "legislation" | "editorial" | "catalogue";
+  authority: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
   text: string;
   sourceUrl: string | null;
   href: string;
@@ -31,7 +31,7 @@ function libraryAuthority(category: string | null | undefined) {
 }
 
 async function loadDocuments(): Promise<DocToIndex[]> {
-  const [adviceRes, judgmentRes, libraryRes] = await Promise.all([
+  const [adviceRes, judgmentRes, libraryRes, feedRes] = await Promise.all([
     supabaseAdmin
       .from("legal_advices")
       .select("id, title, slug, summary, category, body, updated_at, created_at")
@@ -48,11 +48,19 @@ async function loadDocuments(): Promise<DocToIndex[]> {
       .from("library_items")
       .select("id, title, author, category, description, year, file_url, created_at")
       .limit(200),
+    supabaseAdmin
+      .from("legal_feed_items")
+      .select("id, source, title, summary, category, url, published_at, last_seen_at")
+      .is("removed_at", null)
+      .neq("source", "ulii")
+      .order("published_at", { ascending: false })
+      .limit(120),
   ]);
 
   if (adviceRes.error) throw new Error(adviceRes.error.message);
   if (judgmentRes.error) throw new Error(judgmentRes.error.message);
   if (libraryRes.error) throw new Error(libraryRes.error.message);
+  if (feedRes.error) throw new Error(feedRes.error.message);
 
   const docs: DocToIndex[] = [];
 
@@ -126,6 +134,31 @@ async function loadDocuments(): Promise<DocToIndex[]> {
     });
   }
 
+  for (const row of feedRes.data ?? []) {
+    const text = [row.title, row.summary].filter(Boolean).join("\n\n");
+    if (text.trim().length < 20) continue;
+    const registrySlug = row.source === "judiciary" ? "feed-judiciary" : "feed-upf";
+    docs.push({
+      kind: "news",
+      id: row.id,
+      registrySlug,
+      title: row.title,
+      citation: [row.source === "judiciary" ? "Judiciary of Uganda" : "Uganda Police Force", row.category]
+        .filter(Boolean)
+        .join(" · "),
+      authority: "news",
+      text,
+      sourceUrl: row.url,
+      href: "/updates",
+      court: null,
+      category: row.category,
+      caseNumber: null,
+      decidedOn: row.published_at ? String(row.published_at).slice(0, 10) : null,
+      year: row.published_at ? Number(String(row.published_at).slice(0, 4)) : null,
+      publishedAt: row.published_at ?? row.last_seen_at,
+    });
+  }
+
   return docs;
 }
 
@@ -151,7 +184,13 @@ export async function runLegalCorpusIndex(
 
   for (const doc of docs) {
     try {
-      const pieces = chunkText(doc.text);
+      const statutePieces =
+        doc.authority === "legislation"
+          ? chunkStatuteText(doc.text, { title: doc.citation ?? doc.title })
+          : null;
+      const pieces = statutePieces
+        ? statutePieces.map((p) => p.text)
+        : chunkText(doc.text);
       if (pieces.length === 0) continue;
       const contentHash = hashContent(pieces);
 
@@ -180,7 +219,7 @@ export async function runLegalCorpusIndex(
         source_registry_slug: doc.registrySlug,
         chunk_index: index,
         title: doc.title,
-        citation: doc.citation,
+        citation: statutePieces?.[index]?.citation ?? doc.citation,
         authority: doc.authority,
         chunk_text: piece.slice(0, 7800),
         source_url: doc.sourceUrl,

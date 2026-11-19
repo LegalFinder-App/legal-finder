@@ -474,13 +474,13 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
       legal_chunks: {
         Row: {
           id: string;
-          source_kind: "advice" | "judgment" | "library";
+          source_kind: "advice" | "judgment" | "library" | "news";
           source_id: string;
           source_registry_slug: string | null;
           chunk_index: number;
           title: string;
           citation: string | null;
-          authority: "judgment" | "legislation" | "editorial" | "catalogue";
+          authority: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
           chunk_text: string;
           source_url: string | null;
           href: string | null;
@@ -497,13 +497,13 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
         };
         Insert: {
           id?: string;
-          source_kind: "advice" | "judgment" | "library";
+          source_kind: "advice" | "judgment" | "library" | "news";
           source_id: string;
           source_registry_slug?: string | null;
           chunk_index?: number;
           title: string;
           citation?: string | null;
-          authority: "judgment" | "legislation" | "editorial" | "catalogue";
+          authority: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
           chunk_text: string;
           source_url?: string | null;
           href?: string | null;
@@ -521,7 +521,7 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
         Update: {
           title?: string;
           citation?: string | null;
-          authority?: "judgment" | "legislation" | "editorial" | "catalogue";
+          authority?: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
           chunk_text?: string;
           source_url?: string | null;
           href?: string | null;

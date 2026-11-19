@@ -7,6 +7,7 @@ import {
   Gavel,
   Library,
   Loader2,
+  Newspaper,
   PanelRightClose,
   PanelRightOpen,
   Search,
@@ -54,6 +55,7 @@ const KIND_OPTIONS: Array<{ id: SourceKind; label: string; icon: typeof Gavel }>
   { id: "judgment", label: "Judgments", icon: Gavel },
   { id: "library", label: "Library", icon: Library },
   { id: "advice", label: "Guides", icon: BookOpen },
+  { id: "news", label: "Headlines", icon: Newspaper },
 ];
 
 export function ResearchPanel({

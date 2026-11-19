@@ -38,7 +38,7 @@ export const chatRequestSchema = z.object({
 export const researchRequestSchema = z.object({
   query: z.string().max(400).default(""),
   kinds: z
-    .array(z.enum(["advice", "judgment", "library"]))
+    .array(z.enum(["advice", "judgment", "library", "news"]))
     .max(3)
     .optional(),
   court: z.string().max(120).nullable().optional(),

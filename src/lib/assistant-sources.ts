@@ -3,10 +3,15 @@
  * assembled on the server from live LegalFinder tables — never invented in the UI.
  */
 
-export type SourceKind = "advice" | "judgment" | "library";
+export type SourceKind = "advice" | "judgment" | "library" | "news";
 
 /** How authoritative the record is — never imply editorial guides are official law. */
-export type SourceAuthority = "judgment" | "legislation" | "editorial" | "catalogue";
+export type SourceAuthority =
+  | "judgment"
+  | "legislation"
+  | "editorial"
+  | "catalogue"
+  | "news";
 
 export type CounsellorSource = {
   id: string;
@@ -24,13 +29,15 @@ export type CounsellorSource = {
   caseNumber: string | null;
 };
 
-export const CITE_PATTERN = /\[\[cite:(advice|judgment|library):([a-zA-Z0-9_-]+)\]\]/g;
+export const CITE_PATTERN =
+  /\[\[cite:(advice|judgment|library|news):([a-zA-Z0-9_-]+)\]\]/g;
 
 export const AUTHORITY_LABEL: Record<SourceAuthority, string> = {
   judgment: "Court judgment",
   legislation: "Legislation / statute",
   editorial: "LegalFinder guide",
   catalogue: "Library catalogue",
+  news: "Official headline (aggregation)",
 };
 
 export const AUTHORITY_HINT: Record<SourceAuthority, string> = {
@@ -38,6 +45,7 @@ export const AUTHORITY_HINT: Record<SourceAuthority, string> = {
   legislation: "Catalogue entry for legislation or an official reference text.",
   editorial: "Editorial explanation — not an official legal authority.",
   catalogue: "Library catalogue item — open the original for the full text.",
+  news: "Headline and short summary from Judiciary or UPF — open the original for the full article.",
 };
 
 export function citeToken(kind: SourceKind, id: string) {
@@ -94,7 +102,7 @@ export type ResearchSearchResult = {
 };
 
 export const DEFAULT_RESEARCH_FILTERS: ResearchFilters = {
-  kinds: ["advice", "judgment", "library"],
+  kinds: ["advice", "judgment", "library", "news"],
   court: null,
   category: null,
   dateFrom: null,
@@ -102,5 +110,9 @@ export const DEFAULT_RESEARCH_FILTERS: ResearchFilters = {
 };
 
 export function emptyFacets(): ResearchFacets {
-  return { courts: [], categories: [], counts: { advice: 0, judgment: 0, library: 0 } };
+  return {
+    courts: [],
+    categories: [],
+    counts: { advice: 0, judgment: 0, library: 0, news: 0 },
+  };
 }

@@ -49,7 +49,10 @@ export function MessageBubble({
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(
-        message.content.replace(/\[\[cite:(advice|judgment|library):([a-zA-Z0-9_-]+)\]\]/g, ""),
+        message.content.replace(
+          /\[\[cite:(advice|judgment|library|news):([a-zA-Z0-9_-]+)\]\]/g,
+          "",
+        ),
       );
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);

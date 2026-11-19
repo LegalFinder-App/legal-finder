@@ -46,7 +46,7 @@ function renderInline(text: string, keyPrefix: string, ctx: MarkdownContext): Re
   const nodes: ReactNode[] = [];
   // Citations first, then links/bold/italic, then bare Act/Cap./Art. style cues.
   const regex =
-    /\[\[cite:(advice|judgment|library):([a-zA-Z0-9_-]+)\]\]|\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)|(\b(?:Art(?:icle)?\.?\s*\d+[A-Za-z0-9.-]*|Cap\.?\s*\d+|Act\s+No\.?\s*\d+|\d{4}\s+[A-Z][A-Za-z\s]{2,40}Act)\b)/g;
+    /\[\[cite:(advice|judgment|library|news):([a-zA-Z0-9_-]+)\]\]|\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)|(\b(?:Art(?:icle)?\.?\s*\d+[A-Za-z0-9.-]*|Cap\.?\s*\d+|Act\s+No\.?\s*\d+|\d{4}\s+[A-Z][A-Za-z\s]{2,40}Act)\b)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let index = 0;

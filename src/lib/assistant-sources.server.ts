@@ -76,7 +76,7 @@ function libraryAuthority(category: string | null | undefined): SourceAuthority 
 type Scored = CounsellorSource & { score: number };
 
 async function loadCorpus(): Promise<CounsellorSource[]> {
-  const [adviceRes, judgmentRes, libraryRes] = await Promise.all([
+  const [adviceRes, judgmentRes, libraryRes, feedRes] = await Promise.all([
     supabaseAdmin
       .from("legal_advices")
       .select("id, title, slug, summary, category, body")
@@ -93,6 +93,13 @@ async function loadCorpus(): Promise<CounsellorSource[]> {
       .from("library_items")
       .select("id, title, author, category, description, year, file_url")
       .order("title")
+      .limit(80),
+    supabaseAdmin
+      .from("legal_feed_items")
+      .select("id, source, title, summary, category, url, published_at")
+      .is("removed_at", null)
+      .neq("source", "ulii")
+      .order("published_at", { ascending: false })
       .limit(80),
   ]);
 
@@ -154,6 +161,25 @@ async function loadCorpus(): Promise<CounsellorSource[]> {
     });
   }
 
+  for (const row of feedRes.data ?? []) {
+    const outlet = row.source === "judiciary" ? "Judiciary of Uganda" : "Uganda Police Force";
+    items.push({
+      id: row.id,
+      kind: "news",
+      authority: "news",
+      title: row.title,
+      subtitle: [outlet, row.category].filter(Boolean).join(" · "),
+      summary: row.summary,
+      href: "/updates",
+      externalUrl: row.url,
+      court: null,
+      decidedOn: row.published_at ? String(row.published_at).slice(0, 10) : null,
+      category: row.category,
+      year: row.published_at ? Number(String(row.published_at).slice(0, 4)) : null,
+      caseNumber: null,
+    });
+  }
+
   return items;
 }
 
@@ -177,7 +203,7 @@ function matchesFilters(source: CounsellorSource, filters: ResearchFilters): boo
   if (filters.category && source.category !== filters.category) return false;
 
   if (filters.dateFrom || filters.dateTo) {
-    if (source.kind === "judgment") {
+    if (source.kind === "judgment" || source.kind === "news") {
       if (!source.decidedOn) return false;
       const day = source.decidedOn.slice(0, 10);
       if (filters.dateFrom && day < filters.dateFrom) return false;
@@ -199,7 +225,7 @@ function matchesFilters(source: CounsellorSource, filters: ResearchFilters): boo
 function buildFacets(items: CounsellorSource[]): ResearchFacets {
   const courts = new Set<string>();
   const categories = new Set<string>();
-  const counts: ResearchFacets["counts"] = { advice: 0, judgment: 0, library: 0 };
+  const counts: ResearchFacets["counts"] = { advice: 0, judgment: 0, library: 0, news: 0 };
   for (const item of items) {
     counts[item.kind] += 1;
     if (item.court) courts.add(item.court);
@@ -245,7 +271,8 @@ async function keywordSearch(
     if (b.score !== a.score) return b.score - a.score;
     const aDate = a.decidedOn ?? (a.year ? `${a.year}-01-01` : "");
     const bDate = b.decidedOn ?? (b.year ? `${b.year}-01-01` : "");
-    return bDate.localeCompare(aDate);
+    if (bDate !== aDate) return bDate.localeCompare(aDate);
+    return a.title.localeCompare(b.title);
   });
 
   const sources = scored.slice(0, limit).map(({ score: _score, ...source }) => source);
@@ -308,7 +335,9 @@ export function formatSourcesForPrompt(sources: CounsellorSource[]): string {
           ? "COURT JUDGMENT summary on LegalFinder"
           : source.authority === "legislation"
             ? "LEGISLATION / statute catalogue entry"
-            : "LIBRARY catalogue entry";
+            : source.authority === "news"
+              ? "OFFICIAL HEADLINE (aggregation — open original)"
+              : "LIBRARY catalogue entry";
     return `${index + 1}. [${source.kind}:${source.id}] (${authority}) ${source.title}${
       source.subtitle ? ` — ${source.subtitle}` : ""
     }${source.summary ? `\n   Summary: ${source.summary.slice(0, 280)}` : ""}`;

@@ -35,7 +35,9 @@ function toSource(row: MatchRow): CounsellorSource {
         ? "/advice"
         : row.source_kind === "judgment"
           ? "/judgements"
-          : "/library"),
+          : row.source_kind === "news"
+            ? "/updates"
+            : "/library"),
     externalUrl: row.source_url && /^https?:/i.test(row.source_url) ? row.source_url : null,
     court: row.court,
     decidedOn: row.decided_on,

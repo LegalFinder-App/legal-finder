@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import {
+  Database,
   ExternalLink,
   FileCheck2,
   Flag,
@@ -18,6 +19,7 @@ const TABS = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/content", label: "Content", icon: Newspaper },
+  { to: "/admin/corpus", label: "Corpus", icon: Database },
   { to: "/admin/applications", label: "Applications", icon: FileCheck2 },
   { to: "/admin/verifications", label: "Verifications", icon: ShieldCheck },
   { to: "/admin/reports", label: "Reports", icon: Flag },

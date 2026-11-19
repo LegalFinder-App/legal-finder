@@ -32,18 +32,28 @@ Do **not** add OpenAI keys for this feature.
 
 After SQL is applied and the new code is deployed:
 
+Use the **www** host (apex `legalfinder.co` 308-redirects and curl may only show `Redirecting...`).
+Paste the real secret from Vercel → Settings → Environment Variables → `CRON_SECRET`
+(your local shell usually does **not** have `$CRON_SECRET` set).
+
 ```bash
-curl -sS -H "Authorization: Bearer $CRON_SECRET" \
-  "https://legalfinder.co/api/cron/legal-index"
+# Replace YOUR_CRON_SECRET with the Vercel value (do not commit it).
+curl -sS -H "Authorization: Bearer YOUR_CRON_SECRET" \
+  "https://www.legalfinder.co/api/cron/legal-index"
 ```
 
-Nightly cron: `vercel.json` → `/api/cron/legal-index` at 05:15 UTC.
+A successful run returns JSON like
+`{"ok":true,"documents":…,"chunksUpserted":…,"chunksRemoved":…,"errors":[]}`.
+`{"error":"Unauthorized"}` means the Bearer secret does not match Vercel’s `CRON_SECRET`.
+
+Nightly cron: `vercel.json` → `/api/cron/legal-index` at 05:15 UTC (Vercel injects the secret automatically).
 
 ## 4. What gets indexed
 
 - `legal_advices` (title + summary + body)
 - `judgements` (title + summary + body)
 - `library_items` (title + author + description)
+- Phase 2 also indexes Judiciary/UPF `legal_feed_items` as `news` (see `PHASE2_FEED_CITES.md`)
 
 ULII stays out until a written licence.
 
