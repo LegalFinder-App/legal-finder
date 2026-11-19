@@ -4,7 +4,8 @@ import { Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
-import { SendHorizontal, Sparkles, ShieldCheck } from "lucide-react-native";
+import { SendHorizontal, ShieldCheck } from "lucide-react-native";
+import { CounsellorMark } from "@/components/CounsellorMark";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useWideLayout, wideColumn } from "@/lib/layout";
 import { fonts } from "@/theme/tokens";
@@ -167,7 +168,7 @@ function Counsellor() {
           ListEmptyComponent={
             <View style={{ gap: 18, marginTop: 12 }}>
               <EmptyState
-                icon={<Sparkles size={24} color={colors.brass} />}
+                icon={<CounsellorMark size={24} color={colors.brass} />}
                 title="Your questions deserve clearer answers."
                 description="Explore legal information, understand judgments, and find professional help with Counsellor AI."
               />

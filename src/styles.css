@@ -790,6 +790,22 @@ html [data-sonner-toaster][data-sonner-theme="light"] {
   --error-text: #b42318;
 }
 
+/* ---------- Workspace surfaces (Messages + Counsellor) ---------- */
+
+.messaging-shell {
+  animation: counsellor-rise 380ms var(--ease-standard, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+.workspace-bleed {
+  min-height: calc(100dvh - 3.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .messaging-shell {
+    animation: none;
+  }
+}
+
 /* ---------- Counsellor AI workspace motion ---------- */
 
 @keyframes counsellor-rise {

@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
 import { AiConsentGate } from "@/components/app/ai-consent";
 import { AssistantWorkspace } from "@/components/app/assistant-workspace";
 import { EmptyState } from "@/components/common/bits";
+import { CounsellorMark } from "@/components/brand/counsellor-mark";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { ROLE_HOME, useSession } from "@/lib/session";
 
@@ -19,9 +19,9 @@ function Page() {
 
   if (settings.data && !settings.data.ai_assistant_enabled) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <EmptyState
-          icon={<Sparkles className="h-8 w-8" />}
+          icon={<CounsellorMark className="h-8 w-8 text-brass" />}
           title="Counsellor AI is temporarily unavailable"
           description="This feature has been paused by an administrator."
         />
@@ -32,7 +32,7 @@ function Page() {
   return (
     <AiConsentGate
       onDecline={() => void navigate({ to: ROLE_HOME[primaryRole] })}
-      frameClassName="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8"
+      frameClassName="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-3xl items-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
     >
       <AssistantWorkspace />
     </AiConsentGate>

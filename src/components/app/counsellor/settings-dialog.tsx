@@ -88,8 +88,8 @@ export function CounsellorSettingsDialog({ open, onOpenChange, variant = "settin
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Attachments</span> — add images or
-                  PDFs (up to 3). They are uploaded securely and sent to Anthropic only for that
-                  answer.
+                  PDFs (up to 3). They are uploaded securely and sent to our AI provider only for
+                  that answer.
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Authority labels</span> —

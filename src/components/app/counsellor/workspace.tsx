@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, HelpCircle, PanelRightOpen, Sparkles } from "lucide-react";
+import { ArrowDown, HelpCircle, PanelRightOpen } from "lucide-react";
+import { CounsellorMark } from "@/components/brand/counsellor-mark";
 import { toast } from "@/lib/toast";
 import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
@@ -390,7 +391,7 @@ export function CounsellorWorkspace() {
   if (!userId) {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
-        <Sparkles className="h-8 w-8 text-brass" aria-hidden />
+        <CounsellorMark className="h-8 w-8 text-brass" title="Counsellor AI" />
         <p className="text-sm font-medium text-foreground">Confirming your account…</p>
         <p className="max-w-sm text-xs text-muted-foreground">
           Counsellor AI keeps each account’s chats private. We’re matching this session to your
@@ -430,7 +431,7 @@ export function CounsellorWorkspace() {
   };
 
   return (
-    <div className="counsellor-shell relative flex h-[calc(100dvh-4.5rem)] min-h-[560px] overflow-hidden rounded-none border-y border-border/70 bg-gradient-to-b from-secondary/35 to-background sm:mx-3 sm:my-3 sm:h-[calc(100dvh-5.5rem)] sm:rounded-2xl sm:border lg:mx-4">
+    <div className="counsellor-shell relative flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden rounded-none border-y border-border/70 bg-gradient-to-b from-secondary/35 to-background sm:mx-3 sm:my-3 sm:h-[calc(100dvh-5.5rem)] sm:min-h-[480px] sm:rounded-2xl sm:border lg:mx-4">
       <CounsellorSidebar
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}
@@ -458,7 +459,7 @@ export function CounsellorWorkspace() {
         <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border/70 bg-card/80 px-4 py-3.5 backdrop-blur-md sm:px-6 sm:py-3 lg:pl-5">
           <div className="min-w-0 pl-11 lg:pl-0">
             <div className="flex items-center gap-2">
-              <Sparkles className="hidden h-4 w-4 text-brass sm:block" aria-hidden />
+              <CounsellorMark className="hidden h-4 w-4 text-brass sm:block" />
               <h1 className="truncate font-display text-base font-semibold tracking-tight sm:text-lg">
                 {messages.length === 0
                   ? mode === "research"

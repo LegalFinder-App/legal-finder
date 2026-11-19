@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
+import { CounsellorMark } from "@/components/brand/counsellor-mark";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +37,7 @@ export function CounsellorFab() {
         aria-hidden
         className="absolute inset-0 rounded-full bg-gradient-to-br from-white/25 via-transparent to-transparent opacity-80"
       />
-      <Sparkles className="relative h-6 w-6 transition-transform group-hover:rotate-6" />
+      <CounsellorMark className="relative h-6 w-6 transition-transform group-hover:scale-105" />
       <span className="sr-only">Counsellor AI</span>
     </Link>
   );

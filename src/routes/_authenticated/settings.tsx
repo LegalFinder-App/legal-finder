@@ -170,7 +170,7 @@ function SettingsPage() {
             <Label htmlFor="ai-features">AI features</Label>
             <p className="mt-1 text-sm text-muted-foreground">
               Let Counsellor AI and AI-assisted drafting send what you type (and any attachments) to
-              Anthropic, which provides the AI model. Off: both ask again before they are used, and
+              our AI provider to generate replies. Off: both ask again before they are used, and
               Counsellor chats stored on this device are cleared.
             </p>
           </div>

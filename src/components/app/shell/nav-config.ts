@@ -7,17 +7,18 @@ import {
   MessageSquare,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Users,
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { CounsellorNavIcon } from "@/components/brand/counsellor-mark";
 import type { AppRole } from "@/lib/session";
 
 export interface NavItem {
   to: string;
   label: string;
-  icon: LucideIcon;
+  icon: LucideIcon | ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
   roles: AppRole[];
 }
 
@@ -34,7 +35,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ALL_ROLES },
       { to: "/messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES },
-      { to: "/assistant", label: "Counsellor AI", icon: Sparkles, roles: ALL_ROLES },
+      { to: "/assistant", label: "Counsellor AI", icon: CounsellorNavIcon, roles: ALL_ROLES },
     ],
   },
   {

@@ -2,8 +2,8 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { router, usePathname, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { CounsellorMark } from "@/components/CounsellorMark";
 import { useAuth } from "@/lib/auth";
 import { useWideLayout } from "@/lib/layout";
 import { appSettingsQuery } from "@/lib/queries";
@@ -52,7 +52,7 @@ export function CounsellorFab() {
           pointerEvents="none"
           style={[styles.sheen, { backgroundColor: "rgba(255,255,255,0.22)" }]}
         />
-        <Sparkles size={22} color={colors.brassForeground} />
+        <CounsellorMark size={22} color={colors.brassForeground} />
       </Pressable>
     </View>
   );

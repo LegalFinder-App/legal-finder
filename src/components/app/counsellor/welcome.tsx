@@ -1,5 +1,6 @@
-import { BookOpen, Gavel, Scale, Sparkles, Users } from "lucide-react";
+import { BookOpen, Gavel, Scale, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { CounsellorMark } from "@/components/brand/counsellor-mark";
 import { PROMPT_CARDS } from "./types";
 
 type Props = {
@@ -12,8 +13,8 @@ export function WelcomeScreen({ onSend, sending, researchMode = false }: Props) 
   return (
     <div className="counsellor-welcome mx-auto flex h-full max-w-3xl flex-col justify-center px-1 py-6 sm:px-4">
       <div className="text-center">
-        <div className="counsellor-mark mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-brass/30 bg-gradient-to-br from-brass/20 via-brass/5 to-transparent shadow-inner">
-          <Sparkles className="h-7 w-7 text-brass" aria-hidden />
+        <div className="counsellor-mark mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-brass/30 bg-gradient-to-br from-brass/20 via-brass/5 to-transparent text-brass shadow-inner sm:h-[4.5rem] sm:w-[4.5rem]">
+          <CounsellorMark className="h-8 w-8 sm:h-9 sm:w-9" title="Counsellor AI" />
         </div>
         <p className="eyebrow mt-5 text-brass">
           {researchMode ? "Legal Research" : "Counsellor AI"}

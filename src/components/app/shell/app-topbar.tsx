@@ -28,7 +28,7 @@ export function AppTopbar({ onOpenSearch }: { onOpenSearch: () => void }) {
     labelForPath(pathname) ?? titleCase(pathname.split("/").filter(Boolean).pop() ?? "");
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 px-safe pt-safe backdrop-blur">
+    <header className="sticky top-0 z-30 flex min-h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-background/80 px-3 px-safe pt-safe backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 sm:gap-3 sm:px-4">
       <SidebarTrigger />
       <Separator orientation="vertical" className="h-5" />
       <Breadcrumb className="hidden sm:block">
@@ -52,7 +52,7 @@ export function AppTopbar({ onOpenSearch }: { onOpenSearch: () => void }) {
       <button
         type="button"
         onClick={onOpenSearch}
-        className="ml-auto hidden items-center gap-2 rounded-md border border-border bg-secondary/50 px-3 py-1.5 text-xs text-muted-foreground hover:bg-secondary sm:flex"
+        className="ml-auto hidden items-center gap-2 rounded-xl border border-border/80 bg-secondary/40 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brass/30 hover:bg-secondary hover:text-foreground sm:flex"
       >
         <Search className="h-3.5 w-3.5" />
         Search

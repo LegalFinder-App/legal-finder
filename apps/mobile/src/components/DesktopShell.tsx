@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type React from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, usePathname, useSegments, type Href } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +17,6 @@ import {
   Scale,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   UserSearch,
 } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -24,6 +24,7 @@ import { fonts, radius } from "@/theme/tokens";
 import { Avatar, Button, Text } from "@/components/ui";
 import { Logo } from "@/components/Logo";
 import { CounsellorFab } from "@/components/CounsellorFab";
+import { CounsellorMark } from "@/components/CounsellorMark";
 import { useWideLayout } from "@/lib/layout";
 import { appSettingsQuery } from "@/lib/queries";
 import { useUnreadCount } from "@/lib/realtime";
@@ -33,7 +34,7 @@ import { useSignOut } from "@/lib/sign-out";
 interface Destination {
   label: string;
   href: Href;
-  icon: typeof Home;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
   /** Path prefixes that count as "inside" this destination (the first is its own path). */
   paths: string[];
   badge?: number;
@@ -121,7 +122,7 @@ function Sidebar() {
           {
             label: "Counsellor AI",
             href: "/assistant",
-            icon: Sparkles,
+            icon: CounsellorMark,
             paths: ["/assistant"],
           } satisfies Destination,
         ]

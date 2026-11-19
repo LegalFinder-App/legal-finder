@@ -50,7 +50,16 @@ export function AppSidebar() {
                   const active = item.to === bestMatch;
                   return (
                     <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.label}
+                        className={
+                          active
+                            ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground ring-1 ring-brass/35 data-[active=true]:bg-sidebar-accent"
+                            : undefined
+                        }
+                      >
                         <Link to={item.to}>
                           <item.icon />
                           <span>{item.label}</span>

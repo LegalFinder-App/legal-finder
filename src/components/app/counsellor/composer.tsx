@@ -213,7 +213,7 @@ export function MessageComposer({
       </form>
       <p className="mt-2 px-1 text-center text-[11px] leading-relaxed text-muted-foreground">
         Counsellor AI can make mistakes. Verify important legal information with a qualified
-        advocate. Attached files are sent to Anthropic to answer your question.
+        advocate. Attached files are sent to our AI provider to answer your question.
       </p>
     </div>
   );

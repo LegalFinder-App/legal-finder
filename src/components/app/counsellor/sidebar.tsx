@@ -7,12 +7,12 @@ import {
   Scale,
   Search,
   Settings,
-  Sparkles,
   X,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CounsellorMark } from "@/components/brand/counsellor-mark";
 import { cn } from "@/lib/utils";
 import type { Conversation, CounsellorMode } from "./types";
 
@@ -100,7 +100,7 @@ export function CounsellorSidebar({
       <div className="flex items-center justify-between gap-2 border-b border-border/70 px-4 py-4">
         <div className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brass/15 text-brass">
-            <Sparkles className="h-4 w-4" aria-hidden />
+            <CounsellorMark className="h-4 w-4" />
           </span>
           <div>
             <p className="text-sm font-semibold tracking-tight">Counsellor AI</p>
