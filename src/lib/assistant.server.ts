@@ -105,10 +105,7 @@ const WEB_SEARCH_TOOL = {
   max_uses: 5,
   // Opus 5.5 without programmatic tool calling needs direct search.
   allowed_callers: ["direct" as const],
-  user_location: {
-    type: "approximate" as const,
-    country: "UG",
-  },
+  // Anthropic's web_search location list does not include UG — bias Uganda via the prompt instead.
 };
 
 const CUT_SHORT =
