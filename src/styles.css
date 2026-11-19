@@ -914,6 +914,11 @@ html [data-sonner-toaster][data-sonner-theme="light"] {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-brass, #b8944a) 45%, transparent);
 }
 
+/* Research filter chips: keep touch targets usable without wrapping noise on phones */
+.counsellor-research-chips {
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .counsellor-shell,
   .counsellor-welcome,

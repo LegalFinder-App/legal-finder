@@ -20,6 +20,8 @@ export const RATE_LIMITS = {
   payments: { limit: 10, windowSeconds: 10 * 60 },
   account: { limit: 5, windowSeconds: 60 * 60 },
   push: { limit: 30, windowSeconds: 60 * 60 },
+  // Full corpus re-index is heavy — admin button + cron share this bucket family.
+  corpus_index: { limit: 4, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS;
@@ -109,6 +111,20 @@ export function resetDatabaseFallback() {
 export async function enforceRateLimit(bucket: RateLimitBucket, userId: string): Promise<void> {
   const rule = RATE_LIMITS[bucket];
   const key = `${bucket}:${userId}`;
+  const decision = (await consumeInDatabase(key, rule)) ?? consumeInMemory(key, rule);
+  if (!decision.allowed) throw new RateLimitError(decision.retryAfterSeconds);
+}
+
+/**
+ * Same limits for cron / service callers (no Clerk user). Uses a stable system key so every
+ * instance still shares a Postgres count when consume_rate_limit is available.
+ */
+export async function enforceSystemRateLimit(
+  bucket: RateLimitBucket,
+  systemKey = "system",
+): Promise<void> {
+  const rule = RATE_LIMITS[bucket];
+  const key = `${bucket}:${systemKey}`;
   const decision = (await consumeInDatabase(key, rule)) ?? consumeInMemory(key, rule);
   if (!decision.allowed) throw new RateLimitError(decision.retryAfterSeconds);
 }

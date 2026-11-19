@@ -89,8 +89,9 @@ export function CounsellorSettingsDialog({ open, onOpenChange, variant = "settin
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Citations</span> — tap a chip or
-                  card to open the source. Guides are editorial; judgments, legislation and
-                  headlines are labelled honestly. Prefer the original when it matters.
+                  card to open the source. Cards show authority, source date and last indexed when
+                  available. Guides are editorial; judgments, legislation and headlines are labelled
+                  honestly. Prefer the original when it matters — we do not scrape ULII.
                 </p>
                 <p>
                   <span className="font-semibold text-foreground">Attachments</span> — add images or

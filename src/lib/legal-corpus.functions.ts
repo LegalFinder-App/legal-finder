@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireClerkAuth } from "@/integrations/supabase/auth-middleware";
+import { rateLimited } from "@/lib/rate-limit-middleware";
 import type { AppDatabase } from "@/integrations/supabase/app-database";
 
 async function requireAdmin(context: {
@@ -19,7 +20,7 @@ async function requireAdmin(context: {
 
 /** Admin-only: re-index advice / judgments / library / live feed into legal_chunks. */
 export const reindexLegalCorpus = createServerFn({ method: "POST" })
-  .middleware([requireClerkAuth])
+  .middleware([rateLimited("corpus_index")])
   .handler(async ({ context }) => {
     await requireAdmin(context);
     const { runLegalCorpusIndex } = await import("@/lib/legal-rag/index-corpus.server");

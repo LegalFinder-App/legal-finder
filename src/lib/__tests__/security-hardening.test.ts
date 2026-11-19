@@ -19,6 +19,7 @@ import {
   RateLimitError,
   consumeInMemory,
   enforceRateLimit,
+  enforceSystemRateLimit,
   resetDatabaseFallback,
   resetInMemoryLimits,
 } from "../rate-limit.server";
@@ -120,6 +121,18 @@ describe("rate limiting", () => {
     await expect(enforceRateLimit("uploads", "user_a")).resolves.toBeUndefined();
     await expect(enforceRateLimit("uploads", "user_a")).resolves.toBeUndefined();
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it("rate-limits corpus index for cron and admin separately", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "function not found" } });
+    expect(RATE_LIMITS.corpus_index.limit).toBeGreaterThan(0);
+    for (let i = 0; i < RATE_LIMITS.corpus_index.limit; i++) {
+      await enforceSystemRateLimit("corpus_index", "cron");
+    }
+    await expect(enforceSystemRateLimit("corpus_index", "cron")).rejects.toBeInstanceOf(
+      RateLimitError,
+    );
+    await expect(enforceRateLimit("corpus_index", "user_admin")).resolves.toBeUndefined();
   });
 });
 

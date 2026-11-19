@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/session";
 import { isSessionExpiredError, recoverExpiredSession } from "@/lib/session-watchdog";
 import { AttachmentPreviewStrip } from "./media";
+import { CounsellorTrustStrip } from "./trust-strip";
 import { newId } from "./types";
 
 type Props = {
@@ -211,9 +212,11 @@ export function MessageComposer({
           )}
         </div>
       </form>
+      <CounsellorTrustStrip className="mt-2.5" />
       <p className="mt-2 px-1 text-center text-[11px] leading-relaxed text-muted-foreground">
-        Counsellor AI can make mistakes. Verify important legal information with a qualified
-        advocate. Attached files are sent to our AI provider to answer your question.
+        Grounded in LegalFinder’s Uganda corpus and official headlines — with links to originals.
+        Not a substitute for a licensed advocate. Attached files are sent to our AI provider only
+        for that answer. We do not scrape ULII.
       </p>
     </div>
   );

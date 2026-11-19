@@ -251,8 +251,8 @@ export function ResearchPanel({
         </div>
       )}
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        Authority labels mark LegalFinder catalogue entries. Editorial guides are not official law —
-        verify important points against the original.
+        Authority labels mark LegalFinder catalogue entries. Editorial guides are not official law.
+        Open the original when it matters — we do not scrape ULII.
       </p>
     </div>
   ) : (
@@ -264,14 +264,16 @@ export function ResearchPanel({
   return (
     <aside
       className={cn(
-        "flex h-full w-full max-w-full shrink-0 flex-col bg-card/50 backdrop-blur-md",
-        !isSheet && "border-l border-border/70 lg:w-[min(26rem,38vw)]",
+        "flex h-full w-full max-w-full shrink-0 flex-col bg-gradient-to-b from-card/70 via-card/45 to-background/30 backdrop-blur-md",
+        !isSheet && "border-l border-border/70 lg:w-[min(26rem,40vw)] xl:w-[min(28rem,36vw)]",
       )}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-border/70 px-4 py-3">
-        <div>
+      <div className="flex items-center justify-between gap-2 border-b border-border/70 px-3 py-3 sm:px-4">
+        <div className="min-w-0">
           <p className="text-sm font-semibold tracking-tight">Legal Research</p>
-          <p className="text-[11px] text-muted-foreground">Search judgments, statutes & guides</p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            Corpus search · judgments, guides, headlines
+          </p>
         </div>
         {!isSheet && (
           <button
@@ -285,9 +287,9 @@ export function ResearchPanel({
         )}
       </div>
 
-      <div className="space-y-3 border-b border-border/70 px-4 py-3">
+      <div className="space-y-3 border-b border-border/70 px-3 py-3 sm:px-4">
         <form
-          className="flex gap-2"
+          className="flex flex-col gap-2 sm:flex-row"
           onSubmit={(event) => {
             event.preventDefault();
             void runSearch();
@@ -299,16 +301,22 @@ export function ResearchPanel({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Research topic or keywords"
-              className="h-9 pl-8 text-sm"
+              className="h-10 rounded-xl pl-8 text-sm sm:h-9"
               aria-label="Research query"
             />
           </div>
-          <Button type="submit" variant="brass" size="sm" disabled={loading} className="rounded-xl">
+          <Button
+            type="submit"
+            variant="brass"
+            size="sm"
+            disabled={loading}
+            className="h-10 w-full rounded-xl sm:h-9 sm:w-auto"
+          >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
           </Button>
         </form>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="counsellor-research-chips flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {KIND_OPTIONS.map(({ id, label, icon: Icon }) => {
             const active = filters.kinds.includes(id);
             return (
@@ -317,7 +325,7 @@ export function ResearchPanel({
                 type="button"
                 onClick={() => toggleKind(id)}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  "inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1.5 text-[11px] font-medium transition-colors",
                   active
                     ? "border-brass/40 bg-brass/12 text-foreground"
                     : "border-border text-muted-foreground hover:text-foreground",

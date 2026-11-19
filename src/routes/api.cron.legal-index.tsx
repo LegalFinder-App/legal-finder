@@ -11,8 +11,8 @@ function constantTimeEqual(given: string | null, expected: string) {
 }
 
 /**
- * Nightly (and on-demand) re-index of published advice / judgments / library for FTS RAG.
- * Requires CRON_SECRET. Uses Anthropic only at query time (optional keyword expand + answers).
+ * Nightly (and on-demand) re-index of published advice / judgments / library / feed for FTS RAG.
+ * Requires CRON_SECRET. Rate-limited so a leaked secret can't hammer the DB.
  */
 async function handleLegalIndex(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -22,6 +22,19 @@ async function handleLegalIndex(request: Request) {
   }
 
   try {
+    const { enforceSystemRateLimit, RateLimitError } = await import("@/lib/rate-limit.server");
+    try {
+      await enforceSystemRateLimit("corpus_index", "cron");
+    } catch (error) {
+      if (error instanceof RateLimitError) {
+        return Response.json(
+          { error: "Corpus index rate limited", retryAfterSeconds: error.retryAfterSeconds },
+          { status: 429, headers: { "Retry-After": String(error.retryAfterSeconds) } },
+        );
+      }
+      throw error;
+    }
+
     const { runLegalCorpusIndex } = await import("@/lib/legal-rag/index-corpus.server");
     const result = await runLegalCorpusIndex();
     return Response.json({ ok: true, ...result });

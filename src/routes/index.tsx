@@ -112,7 +112,7 @@ const PILLARS = [
   {
     icon: Sparkles,
     title: "Counsellor AI",
-    body: "Ask a question, understand your options, and get pointed to the right advocate or office.",
+    body: "Ask in plain language. Answers are grounded in LegalFinder’s Uganda corpus and official headlines, with links to originals — not a scraped law database.",
     to: "/assistant",
     wide: true,
   },
@@ -601,7 +601,8 @@ function AssistantPreview() {
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-brass">
           Counsellor AI
         </span>
-        Here's what the law says about notice — and advocates near you who handle tenancy matters.
+        Here's the LegalFinder guide on notice, with advocates nearby who handle tenancy — always
+        verify against the original.
       </p>
     </div>
   );

@@ -431,7 +431,7 @@ export function CounsellorWorkspace() {
   };
 
   return (
-    <div className="counsellor-shell relative flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden rounded-none border-y border-border/70 bg-gradient-to-b from-secondary/35 to-background sm:mx-3 sm:my-3 sm:h-[calc(100dvh-5.5rem)] sm:min-h-[480px] sm:rounded-2xl sm:border lg:mx-4">
+    <div className="counsellor-shell relative flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden rounded-none border-y border-border/70 bg-gradient-to-b from-secondary/40 via-background to-background sm:mx-2 sm:my-2 sm:h-[calc(100dvh-5rem)] sm:min-h-[480px] sm:rounded-2xl sm:border md:mx-3 md:my-3 lg:mx-4 lg:h-[calc(100dvh-5.5rem)]">
       <CounsellorSidebar
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}

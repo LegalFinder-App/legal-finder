@@ -120,6 +120,8 @@ async function loadCorpus(): Promise<CounsellorSource[]> {
       category: row.category,
       year: null,
       caseNumber: null,
+      publishedAt: null,
+      indexedAt: null,
     });
   }
 
@@ -136,8 +138,10 @@ async function loadCorpus(): Promise<CounsellorSource[]> {
       court: row.court,
       decidedOn: row.decided_on,
       category: null,
-      year: null,
+      year: row.decided_on ? Number(String(row.decided_on).slice(0, 4)) : null,
       caseNumber: row.case_number,
+      publishedAt: row.decided_on,
+      indexedAt: null,
     });
   }
 
@@ -158,6 +162,8 @@ async function loadCorpus(): Promise<CounsellorSource[]> {
       category: row.category,
       year: row.year,
       caseNumber: null,
+      publishedAt: row.year ? `${row.year}-01-01` : null,
+      indexedAt: null,
     });
   }
 
@@ -177,6 +183,8 @@ async function loadCorpus(): Promise<CounsellorSource[]> {
       category: row.category,
       year: row.published_at ? Number(String(row.published_at).slice(0, 4)) : null,
       caseNumber: null,
+      publishedAt: row.published_at,
+      indexedAt: null,
     });
   }
 

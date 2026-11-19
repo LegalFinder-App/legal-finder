@@ -18,10 +18,16 @@ type MatchRow = {
   case_number: string | null;
   decided_on: string | null;
   year: number | null;
+  published_at?: string | null;
+  updated_at?: string | null;
   similarity: number;
 };
 
 function toSource(row: MatchRow): CounsellorSource {
+  const publishedAt =
+    row.published_at ??
+    (row.decided_on ? String(row.decided_on) : null) ??
+    (row.year ? `${row.year}-01-01` : null);
   return {
     id: row.source_id,
     kind: row.source_kind,
@@ -44,6 +50,8 @@ function toSource(row: MatchRow): CounsellorSource {
     category: row.category,
     year: row.year,
     caseNumber: row.case_number,
+    publishedAt,
+    indexedAt: row.updated_at ?? null,
   };
 }
 

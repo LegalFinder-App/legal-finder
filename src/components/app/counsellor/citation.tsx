@@ -1,4 +1,4 @@
-import { BookOpen, Gavel, Library, Scale, ExternalLink, ArrowUpRight } from "lucide-react";
+import { BookOpen, Gavel, Library, Scale, ExternalLink, ArrowUpRight, BadgeCheck } from "lucide-react";
 import {
   AUTHORITY_HINT,
   AUTHORITY_LABEL,
@@ -32,6 +32,33 @@ function SourceIcon({ authority }: { authority: SourceAuthority }) {
   return <Library className="h-3.5 w-3.5" aria-hidden />;
 }
 
+function MetaRow({ source }: { source: CounsellorSource }) {
+  const sourceDate = source.decidedOn ?? source.publishedAt ?? null;
+  const indexed = source.indexedAt ?? null;
+  return (
+    <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+      {source.court && <span>{source.court}</span>}
+      {sourceDate && (
+        <span>
+          <span className="text-muted-foreground/80">Dated </span>
+          {formatDate(sourceDate)}
+        </span>
+      )}
+      {!sourceDate && source.year ? <span>{source.year}</span> : null}
+      {source.caseNumber && <span>{source.caseNumber}</span>}
+      {indexed && (
+        <span className="inline-flex items-center gap-1 text-brass/90">
+          <BadgeCheck className="h-3 w-3" aria-hidden />
+          Indexed {formatDate(indexed)}
+        </span>
+      )}
+      {source.externalUrl && !indexed && (
+        <span className="text-brass/80">Original available</span>
+      )}
+    </div>
+  );
+}
+
 export function CitationInline({
   source,
   index,
@@ -49,7 +76,9 @@ export function CitationInline({
       aria-label={`Open source ${index}: ${source.title}`}
     >
       <span aria-hidden>[{index}]</span>
-      <span className="max-w-[9rem] truncate font-medium">{source.title}</span>
+      <span className="max-w-[min(9rem,40vw)] truncate font-medium sm:max-w-[12rem]">
+        {source.title}
+      </span>
     </button>
   );
 }
@@ -71,7 +100,7 @@ export function CitationCard({
       onClick={() => onOpen(source)}
       className={cn(
         "group relative w-full overflow-hidden rounded-2xl border border-border/80 bg-card/90 text-left shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-brass/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/40",
-        compact ? "p-3" : "p-3.5",
+        compact ? "p-3" : "p-3.5 sm:p-4",
       )}
     >
       <div
@@ -81,33 +110,31 @@ export function CitationCard({
       <div className="flex items-start justify-between gap-2">
         <span
           className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
+            "inline-flex max-w-[85%] items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]",
             AUTHORITY_STYLES[source.authority],
           )}
         >
           <SourceIcon authority={source.authority} />
-          {AUTHORITY_LABEL[source.authority]}
+          <span className="truncate">{AUTHORITY_LABEL[source.authority]}</span>
         </span>
         {typeof index === "number" && (
-          <span className="text-[11px] font-semibold text-muted-foreground">[{index}]</span>
+          <span className="shrink-0 text-[11px] font-semibold text-muted-foreground">[{index}]</span>
         )}
       </div>
-      <p className="mt-2 font-display text-sm font-semibold leading-snug text-foreground group-hover:text-brass">
+      <p className="mt-2 font-display text-sm font-semibold leading-snug text-foreground group-hover:text-brass sm:text-[15px]">
         {source.title}
       </p>
-      {source.subtitle && <p className="mt-1 text-xs text-muted-foreground">{source.subtitle}</p>}
+      {source.subtitle && (
+        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:line-clamp-1">
+          {source.subtitle}
+        </p>
+      )}
       {!compact && source.summary && (
-        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground sm:line-clamp-2">
           {source.summary}
         </p>
       )}
-      <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-        {source.court && <span>{source.court}</span>}
-        {source.decidedOn && <span>{formatDate(source.decidedOn)}</span>}
-        {source.year && !source.decidedOn && <span>{source.year}</span>}
-        {source.caseNumber && <span>{source.caseNumber}</span>}
-        {source.externalUrl && <span className="text-brass/80">Original available</span>}
-      </div>
+      <MetaRow source={source} />
     </button>
   );
 }
@@ -123,34 +150,41 @@ export function SourcePreview({
 }) {
   if (!source) return null;
 
+  const sourceDate = source.decidedOn ?? source.publishedAt ?? null;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHeader className="relative space-y-3 text-left">
+      <SheetContent className="flex w-full flex-col overflow-y-auto p-0 sm:max-w-md">
+        <div className="relative border-b border-border/70 px-5 pb-4 pt-6 sm:px-6">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-brass/10 blur-2xl"
+            className="pointer-events-none absolute -right-6 -top-8 h-32 w-32 rounded-full bg-brass/15 blur-3xl"
           />
-          <span
-            className={cn(
-              "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]",
-              AUTHORITY_STYLES[source.authority],
-            )}
-          >
-            <SourceIcon authority={source.authority} />
-            {AUTHORITY_LABEL[source.authority]}
-          </span>
-          <SheetTitle className="font-display text-xl leading-snug">{source.title}</SheetTitle>
-          <SheetDescription className="text-sm leading-relaxed">
-            {AUTHORITY_HINT[source.authority]}
-          </SheetDescription>
-        </SheetHeader>
+          <SheetHeader className="space-y-3 text-left">
+            <span
+              className={cn(
+                "inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]",
+                AUTHORITY_STYLES[source.authority],
+              )}
+            >
+              <SourceIcon authority={source.authority} />
+              {AUTHORITY_LABEL[source.authority]}
+            </span>
+            <SheetTitle className="font-display text-xl leading-snug sm:text-2xl">
+              {source.title}
+            </SheetTitle>
+            <SheetDescription className="text-sm leading-relaxed">
+              {AUTHORITY_HINT[source.authority]}
+            </SheetDescription>
+          </SheetHeader>
+        </div>
 
-        <div className="mt-6 space-y-4 text-sm">
+        <div className="space-y-4 px-5 py-5 text-sm sm:px-6">
           {source.subtitle && <p className="text-muted-foreground">{source.subtitle}</p>}
-          <dl className="grid gap-3 rounded-2xl border border-border/80 bg-secondary/40 p-4">
+
+          <dl className="grid gap-3 rounded-2xl border border-border/80 bg-secondary/40 p-4 sm:grid-cols-2">
             {source.court && (
-              <div>
+              <div className="sm:col-span-2">
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   Court
                 </dt>
@@ -165,12 +199,23 @@ export function SourcePreview({
                 <dd className="mt-1 text-foreground">{source.caseNumber}</dd>
               </div>
             )}
-            {source.decidedOn && (
+            {sourceDate && (
               <div>
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Decided
+                  Source date
                 </dt>
-                <dd className="mt-1 text-foreground">{formatDate(source.decidedOn)}</dd>
+                <dd className="mt-1 text-foreground">{formatDate(sourceDate)}</dd>
+              </div>
+            )}
+            {source.indexedAt && (
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Last indexed
+                </dt>
+                <dd className="mt-1 inline-flex items-center gap-1.5 text-foreground">
+                  <BadgeCheck className="h-3.5 w-3.5 text-brass" aria-hidden />
+                  {formatDate(source.indexedAt)}
+                </dd>
               </div>
             )}
             {source.category && (
@@ -181,7 +226,7 @@ export function SourcePreview({
                 <dd className="mt-1 text-foreground">{source.category}</dd>
               </div>
             )}
-            {source.year && (
+            {source.year && !sourceDate && (
               <div>
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   Year
@@ -200,30 +245,35 @@ export function SourcePreview({
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 pt-2">
+          <p className="rounded-xl border border-border/70 bg-card/60 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
+            LegalFinder hosts catalogue text and aggregations where rights allow. We do not scrape
+            ULII. Always open the original when it matters.
+          </p>
+
+          <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap">
             {source.kind === "news" && source.externalUrl ? (
-              <Button asChild variant="brass" size="sm" className="gap-1.5">
+              <Button asChild variant="brass" size="sm" className="w-full gap-1.5 sm:w-auto">
                 <a href={source.externalUrl} target="_blank" rel="noreferrer">
                   Open original <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </Button>
             ) : (
-              <Button asChild variant="brass" size="sm" className="gap-1.5">
+              <Button asChild variant="brass" size="sm" className="w-full gap-1.5 sm:w-auto">
                 <a href={source.href}>
                   Open on LegalFinder <ArrowUpRight className="h-3.5 w-3.5" />
                 </a>
               </Button>
             )}
             {source.kind === "news" ? (
-              <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Button asChild variant="outline" size="sm" className="w-full gap-1.5 sm:w-auto">
                 <a href={source.href}>
                   Updates feed <ArrowUpRight className="h-3.5 w-3.5" />
                 </a>
               </Button>
             ) : source.externalUrl ? (
-              <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Button asChild variant="outline" size="sm" className="w-full gap-1.5 sm:w-auto">
                 <a href={source.externalUrl} target="_blank" rel="noreferrer">
-                  Original document <ExternalLink className="h-3.5 w-3.5" />
+                  Open original <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </Button>
             ) : null}

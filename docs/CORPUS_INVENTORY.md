@@ -56,4 +56,4 @@ Authority labels match Counsellor citations: `judgment` | `legislation` | `edito
 - **Phase 2** — Judiciary/UPF headlines as `news` cites + Admin → Corpus (`PHASE2_FEED_CITES.md`).
 - **Phase 3** — Section-aware statute chunking; `ug-*` stay link-only until hostable PDFs (`PHASE3_CORE_PACK.md`).
 - **Phase 4** — Senior-counsel prompt, FTS-first research, creator credit, UI polish (`PHASE4_SENIOR_COUNSEL.md`).
-- **Phase 5 next** — Ops/trust polish and honest marketing.
+- **Phase 5** — Rate-limited index, citation trust chrome, honest marketing (`PHASE5_OPS_TRUST.md`).

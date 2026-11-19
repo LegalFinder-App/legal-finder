@@ -53,7 +53,8 @@ function CorpusHealthPage() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Source registry, Judiciary/UPF feed sync, and Counsellor FTS chunks. Re-index after
-            content or feed updates — no OpenAI key required.
+            content or feed updates — rate-limited (a few runs per hour). No OpenAI key required.
+            ULII stays gated.
           </p>
         </div>
         <Button
@@ -61,7 +62,7 @@ function CorpusHealthPage() {
           variant="brass"
           disabled={indexing}
           onClick={() => void runIndex()}
-          className="self-start"
+          className="w-full self-start sm:w-auto"
         >
           {indexing ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -202,6 +203,24 @@ function CorpusHealthPage() {
                 </tbody>
               </table>
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-border/80 bg-card/60 p-4 sm:p-5">
+            <h2 className="font-display text-base font-semibold">Takedown & honesty</h2>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+              <li>
+                Feed items use soft-delete (`removed_at`) — the collector never re-publishes a
+                removed story.
+              </li>
+              <li>
+                Unpublish advice / judgments / library rows in Admin → Content, then re-index so
+                Counsellor stops citing them.
+              </li>
+              <li>
+                Never claim we scraped ULII or hold an “E2E encrypted law DB.” Marketing copy must
+                stay: grounded corpus + official headlines + links to originals.
+              </li>
+            </ul>
           </section>
         </>
       )}

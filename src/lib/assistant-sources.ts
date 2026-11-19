@@ -27,6 +27,10 @@ export type CounsellorSource = {
   category: string | null;
   year: number | null;
   caseNumber: string | null;
+  /** Source material date (judgment / headline / publish). */
+  publishedAt?: string | null;
+  /** When LegalFinder last indexed this record into the corpus (trust chrome). */
+  indexedAt?: string | null;
 };
 
 export const CITE_PATTERN =
