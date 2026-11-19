@@ -169,8 +169,14 @@ function RootComponent() {
 
   // Only re-run loaders when Clerk finishes booting — not on every isSignedIn flicker.
   // Invalidating on a brief signed-out blip during refresh was bouncing people to /auth.
+  // Skip during SSO handoff: invalidate mid-callback soft-nav was sending people to /auth.
   useEffect(() => {
     if (!isLoaded) return;
+    try {
+      if (sessionStorage.getItem("lf:auth-handoff")) return;
+    } catch {
+      // ignore
+    }
     router.invalidate();
     if (isSignedIn) queryClient.invalidateQueries();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate: isSignedIn alone must not invalidate

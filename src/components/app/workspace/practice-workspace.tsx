@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "@/lib/toast";
 import {
+  AlertTriangle,
   BarChart3,
   BookOpen,
   Briefcase,
@@ -12,6 +13,9 @@ import {
   Users,
   Video,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { myLawyerProfileQuery } from "@/lib/queries";
+import { startAdvocateKycRenewal } from "@/lib/onboarding";
 import {
   Select,
   SelectContent,
@@ -165,6 +169,84 @@ function ClientList({ cases }: { cases: CaseRow[] }) {
   );
 }
 
+function daysUntilPc(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(`${dateStr.slice(0, 10)}T00:00:00`);
+  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
+}
+
+function KycRenewalBanner({ userId }: { userId: string }) {
+  const navigate = useNavigate();
+  const listing = useQuery(myLawyerProfileQuery(userId));
+  const [busy, setBusy] = useState(false);
+  const lawyer = listing.data;
+  if (!lawyer) return null;
+
+  const remaining = daysUntilPc(lawyer.bar_license_expires_at ?? lawyer.kyc_expires_at);
+  const expired =
+    lawyer.kyc_status === "expired" ||
+    lawyer.license_status === "expired" ||
+    (remaining !== null && remaining < 0) ||
+    (!lawyer.verified && lawyer.kyc_status !== "pending");
+  const expiringSoon =
+    !expired &&
+    (lawyer.kyc_status === "pending" ||
+      lawyer.license_status === "expiring" ||
+      (remaining !== null && remaining <= 30));
+
+  if (!expired && !expiringSoon) return null;
+
+  const renew = async () => {
+    setBusy(true);
+    try {
+      await startAdvocateKycRenewal();
+      toast.success("Renewal started", {
+        description: "Upload this year’s practising certificate and a fresh selfie.",
+      });
+      void navigate({ to: "/apply" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Couldn't start renewal");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div
+      className={`mt-6 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
+        expired
+          ? "border-destructive/40 bg-destructive/5"
+          : "border-warning/40 bg-warning/5"
+      }`}
+    >
+      <div className="flex gap-3">
+        <AlertTriangle
+          className={`mt-0.5 h-5 w-5 shrink-0 ${expired ? "text-destructive" : "text-warning"}`}
+        />
+        <div>
+          <p className="font-display text-sm font-semibold">
+            {expired
+              ? "Your practising certificate has expired"
+              : remaining !== null
+                ? `Practising certificate expires in ${remaining} day${remaining === 1 ? "" : "s"}`
+                : "Practising certificate needs renewal"}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {expired
+              ? "Your verified listing is paused until you renew and an administrator re-checks your documents."
+              : "Renew now so your verified listing stays active after the certificate date."}
+          </p>
+        </div>
+      </div>
+      <Button variant="brass" size="sm" disabled={busy} onClick={() => void renew()}>
+        Renew practising certificate
+      </Button>
+    </div>
+  );
+}
+
 export function PracticeWorkspace() {
   const { user } = useSession();
   const cases = useQuery(myCasesQuery(user?.id));
@@ -179,6 +261,8 @@ export function PracticeWorkspace() {
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Manage your case pipeline, clients, calendar, documents and published advice from one place.
       </p>
+
+      {user?.id ? <KycRenewalBanner userId={user.id} /> : null}
 
       <div className="mt-8">
         <StatCardRow

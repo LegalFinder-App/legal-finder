@@ -37,6 +37,14 @@ export type Lawyer = {
   bar_number: string | null;
   bar_license_expires_at: string | null;
   license_status: "active" | "expiring" | "expired" | "unknown";
+  practising_certificate_number?: string | null;
+  enrolment_certificate_ref?: string | null;
+  kyc_status?: "none" | "pending" | "verified" | "expired" | "rejected";
+  kyc_verified_at?: string | null;
+  kyc_expires_at?: string | null;
+  kyc_application_id?: string | null;
+  kyc_vendor?: string | null;
+  kyc_vendor_ref?: string | null;
 };
 
 export const lawyersQuery = (search?: LawyerSearch, options?: { verifiedOnly?: boolean }) =>

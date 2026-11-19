@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Users } from "lucide-react";
 import { toast } from "@/lib/toast";
 import {
@@ -20,10 +21,17 @@ function CpdHoursBadge({ lawyerId }: { lawyerId: string }) {
   return <span className="text-xs text-muted-foreground">{totalHours}h CPD logged</span>;
 }
 
+function kycLabel(status: string | null | undefined, verified: boolean) {
+  if (status === "expired") return "KYC expired";
+  if (status === "pending") return "KYC pending";
+  if (status === "rejected") return "KYC rejected";
+  if (status === "verified" || verified) return "KYC verified";
+  return "No KYC";
+}
+
 export function VerificationsPanel() {
   const queryClient = useQueryClient();
   const lawyers = useQuery(lawyersQuery());
-  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [expiryDrafts, setExpiryDrafts] = useState<Record<string, string>>({});
   const [savingExpiryId, setSavingExpiryId] = useState<string | null>(null);
 
@@ -43,20 +51,10 @@ export function VerificationsPanel() {
     queryClient.invalidateQueries({ queryKey: ["lawyers"] });
   };
 
-  const setVerification = async (lawyerId: string, verified: boolean) => {
-    setVerifyingId(lawyerId);
-    const { error } = await supabase.from("lawyers").update({ verified }).eq("id", lawyerId);
-    setVerifyingId(null);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(verified ? "Advocate verified" : "Verification removed");
-    queryClient.invalidateQueries({ queryKey: ["lawyers"] });
-    queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
-  };
-
-  const pending = lawyers.data?.filter((lawyer) => !lawyer.verified).length ?? 0;
+  const pending =
+    lawyers.data?.filter(
+      (lawyer) => !lawyer.verified || lawyer.kyc_status === "pending" || lawyer.kyc_status === "expired",
+    ).length ?? 0;
 
   return (
     <div>
@@ -67,13 +65,13 @@ export function VerificationsPanel() {
           icon={<Users className="h-4 w-4" />}
         />
         <StatCard
-          label="Pending verifications"
+          label="Needs attention"
           value={pending}
           icon={<Users className="h-4 w-4" />}
         />
         <StatCard
           label="Verified"
-          value={(lawyers.data?.length ?? 0) - pending}
+          value={lawyers.data?.filter((l) => l.verified).length ?? 0}
           icon={<Users className="h-4 w-4" />}
         />
       </div>
@@ -81,7 +79,12 @@ export function VerificationsPanel() {
       <div className="mt-8">
         <h2 className="font-display text-xl font-semibold">Advocate verification</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Confirm bar credentials before advocates appear in the public directory.
+          Directory “Verified” comes only from an approved application or practising-certificate
+          renewal under{" "}
+          <Link to="/admin/applications" className="text-brass hover:underline">
+            Applications
+          </Link>
+          . One-click verify is disabled.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {lawyers.isLoading ? (
@@ -127,8 +130,14 @@ export function VerificationsPanel() {
                       {lawyer.bar_number ?? "Bar number pending"}
                       {lawyer.county ? ` · ${lawyer.county}` : ""}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
                       <StatusPill value={lawyer.license_status} />
+                      <span className="text-xs text-muted-foreground">
+                        {kycLabel(lawyer.kyc_status, lawyer.verified)}
+                        {lawyer.kyc_expires_at || lawyer.bar_license_expires_at
+                          ? ` · PC ${lawyer.kyc_expires_at ?? lawyer.bar_license_expires_at}`
+                          : ""}
+                      </span>
                       <CpdHoursBadge lawyerId={lawyer.id} />
                     </div>
                     <div className="mt-3 flex items-end gap-2">
@@ -159,26 +168,10 @@ export function VerificationsPanel() {
                         Save
                       </Button>
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {!lawyer.verified ? (
-                        <Button
-                          size="sm"
-                          variant="brass"
-                          disabled={verifyingId === lawyer.id}
-                          onClick={() => setVerification(lawyer.id, true)}
-                        >
-                          Verify advocate
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={verifyingId === lawyer.id}
-                          onClick={() => setVerification(lawyer.id, false)}
-                        >
-                          Revoke verification
-                        </Button>
-                      )}
+                    <div className="mt-4">
+                      <Button size="sm" variant="outline" asChild>
+                        <Link to="/admin/applications">Review in Applications</Link>
+                      </Button>
                     </div>
                   </div>
                 </div>

@@ -29,10 +29,12 @@ import {
   applicationDocumentsQuery,
   editable,
   isApplicationRole,
+  isRenewalApplication,
   missingItems,
   myApplicationsQuery,
   openApplicationDocument,
   removeApplicationDocument,
+  requirementsFor,
   saveApplication,
   startApplication,
   submitApplication,
@@ -83,17 +85,24 @@ export function ApplicationView({ initialRole }: { initialRole?: ApplicationRole
   const open = (apps.data ?? []).find((a) => editable(a.status) || a.status === "submitted");
   // An explicit choice, then an application under way, then the role picked at sign-up.
   const role = picked ?? open?.role ?? requested;
+  const application = role
+    ? ((apps.data ?? []).find((a) => a.role === role) ?? null)
+    : null;
+  // PC renewal reuses the lawyer application while the advocate already has the role.
+  const renewing =
+    application &&
+    isRenewalApplication(application.details) &&
+    (editable(application.status) || application.status === "submitted");
 
   if (!role) return <RolePicker onPick={setPicked} />;
-  if (roles.includes(role)) return <Approved role={role} />;
+  if (roles.includes(role) && !renewing) return <Approved role={role} />;
 
-  const application = (apps.data ?? []).find((a) => a.role === role) ?? null;
   return (
     <ApplicationForm
       key={role}
       role={role}
       application={application}
-      canChangeRole={!application}
+      canChangeRole={!application && !renewing}
       onChangeRole={() => setPicked(null)}
     />
   );
@@ -160,7 +169,7 @@ function ApplicationForm({
   const { user } = useSession();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const req = REQUIREMENTS[role];
+  const meta = REQUIREMENTS[role];
   // The draft made by the first upload or save, until the applications list catches up.
   const [created, setCreated] = useState<RoleApplicationRow | null>(null);
   const app = application ?? created;
@@ -175,6 +184,8 @@ function ApplicationForm({
   const [uploadKind, setUploadKind] = useState<string | null>(null);
   if (!user) return null;
 
+  const req = { ...meta, ...requirementsFor(role, details) };
+  const renewal = isRenewalApplication(details);
   const status = app?.status ?? "draft";
   const canEdit = editable(status);
   const documents = docs.data ?? [];
@@ -289,14 +300,19 @@ function ApplicationForm({
       <input
         ref={fileInput}
         type="file"
-        accept={ACCEPTED_DOCUMENT_TYPES.join(",")}
+        accept={
+          uploadKind === "selfie" ? "image/jpeg,image/png,image/webp" : ACCEPTED_DOCUMENT_TYPES.join(",")
+        }
+        capture={uploadKind === "selfie" ? "user" : undefined}
         className="sr-only"
         onChange={onFile}
       />
 
       <section className="card p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="font-display text-xl font-semibold">{req.title}</h2>
+          <h2 className="font-display text-xl font-semibold">
+            {renewal ? "Practising certificate renewal" : req.title}
+          </h2>
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
               status === "rejected"
@@ -333,7 +349,11 @@ function ApplicationForm({
             </div>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-muted-foreground">{req.intro}</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {renewal
+              ? "Upload this year’s practising certificate and a fresh selfie. An administrator re-checks them before your verified listing is switched back on."
+              : req.intro}
+          </p>
         )}
       </section>
 
@@ -472,7 +492,7 @@ function ApplicationForm({
             Apply for a different kind of account
           </button>
         ) : null}
-        {status !== "submitted" ? (
+        {status !== "submitted" && !renewal ? (
           <button
             type="button"
             className="self-start text-muted-foreground hover:underline"

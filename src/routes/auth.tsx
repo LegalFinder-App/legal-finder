@@ -15,6 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { AuthHandoff } from "@/components/auth/auth-handoff";
 import {
   AuthDivider,
   CodeField,
@@ -28,7 +29,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, type AppRole } from "@/lib/session";
-import { clientClerkUserId, continueAfterAuth, isAlreadySignedInError } from "@/lib/after-auth";
+import {
+  clientClerkUserId,
+  continueAfterAuth,
+  finishAuthWithHardNav,
+  isAlreadySignedInError,
+} from "@/lib/after-auth";
+import { clearAuthHandoff, hasAuthHandoff, markAuthHandoff } from "@/lib/auth-handoff";
 import { cn } from "@/lib/utils";
 import { delay } from "@/lib/motion";
 
@@ -41,6 +48,8 @@ type AuthSearch = {
 };
 
 export const Route = createFileRoute("/auth")({
+  // Client-only so we can read window.Clerk / handoff before painting the sign-in form.
+  ssr: false,
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
     mode:
       search.mode === "signup"
@@ -95,6 +104,8 @@ function AuthPage() {
   const autoEmailCodeStarted = useRef(false);
   const [shake, setShake] = useState(0);
   const redirectedRef = useRef(false);
+  // Capture on first paint — sessionStorage from /sso-callback must win before any re-render.
+  const [ssoHandoff, setSsoHandoff] = useState(() => hasAuthHandoff());
 
   // Clerk JS + sign-in/up resources ready — disable actions until then (no error toast).
   const clerkReady =
@@ -128,9 +139,14 @@ function AuthPage() {
     }
     redirectedRef.current = true;
     setBusy(true);
+    markAuthHandoff();
     try {
-      // Soft SPA navigate keeps the in-memory Clerk session so the navbar flips to
-      // "Open workspace" and _authenticated can read window.Clerk immediately.
+      // After OAuth the cookie may still be catching up — hard-nav once it's ready so we
+      // never soft-land on /dashboard → bounce back to this form.
+      if (ssoHandoff || hasAuthHandoff()) {
+        await finishAuthWithHardNav({ queryClient, userId: resolvedUserId });
+        return;
+      }
       await continueAfterAuth({
         queryClient,
         userId: resolvedUserId,
@@ -139,7 +155,8 @@ function AuthPage() {
     } catch {
       redirectedRef.current = false;
       try {
-        await navigate({ to: "/dashboard", replace: true });
+        markAuthHandoff();
+        window.location.replace("/dashboard");
       } catch {
         toast.error("Signed in, but we couldn't open your workspace", {
           description: "Tap Open workspace in the header, or refresh the page.",
@@ -185,6 +202,40 @@ function AuthPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoaded, isSignedIn, userId, clerk.loaded, clerk.session?.status, clerk.user?.id]);
+
+  // Clerk's Dashboard "Sign-in URL" is often /auth — OAuth can land here instead of /sso-callback.
+  // Send one hop to the real callback so finalize / transfer still run.
+  useEffect(() => {
+    if (!ssoHandoff && !hasAuthHandoff()) return;
+    if (verificationCode !== null) return;
+    try {
+      if (sessionStorage.getItem("lf:sso-callback-hop")) return;
+      sessionStorage.setItem("lf:sso-callback-hop", "1");
+    } catch {
+      return;
+    }
+    // Only hop if we don't already have a live session to finish here.
+    if (clientClerkUserId() || isSignedIn) return;
+    window.location.replace(`${window.location.origin}/sso-callback`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cancelled OAuth (handoff set, but never signed in): drop the finishing screen and show the form.
+  useEffect(() => {
+    if (!ssoHandoff || !authLoaded || !clerk.loaded) return;
+    if (isSignedIn || clientClerkUserId()) return;
+    const timer = window.setTimeout(() => {
+      if (clientClerkUserId() || isSignedIn) return;
+      clearAuthHandoff();
+      setSsoHandoff(false);
+      try {
+        sessionStorage.removeItem("lf:sso-callback-hop");
+      } catch {
+        // ignore
+      }
+    }, 12_000);
+    return () => window.clearTimeout(timer);
+  }, [ssoHandoff, authLoaded, clerk.loaded, isSignedIn]);
 
   const startEmailCodeStep = async () => {
     const { error } = await signIn.mfa.sendEmailCode();
@@ -382,36 +433,29 @@ function AuthPage() {
     }
   };
 
-  // Relative redirect URLs (Clerk docs). Wait for Clerk instead of toasting "still loading".
+  // Social is sign-in only. New Google/Apple users are created via Clerk transfer on /sso-callback.
   const startSocialSignIn = async (
     strategy: "oauth_google" | "oauth_apple" | "oauth_linkedin_oidc",
     label: string,
   ) => {
-    if (mode === "signup" && !legalAccepted) {
-      toast.error("Please agree to the terms and privacy policy to continue.");
-      return;
-    }
     setBusy(true);
     try {
       const ready = clerkReady || (await waitForClerkReady());
-      if (!ready || !signIn || !signUp) {
+      if (!ready || !signIn) {
         throw new Error("Sign-in took too long to start. Please refresh and try again.");
       }
-      // redirectUrl = where Clerk sends people after SSO completes (never /auth — that caused
-      // callback → auth form → dashboard). redirectCallbackUrl = handshake / incomplete step.
-      const ssoArgs = {
+      // Absolute URLs — relative ones sometimes fall back to Clerk's Dashboard "Sign-in URL" (/auth).
+      const callback = `${window.location.origin}/sso-callback`;
+      markAuthHandoff();
+      const { error } = await signIn.sso({
         strategy,
-        redirectCallbackUrl: "/sso-callback",
-        redirectUrl: "/sso-callback",
-      } as const;
-      const { error } =
-        mode === "signup"
-          ? await signUp.sso({ ...ssoArgs, legalAccepted: true })
-          : await signIn.sso(ssoArgs);
+        redirectCallbackUrl: callback,
+        redirectUrl: callback,
+      });
       if (error) throw error;
-      // Browser should navigate to the provider; unlock if we're still here.
       window.setTimeout(() => setBusy(false), 12_000);
     } catch (err) {
+      clearAuthHandoff();
       if (await recoverIfAlreadySignedIn(err)) return;
       const message = err instanceof Error ? err.message : `${label} sign-in failed`;
       toast.error(message || `${label} sign-in failed`);
@@ -429,27 +473,57 @@ function AuthPage() {
   };
 
   const onCodeStep = verificationCode !== null;
-  const openingWorkspace = Boolean(
-    authLoaded && (isSignedIn || clientClerkUserId()) && (userId || clientClerkUserId()),
-  );
-  const title = openingWorkspace
-    ? "Opening your workspace"
-    : onCodeStep
-      ? codeReason === "signup_email"
-        ? "Verify your email"
-        : "Verify this device"
-      : mode === "signin"
-        ? "Welcome back"
-        : "Create your account";
-  const subtitle = openingWorkspace
-    ? "You're signed in — taking you to your account now."
-    : onCodeStep
-      ? codeReason === "signup_email"
-        ? `Enter the 6-digit code we sent to ${email}.`
-        : "Enter the code we just emailed you to confirm it's really you."
-      : mode === "signin"
-        ? "Sign in to reach your workspace."
-        : "Free for clients. Professionals are verified before going live.";
+  const clientId = clientClerkUserId();
+  const openingWorkspace = Boolean((isSignedIn || clientId) && (userId || clientId));
+  // After Google/Apple/LinkedIn: never paint the sign-in form. Keep the finishing screen
+  // until Clerk is loaded and we've hard-navigated to the workspace.
+  const showHandoff =
+    !onCodeStep &&
+    (ssoHandoff ||
+      hasAuthHandoff() ||
+      openingWorkspace ||
+      Boolean(clientId) ||
+      (ssoHandoff && !authLoaded));
+
+  const title = onCodeStep
+    ? codeReason === "signup_email"
+      ? "Verify your email"
+      : "Verify this device"
+    : mode === "signin"
+      ? "Welcome back"
+      : "Create your account";
+  const subtitle = onCodeStep
+    ? codeReason === "signup_email"
+      ? `Enter the 6-digit code we sent to ${email}.`
+      : "Enter the code we just emailed you to confirm it's really you."
+    : mode === "signin"
+      ? "Sign in to reach your workspace."
+      : "Free for clients. Professionals are verified before going live.";
+
+  if (showHandoff) {
+    const resumeId = userId ?? clientId;
+    return (
+      <AuthHandoff
+        title="Opening your workspace"
+        detail="You’re signed in. Taking you to your account now."
+        action={
+          resumeId ? (
+            <Button
+              type="button"
+              size="lg"
+              className="h-12 w-full"
+              onClick={() => {
+                redirectedRef.current = false;
+                void goToWorkspace(resumeId);
+              }}
+            >
+              Open workspace now
+            </Button>
+          ) : null
+        }
+      />
+    );
+  }
 
   return (
     <AuthShell
@@ -460,28 +534,6 @@ function AuthPage() {
       }
     >
       <div key={shake} className={cn(shake > 0 && "animate-shake")}>
-        {openingWorkspace ? (
-          <div className="mt-8 flex flex-col items-center gap-4 text-center">
-            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
-              <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
-            </span>
-            <h1 className="text-h3 font-bold">{title}</h1>
-            <p className="text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
-            <Button
-              type="button"
-              size="lg"
-              className="mt-2 h-12 w-full"
-              onClick={() => {
-                if (!userId) return;
-                redirectedRef.current = false;
-                void goToWorkspace(userId);
-              }}
-            >
-              Open workspace now
-            </Button>
-          </div>
-        ) : (
-          <>
         {onCodeStep && (
           <span className="mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
             <MailCheck className="h-6 w-6" aria-hidden />
@@ -535,13 +587,32 @@ function AuthPage() {
               ))}
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-2.5">
-              <SocialButton provider="google" onClick={google} disabled={busy || !clerkReady} />
-              <SocialButton provider="apple" onClick={apple} disabled={busy || !clerkReady} />
-              <SocialButton provider="linkedin" onClick={linkedin} disabled={busy || !clerkReady} />
-            </div>
-
-            <AuthDivider>or continue with email</AuthDivider>
+            {mode === "signin" ? (
+              <>
+                <div className="mt-6 grid grid-cols-3 gap-2.5">
+                  <SocialButton provider="google" onClick={google} disabled={busy || !clerkReady} />
+                  <SocialButton provider="apple" onClick={apple} disabled={busy || !clerkReady} />
+                  <SocialButton
+                    provider="linkedin"
+                    onClick={linkedin}
+                    disabled={busy || !clerkReady}
+                  />
+                </div>
+                <AuthDivider>or continue with email</AuthDivider>
+              </>
+            ) : (
+              <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+                Prefer Google, Apple or LinkedIn?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("signin")}
+                  className="font-semibold text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
+                >
+                  Sign in
+                </button>{" "}
+                instead — social sign-in creates your account if you’re new.
+              </p>
+            )}
 
             <form key={mode} onSubmit={submit} className="space-y-4" noValidate={false}>
               {mode === "signup" && (
@@ -741,8 +812,6 @@ function AuthPage() {
           </Link>
           .
         </p>
-          </>
-        )}
       </div>
     </AuthShell>
   );

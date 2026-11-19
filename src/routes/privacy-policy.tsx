@@ -80,9 +80,11 @@ const SECTIONS: Section[] = [
           <span className="font-medium text-foreground">Professional verification.</span> If you
           apply for an advocate, police or judiciary account, we collect the details and documents
           the application asks for — for example your Roll of Advocates number and practising
-          certificate, your force or staff number, a letter from your station or court, and your
-          National ID or passport. They are stored privately and seen only by you and our
-          administrators, who use them to decide whether to approve your account.
+          certificate, your National ID (NIN) or passport number, a selfie holding your ID, your
+          force or staff number, a letter from your station or court, and scans of your National ID
+          or passport. They are stored privately and seen only by you and our administrators, who
+          use them to decide whether to approve your account. Advocates renewing a practising
+          certificate send a fresh certificate and selfie the same way.
         </p>
         <p>
           <span className="font-medium text-foreground">Case, messaging, and document data.</span>{" "}

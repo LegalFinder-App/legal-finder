@@ -43,12 +43,42 @@ const NATIONAL_ID: RequirementDocument = {
   hint: "Both sides of a National ID, or the photo page of a passport.",
 };
 
+/** Fresh PC + selfie pack when an approved advocate renews after expiry / near-expiry. */
+export const LAWYER_RENEWAL_REQUIREMENTS: Pick<Requirements, "fields" | "documents"> = {
+  fields: [
+    {
+      key: "national_id_number",
+      label: "National ID (NIN) or passport number",
+      placeholder: "e.g. CM90… or passport number",
+    },
+    { key: "practising_certificate_number", label: "Practising certificate number" },
+    {
+      key: "practising_certificate_expiry",
+      label: "Practising certificate expires",
+      kind: "date",
+      hint: "Certificates are renewed every year and expire on 1 March.",
+    },
+  ],
+  documents: [
+    {
+      kind: "practising_certificate",
+      label: "Current practising certificate",
+      hint: "This year's certificate.",
+    },
+    {
+      kind: "selfie",
+      label: "Selfie holding your ID",
+      hint: "A clear live photo of your face while holding your National ID or passport.",
+    },
+  ],
+};
+
 export const REQUIREMENTS: Record<ApplicationRole, Requirements> = {
   lawyer: {
     noun: "advocate",
     title: "Advocate application",
     intro:
-      "LegalFinder lists only advocates enrolled on the Roll of Advocates with a current practising certificate. An administrator checks your documents before your advocate workspace and verified listing are switched on.",
+      "Legal right to practise: a current practising certificate, enrolment on the Roll of Advocates, a government ID, and a selfie. An administrator checks them before your advocate workspace and verified listing are switched on.",
     fields: [
       { key: "full_name", label: "Full name, as on the Roll", placeholder: "e.g. Amina Nakato" },
       { key: "roll_number", label: "Roll of Advocates number", placeholder: "Enrolment number" },
@@ -58,6 +88,12 @@ export const REQUIREMENTS: Record<ApplicationRole, Requirements> = {
         label: "Practising certificate expires",
         kind: "date",
         hint: "Certificates are renewed every year and expire on 1 March.",
+      },
+      {
+        key: "national_id_number",
+        label: "National ID (NIN) or passport number",
+        placeholder: "e.g. CM90… or passport number",
+        hint: "Used only for identity review; deleted with your account.",
       },
       { key: "firm", label: "Law firm or chambers", placeholder: "Or “Sole practitioner”" },
       { key: "district", label: "District you practise in", placeholder: "e.g. Kampala" },
@@ -87,7 +123,21 @@ export const REQUIREMENTS: Record<ApplicationRole, Requirements> = {
         label: "Certificate of enrolment",
         hint: "Your enrolment on the Roll of Advocates.",
       },
-      NATIONAL_ID,
+      {
+        kind: "national_id",
+        label: "National ID (front) or passport photo page",
+        hint: "Front of a National ID, or the photo page of a passport.",
+      },
+      {
+        kind: "national_id_back",
+        label: "National ID (back)",
+        hint: "Back of the National ID. For a passport, upload the photo page again.",
+      },
+      {
+        kind: "selfie",
+        label: "Selfie holding your ID",
+        hint: "A clear live photo of your face while holding your National ID or passport. Prefer the camera on a phone.",
+      },
     ],
   },
   police: {
@@ -162,13 +212,28 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
 export const editable = (status: ApplicationStatus) =>
   status === "draft" || status === "changes_requested";
 
+export function isRenewalApplication(details: Record<string, string> | null | undefined): boolean {
+  return details?.purpose === "renewal";
+}
+
+/** Fields/docs required for this application — renewal uses the lighter PC + selfie pack. */
+export function requirementsFor(
+  role: ApplicationRole,
+  details?: Record<string, string> | null,
+): Pick<Requirements, "fields" | "documents"> {
+  if (role === "lawyer" && isRenewalApplication(details ?? undefined)) {
+    return LAWYER_RENEWAL_REQUIREMENTS;
+  }
+  return REQUIREMENTS[role];
+}
+
 /** What is still missing before the application can be sent — the database checks the same. */
 export function missingItems(
   role: ApplicationRole,
   details: Record<string, string>,
   documents: ApplicationDocument[],
 ): string[] {
-  const req = REQUIREMENTS[role];
+  const req = requirementsFor(role, details);
   return [
     ...req.fields.filter((f) => !f.optional && !details[f.key]?.trim()).map((f) => f.label),
     ...req.documents
@@ -249,7 +314,41 @@ export async function saveApplication(id: string, details: Record<string, string
 }
 
 export async function submitApplication(id: string): Promise<RoleApplicationRow> {
+  // Vendor hook (noop today). Runs after docs are on disk; never blocks submit while skipped.
+  try {
+    const { data: app } = await supabase
+      .from("role_applications")
+      .select("user_id, details")
+      .eq("id", id)
+      .maybeSingle();
+    const { data: docs } = await supabase
+      .from("role_application_documents")
+      .select("kind, storage_path")
+      .eq("application_id", id);
+    const details = (app?.details ?? {}) as Record<string, string>;
+    const selfie = docs?.find((d) => d.kind === "selfie");
+    const idDoc = docs?.find((d) => d.kind === "national_id");
+    if (app?.user_id && details.national_id_number && selfie && idDoc) {
+      const { getKycProvider } = await import("@/lib/kyc/provider");
+      await getKycProvider().verifyIdentity({
+        userId: app.user_id,
+        nationalId: details.national_id_number,
+        selfiePath: selfie.storage_path,
+        idDocPath: idDoc.storage_path,
+      });
+    }
+  } catch {
+    // Vendor failures must not strand an in-house application; admin review remains the gate.
+  }
+
   const { data, error } = await supabase.rpc("submit_role_application", { _application_id: id });
+  if (error) throw new Error(error.message);
+  return data as RoleApplicationRow;
+}
+
+/** Opens (or resets) a practising-certificate renewal draft for the signed-in advocate. */
+export async function startAdvocateKycRenewal(): Promise<RoleApplicationRow> {
+  const { data, error } = await supabase.rpc("start_advocate_kyc_renewal");
   if (error) throw new Error(error.message);
   return data as RoleApplicationRow;
 }

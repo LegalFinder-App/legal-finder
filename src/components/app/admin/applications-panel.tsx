@@ -45,8 +45,10 @@ import {
   STATUS_LABELS,
   allApplicationsQuery,
   applicationDocumentsQuery,
+  isRenewalApplication,
   openApplicationDocument,
   recordApplicationChecks,
+  requirementsFor,
   reviewApplication,
   signedDocumentUrl,
   type ApplicationDocument,
@@ -56,8 +58,8 @@ import {
 } from "@/lib/onboarding";
 import {
   CHIEF_REGISTRAR,
-  REVIEW_CHECKLISTS,
   checklistComplete,
+  checklistFor,
   runAutomaticChecks,
   worstStatus,
   type AutoCheck,
@@ -432,7 +434,10 @@ function ApplicationDetail({
 }) {
   const queryClient = useQueryClient();
   const docs = useQuery(applicationDocumentsQuery(app.id));
-  const req = REQUIREMENTS[app.role];
+  const meta = REQUIREMENTS[app.role];
+  const req = { ...meta, ...requirementsFor(app.role, app.details) };
+  const checklist = checklistFor(app.role, app.details);
+  const renewal = isRenewalApplication(app.details);
   const role = ROLE_META[app.role];
   const name = app.details.full_name?.trim() || "Unnamed applicant";
   const reviewing = app.status === "submitted";
@@ -450,7 +455,7 @@ function ApplicationDetail({
   const [checks, setChecks] = useState<Record<string, boolean>>(saved);
   const [savingChecks, setSavingChecks] = useState(false);
   const dirty = JSON.stringify(checks) !== JSON.stringify(saved);
-  const complete = checklistComplete(app.role, checks);
+  const complete = checklistComplete(app.role, checks, app.details);
 
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -529,6 +534,7 @@ function ApplicationDetail({
               <p className="flex flex-wrap items-center gap-x-2 text-xs text-ink-foreground/70">
                 <span className="inline-flex items-center gap-1">
                   <role.icon className="h-3.5 w-3.5 text-brass" aria-hidden /> {role.label}
+                  {renewal ? " · PC renewal" : ""}
                 </span>
                 {email && (
                   <a
@@ -616,6 +622,32 @@ function ApplicationDetail({
           </dl>
         </Block>
 
+        {/* Identity pack: NIN + selfie beside the ID */}
+        {app.role === "lawyer" && app.details.national_id_number ? (
+          <Block title="Identity" icon={UserRound}>
+            <p className="mb-3 text-sm">
+              <span className="text-muted-foreground">NIN / passport number: </span>
+              <span className="font-mono font-semibold">{app.details.national_id_number}</span>
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(["national_id", "selfie"] as const).map((kind) => {
+                const label = kind === "selfie" ? "Selfie" : "ID front / passport";
+                const file = (docs.data ?? []).find((x) => x.kind === kind);
+                return file ? (
+                  <DocumentTile key={kind} label={label} file={file} />
+                ) : (
+                  <div
+                    key={kind}
+                    className="flex min-h-40 flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground"
+                  >
+                    {label} — not uploaded
+                  </div>
+                );
+              })}
+            </div>
+          </Block>
+        ) : null}
+
         {/* Documents */}
         <Block title="Documents" icon={FileText}>
           {docs.isLoading ? (
@@ -667,7 +699,7 @@ function ApplicationDetail({
             }
           >
             <ul className="space-y-2">
-              {REVIEW_CHECKLISTS[app.role].map((item) => {
+              {checklist.map((item) => {
                 const id = `check-${app.id}-${item.key}`;
                 return (
                   <li key={item.key}>

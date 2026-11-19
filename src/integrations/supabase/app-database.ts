@@ -226,6 +226,14 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
         Args: { _application_id: string; _checks: Record<string, boolean> };
         Returns: RoleApplicationRow;
       };
+      start_advocate_kyc_renewal: {
+        Args: Record<string, never>;
+        Returns: RoleApplicationRow;
+      };
+      expire_advocate_kyc: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
       match_legal_chunks: {
         Args: {
           query_embedding: number[] | string;
@@ -293,14 +301,38 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
         Row: BaseDatabase["public"]["Tables"]["lawyers"]["Row"] & {
           bar_license_expires_at: string | null;
           license_status: LawyerLicenseStatus;
+          practising_certificate_number: string | null;
+          enrolment_certificate_ref: string | null;
+          kyc_status: "none" | "pending" | "verified" | "expired" | "rejected";
+          kyc_verified_at: string | null;
+          kyc_expires_at: string | null;
+          kyc_application_id: string | null;
+          kyc_vendor: string | null;
+          kyc_vendor_ref: string | null;
         };
         Insert: BaseDatabase["public"]["Tables"]["lawyers"]["Insert"] & {
           bar_license_expires_at?: string | null;
           license_status?: LawyerLicenseStatus;
+          practising_certificate_number?: string | null;
+          enrolment_certificate_ref?: string | null;
+          kyc_status?: "none" | "pending" | "verified" | "expired" | "rejected";
+          kyc_verified_at?: string | null;
+          kyc_expires_at?: string | null;
+          kyc_application_id?: string | null;
+          kyc_vendor?: string | null;
+          kyc_vendor_ref?: string | null;
         };
         Update: BaseDatabase["public"]["Tables"]["lawyers"]["Update"] & {
           bar_license_expires_at?: string | null;
           license_status?: LawyerLicenseStatus;
+          practising_certificate_number?: string | null;
+          enrolment_certificate_ref?: string | null;
+          kyc_status?: "none" | "pending" | "verified" | "expired" | "rejected";
+          kyc_verified_at?: string | null;
+          kyc_expires_at?: string | null;
+          kyc_application_id?: string | null;
+          kyc_vendor?: string | null;
+          kyc_vendor_ref?: string | null;
         };
       };
       case_deadlines: {

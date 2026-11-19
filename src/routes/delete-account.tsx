@@ -85,7 +85,8 @@ function DeleteAccount() {
             <li>The people you blocked, and any blocks other people set on you;</li>
             <li>
               Any application for an advocate, police or judiciary account, with the identity and
-              professional documents you sent with it;
+              professional documents you sent with it (including National ID / passport scans, NIN,
+              and selfies);
             </li>
             <li>
               For advocates: your public directory listing with its reviews, your professional

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, Switch, View } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, Paperclip } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -23,14 +23,18 @@ import {
   STATUS_LABELS,
   applicationDocumentsQuery,
   applicationsQuery,
+  isRenewalApplication,
   openApplicationDocument,
+  recordApplicationChecks,
+  requirementsFor,
   reviewApplication,
   type ApplicationStatus,
   type RoleApplicationRow,
 } from "@/lib/onboarding";
+import { checklistComplete, checklistFor } from "@/lib/verification";
 
 // Administrators approve advocate, police and judiciary accounts here — the only way those roles
-// are granted (20261005090000_professional_onboarding.sql). Every new application notifies them.
+// are granted. Checklist keys must match the DB gate (20261119240000_advocate_kyc_renewal.sql).
 
 type View_ = "review" | "waiting" | "decided";
 const VIEWS: Record<View_, ApplicationStatus[]> = {
@@ -88,18 +92,36 @@ export function ApplicationsPanel() {
 function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: string | null }) {
   const { colors } = useTheme();
   const qc = useQueryClient();
-  const req = REQUIREMENTS[app.role];
+  const meta = REQUIREMENTS[app.role];
+  const req = { ...meta, ...requirementsFor(app.role, app.details) };
+  const checklist = checklistFor(app.role, app.details);
+  const renewal = isRenewalApplication(app.details);
   const docs = useQuery(applicationDocumentsQuery(app.id));
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
+  const saved = useMemo(() => {
+    const out: Record<string, boolean> = {};
+    for (const [k, v] of Object.entries(app.review_checks ?? {})) {
+      if (typeof v === "boolean") out[k] = v;
+    }
+    return out;
+  }, [app.review_checks]);
+  const [checks, setChecks] = useState<Record<string, boolean>>(saved);
+  const complete = checklistComplete(app.role, checks, app.details);
+
   const decide = async (decision: "approve" | "changes" | "reject") => {
     setBusy(decision);
     try {
+      if (decision === "approve" && Object.keys(checks).length) {
+        await recordApplicationChecks(app.id, checks);
+      }
       await reviewApplication(app.id, decision, note);
       toast.success(
         decision === "approve"
-          ? `${app.details.full_name || "Applicant"} is now ${req.noun === "advocate" ? "an advocate" : `on ${req.noun}`}`
+          ? renewal
+            ? "Renewal approved — listing verified again"
+            : `${app.details.full_name || "Applicant"} is now ${req.noun === "advocate" ? "an advocate" : `on ${req.noun}`}`
           : decision === "changes"
             ? "Changes requested"
             : "Application declined",
@@ -116,17 +138,28 @@ function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: strin
     }
   };
 
-  const confirmApprove = () =>
+  const confirmApprove = () => {
+    if (!complete) {
+      toast.error("Tick every required check first", {
+        description: "The database refuses approve without the identity checklist.",
+      });
+      return;
+    }
     showAlert(
-      `Approve ${app.details.full_name || "this applicant"}?`,
+      renewal
+        ? `Approve ${app.details.full_name || "this"} renewal?`
+        : `Approve ${app.details.full_name || "this applicant"}?`,
       app.role === "lawyer"
-        ? "They get the advocate workspace and a verified listing in the directory. Approve only once you've checked their documents against the Roll."
+        ? renewal
+          ? "Their verified listing is restored with the new practising certificate."
+          : "They get the advocate workspace and a verified listing in the directory. Approve only once you've checked their documents against the Roll."
         : `They get the ${req.noun} workspace. Approve only once you've checked their documents.`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Approve", onPress: () => void decide("approve") },
       ],
     );
+  };
 
   const needNote = (decision: "changes" | "reject") => {
     if (!note.trim()) {
@@ -138,12 +171,17 @@ function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: strin
     void decide(decision);
   };
 
+  const toggleCheck = (key: string, value: boolean) => {
+    setChecks((prev) => ({ ...prev, [key]: value }));
+  };
+
   return (
     <Card>
       <View style={{ gap: 8 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text variant="bodyStrong" style={{ flex: 1 }}>
             {app.details.full_name || "Unnamed"} · {req.noun}
+            {renewal ? " · renewal" : ""}
           </Text>
           <StatusPill
             value={STATUS_LABELS[app.status]}
@@ -163,10 +201,19 @@ function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: strin
           {app.submitted_at ? ` · sent ${formatDateTime(app.submitted_at)}` : ""}
         </Text>
 
+        {app.details.national_id_number ? (
+          <Text variant="small">
+            <Text variant="small" tone="muted">
+              NIN / passport:{" "}
+            </Text>
+            {app.details.national_id_number}
+          </Text>
+        ) : null}
+
         <View style={{ gap: 4 }}>
           {req.fields.map((f) => {
             const value = app.details[f.key];
-            if (!value) return null;
+            if (!value || f.key === "national_id_number") return null;
             return (
               <Text key={f.key} variant="small">
                 <Text variant="small" tone="muted">
@@ -216,6 +263,34 @@ function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: strin
 
         {app.status === "submitted" ? (
           <>
+            <Text variant="bodyStrong" style={{ marginTop: 4 }}>
+              Reviewer checklist
+            </Text>
+            {checklist.map((item) => (
+              <View
+                key={item.key}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 4,
+                }}
+              >
+                <Switch
+                  value={checks[item.key] === true}
+                  onValueChange={(v) => toggleCheck(item.key, v)}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text variant="small">
+                    {item.label}
+                    {item.required ? "" : " (optional)"}
+                  </Text>
+                  <Text variant="small" tone="muted">
+                    {item.hint}
+                  </Text>
+                </View>
+              </View>
+            ))}
             <Input
               label="Note to the applicant"
               hint="Needed to ask for changes or decline. Sent to them with the decision."
@@ -229,7 +304,7 @@ function ApplicationCard({ app, email }: { app: RoleApplicationRow; email: strin
                 title="Approve"
                 size="sm"
                 loading={busy === "approve"}
-                disabled={busy !== null}
+                disabled={busy !== null || !complete}
                 onPress={confirmApprove}
               />
               <Button

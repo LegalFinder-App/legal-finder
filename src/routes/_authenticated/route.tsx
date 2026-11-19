@@ -10,6 +10,7 @@ import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
 import { clientClerkUserId } from "@/lib/after-auth";
+import { clearAuthHandoff } from "@/lib/auth-handoff";
 import { startSessionWatchdog } from "@/lib/session-watchdog";
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -21,7 +22,14 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
  */
 async function resolveUserId(): Promise<string | null> {
   if (typeof window !== "undefined") {
-    const deadline = Date.now() + 8_000;
+    // After SSO hard-nav the cookie is usually ready; give Clerk a moment to hydrate.
+    let handoff = false;
+    try {
+      handoff = Boolean(sessionStorage.getItem("lf:auth-handoff"));
+    } catch {
+      // ignore
+    }
+    const deadline = Date.now() + (handoff ? 12_000 : 8_000);
     while (Date.now() < deadline) {
       const clerk = window.Clerk;
       if (clerk && !clerk.loaded) {
@@ -33,8 +41,8 @@ async function resolveUserId(): Promise<string | null> {
           void checkClerkSession().catch(() => {});
           return id;
         }
-        // Clerk finished loading with no user — fall through to the server cookie check.
-        break;
+        // During SSO handoff, Clerk can report loaded before the user object attaches.
+        if (!handoff) break;
       }
       await sleep(50);
     }
@@ -76,6 +84,15 @@ function WorkspaceLayout() {
   const queryClient = useQueryClient();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    clearAuthHandoff();
+    try {
+      sessionStorage.removeItem("lf:sso-callback-hop");
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;

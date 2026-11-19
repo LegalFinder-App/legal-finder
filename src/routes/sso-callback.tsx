@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import {
-  continueAfterAuth,
-  hardNavigateTo,
-  type AfterAuthDestination,
-} from "@/lib/after-auth";
+import { AuthHandoff } from "@/components/auth/auth-handoff";
+import { clearAuthHandoff, markAuthHandoff } from "@/lib/auth-handoff";
+import { finishAuthWithHardNav, hardNavigateTo } from "@/lib/after-auth";
 import { toast } from "@/lib/toast";
 
-// OAuth return for `signIn.sso` / `signUp.sso`. Completes legal acceptance + account transfer,
-// then soft-navigates to the role home so the in-memory Clerk session stays (no /auth bounce).
+// OAuth return. Completes transfer / finalize, waits for the Clerk cookie, then hard-navigates
+// once to the workspace. Ambiguous failures go to /dashboard (with handoff), never the sign-in
+// form — only device-trust / email OTP may open /auth.
 export const Route = createFileRoute("/sso-callback")({
   ssr: false,
   head: () => ({
@@ -24,60 +22,71 @@ const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 
 function SsoCallbackPage() {
   const clerk = useClerk();
-  const navigate = useNavigate();
   const { signIn, fetchStatus: signInFetch } = useSignIn();
   const { signUp, fetchStatus: signUpFetch } = useSignUp();
   const queryClient = useQueryClient();
   const ran = useRef(false);
-  const [message, setMessage] = useState("Finishing sign-in…");
+  const [title, setTitle] = useState("Finishing sign-in");
+  const [detail, setDetail] = useState("Confirming your account with the identity provider.");
+
+  useEffect(() => {
+    markAuthHandoff();
+  }, []);
 
   useEffect(() => {
     if (!clerk.loaded || signInFetch === "fetching" || signUpFetch === "fetching") return;
     if (ran.current) return;
     ran.current = true;
 
-    /** Only for flows that still need the auth form (OTP, missing signup fields). */
-    const goAuth = (mode?: "signup") => {
-      hardNavigateTo(mode === "signup" ? "/auth?mode=signup" : "/auth");
+    const waitForUserId = async (maxMs = 6_000) => {
+      const deadline = Date.now() + maxMs;
+      while (Date.now() < deadline) {
+        const id = clerk.session?.user?.id ?? clerk.user?.id ?? null;
+        if (id) return id;
+        await sleep(80);
+      }
+      return clerk.session?.user?.id ?? clerk.user?.id ?? null;
     };
 
-    const softToHome = async (to: AfterAuthDestination, decorateUrl?: (url: string) => string) => {
-      const decorated = decorateUrl ? decorateUrl(to) : to;
-      // Safari ITP may return a Clerk touch URL — that must be a full navigation.
-      if (/^https?:\/\//i.test(decorated)) {
-        window.location.assign(decorated);
-        return;
-      }
-      await navigate({ to: decorated as AfterAuthDestination, replace: true });
-      // If soft-nav somehow left us on the callback, hard-nav as last resort.
-      if (window.location.pathname.includes("sso-callback")) {
-        hardNavigateTo(to);
-      }
-    };
-
-    const routeAfterSession = async (
-      session?: { user?: { id?: string } | null } | null,
-      decorateUrl?: (url: string) => string,
-    ) => {
-      const userId = session?.user?.id ?? clerk.session?.user?.id ?? clerk.user?.id;
-      if (!userId) {
-        goAuth();
-        return;
-      }
+    const openWorkspace = async (userId: string) => {
+      setTitle("Opening your workspace");
+      setDetail("You’re signed in. Taking you to your account now.");
+      markAuthHandoff();
       try {
-        setMessage("Opening your workspace…");
-        await continueAfterAuth({
-          queryClient,
-          userId,
-          navigate: ({ to }) => softToHome(to, decorateUrl),
-        });
+        await finishAuthWithHardNav({ queryClient, userId });
       } catch (err) {
-        toast.error("Signed in, but we couldn't open your workspace", {
-          description: err instanceof Error ? err.message : "Please try again from the sign-in page.",
-        });
-        // Prefer dashboard over flashing the auth form when a session already exists.
-        await softToHome("/dashboard", decorateUrl);
+        console.error("[sso-callback] workspace", err);
+        markAuthHandoff();
+        window.location.replace("/dashboard");
       }
+    };
+
+    /** Prefer workspace over /auth whenever a session might exist. */
+    const preferWorkspace = async () => {
+      const id = await waitForUserId(4_000);
+      if (id) {
+        await openWorkspace(id);
+        return true;
+      }
+      markAuthHandoff();
+      window.location.replace("/dashboard");
+      return true;
+    };
+
+    /** Device trust / email OTP only — the form on /auth is required. */
+    const goAuthForOtp = () => {
+      clearAuthHandoff();
+      hardNavigateTo("/auth");
+    };
+
+    const routeAfterSession = async (session?: { user?: { id?: string } | null } | null) => {
+      let userId = session?.user?.id ?? clerk.session?.user?.id ?? clerk.user?.id ?? null;
+      if (!userId) userId = await waitForUserId(5_000);
+      if (!userId) {
+        await preferWorkspace();
+        return;
+      }
+      await openWorkspace(userId);
     };
 
     const statusReady = () => {
@@ -88,7 +97,9 @@ function SsoCallbackPage() {
       if (signIn.isTransferable || signUp.isTransferable) return true;
       if (si === "needs_second_factor" || si === "needs_client_trust") return true;
       if (signIn.existingSession?.sessionId || signUp.existingSession?.sessionId) return true;
-      if (clerk.session?.status === "active" && clerk.user?.id) return true;
+      if (clerk.session?.status === "active" && (clerk.user?.id || clerk.session.user?.id)) {
+        return true;
+      }
       return false;
     };
 
@@ -99,47 +110,40 @@ function SsoCallbackPage() {
         try {
           await clerk.__internal_resolvePendingProtectCheck?.(flow);
         } catch {
-          // If Protect failed but we already have a live session, still open the workspace.
-          if (clerk.user?.id || clerk.session?.user?.id) {
-            await routeAfterSession(clerk.session);
-            return;
-          }
-          goAuth(flow === "signUp" ? "signup" : undefined);
+          await preferWorkspace();
           return;
         }
 
-        for (let attempt = 0; attempt < 10 && !statusReady(); attempt++) {
-          setMessage("Connecting your account…");
-          await sleep(250);
+        for (let attempt = 0; attempt < 24 && !statusReady(); attempt++) {
+          setTitle("Connecting your account");
+          setDetail("Confirming your account with the identity provider.");
+          await sleep(200);
         }
 
-        // Session already active (Clerk finished before our handlers) — skip /auth entirely.
         if (clerk.session?.status === "active" && (clerk.user?.id || clerk.session.user?.id)) {
-          setMessage("Opening your workspace…");
           await routeAfterSession(clerk.session);
           return;
         }
 
         if (signIn.status === "complete") {
-          setMessage("Opening your workspace…");
           await signIn.finalize({
-            navigate: async ({ session, decorateUrl }) =>
-              routeAfterSession(session, decorateUrl),
+            navigate: async ({ session }) => routeAfterSession(session),
           });
           return;
         }
 
         if (signUp.status === "complete") {
-          setMessage("Creating your account…");
+          setTitle("Creating your account");
+          setDetail("Setting up your LegalFinder profile.");
           await signUp.finalize({
-            navigate: async ({ session, decorateUrl }) =>
-              routeAfterSession(session, decorateUrl),
+            navigate: async ({ session }) => routeAfterSession(session),
           });
           return;
         }
 
         if (signUp.status === "missing_requirements") {
-          setMessage("Almost done…");
+          setTitle("Almost done");
+          setDetail("Confirming the last details for your account.");
           const missing = new Set<string>(signUp.missingFields ?? []);
           const patch: {
             legalAccepted?: boolean;
@@ -159,36 +163,33 @@ function SsoCallbackPage() {
           }
           if (String(signUp.status) === "complete") {
             await signUp.finalize({
-              navigate: async ({ session, decorateUrl }) =>
-                routeAfterSession(session, decorateUrl),
+              navigate: async ({ session }) => routeAfterSession(session),
             });
             return;
           }
-          goAuth("signup");
+          // Still missing fields we can't fill (e.g. custom) — try workspace / dashboard first.
+          await preferWorkspace();
           return;
         }
 
         if (signUp.isTransferable) {
-          setMessage("Linking your account…");
+          setTitle("Linking your account");
+          setDetail("Connecting this sign-in method to your existing LegalFinder account.");
           const { error } = await signIn.create({ transfer: true });
           if (error) throw error;
           if (String(signIn.status) === "complete") {
             await signIn.finalize({
-              navigate: async ({ session, decorateUrl }) =>
-                routeAfterSession(session, decorateUrl),
+              navigate: async ({ session }) => routeAfterSession(session),
             });
             return;
           }
-          if (clerk.user?.id) {
-            await routeAfterSession(clerk.session);
-            return;
-          }
-          goAuth();
+          await preferWorkspace();
           return;
         }
 
         if (signIn.isTransferable) {
-          setMessage("Setting up your account…");
+          setTitle("Setting up your account");
+          setDetail("Creating your LegalFinder profile from this sign-in.");
           const { error } = await signUp.create({ transfer: true, legalAccepted: true });
           if (error) throw error;
           let next = String(signUp.status);
@@ -199,18 +200,16 @@ function SsoCallbackPage() {
           }
           if (next === "complete") {
             await signUp.finalize({
-              navigate: async ({ session, decorateUrl }) =>
-                routeAfterSession(session, decorateUrl),
+              navigate: async ({ session }) => routeAfterSession(session),
             });
             return;
           }
-          goAuth("signup");
+          await preferWorkspace();
           return;
         }
 
-        // Device trust / leftover second factor — /auth shows email OTP (no authenticator setup).
         if (signIn.status === "needs_second_factor" || signIn.status === "needs_client_trust") {
-          goAuth();
+          goAuthForOtp();
           return;
         }
 
@@ -219,43 +218,27 @@ function SsoCallbackPage() {
         if (sessionId) {
           await clerk.setActive({
             session: sessionId,
-            navigate: async ({ session, decorateUrl }) =>
-              routeAfterSession(session, decorateUrl),
+            navigate: async ({ session }) => routeAfterSession(session),
           });
           return;
         }
 
-        // Last resort: already signed in somehow — never dump them on the auth form.
-        if (clerk.user?.id || clerk.session?.user?.id) {
-          await routeAfterSession(clerk.session);
-          return;
-        }
-
-        goAuth();
+        await preferWorkspace();
       } catch (err) {
         console.error("[sso-callback]", err);
-        if (clerk.user?.id || clerk.session?.user?.id) {
+        if (await waitForUserId(3_000)) {
           await routeAfterSession(clerk.session);
           return;
         }
         toast.error(err instanceof Error ? err.message : "Couldn't finish social sign-in", {
           description: "Please try again, or sign in with email instead.",
         });
-        goAuth();
+        // Still avoid the sign-in form flash when a cookie may appear shortly.
+        markAuthHandoff();
+        window.location.replace("/dashboard");
       }
     })();
-  }, [clerk, navigate, queryClient, signIn, signInFetch, signUp, signUpFetch]);
+  }, [clerk, queryClient, signIn, signInFetch, signUp, signUpFetch]);
 
-  return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-sky px-6 text-center">
-      <div id="clerk-captcha" />
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-brass ring-1 ring-brass/15">
-        <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-      </span>
-      <p className="text-sm font-medium text-foreground">{message}</p>
-      <p className="max-w-xs text-xs text-muted-foreground">
-        Connecting your account securely. This only takes a moment.
-      </p>
-    </div>
-  );
+  return <AuthHandoff title={title} detail={detail} />;
 }

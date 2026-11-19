@@ -63,10 +63,17 @@ async function notify(userId: string, title: string, body: string, link: string)
   await sendPushToUser(userId, title, body, link);
 }
 
+async function expireAdvocateKyc(): Promise<number> {
+  // SECURITY DEFINER RPC: unverifies listings whose PC date has passed and notifies each advocate.
+  const { data, error } = await supabaseAdmin.rpc("expire_advocate_kyc");
+  if (error) throw new Error(`KYC expiry failed: ${error.message}`);
+  return typeof data === "number" ? data : 0;
+}
+
 async function checkLicenses(): Promise<number> {
   const { data: lawyers, error } = await supabaseAdmin
     .from("lawyers")
-    .select("id, user_id, bar_license_expires_at, license_status")
+    .select("id, user_id, bar_license_expires_at, license_status, verified, kyc_status")
     .not("bar_license_expires_at", "is", null)
     .not("user_id", "is", null);
   if (error) throw new Error(`License scan failed: ${error.message}`);
@@ -76,26 +83,31 @@ async function checkLicenses(): Promise<number> {
     if (!lawyer.bar_license_expires_at || !lawyer.user_id) continue;
     const remaining = daysUntil(lawyer.bar_license_expires_at);
     const nextStatus = remaining < 0 ? "expired" : remaining <= 30 ? "expiring" : "active";
-    if (nextStatus !== lawyer.license_status) {
+    // Skip status write when expire_advocate_kyc already flipped expired+unverified.
+    if (nextStatus !== lawyer.license_status && !(remaining < 0 && lawyer.verified)) {
       await supabaseAdmin
         .from("lawyers")
         .update({ license_status: nextStatus })
         .eq("id", lawyer.id);
     }
 
-    if (remaining === 0) {
-      await notify(
-        lawyer.user_id,
-        "Bar license expired",
-        "Your bar license has expired. Please update your compliance record.",
-        "/practice",
-      );
-      sent++;
+    if (remaining < 0) {
+      // expire_advocate_kyc inserts the expiry notification when it unverifies; only nudge
+      // advocates who somehow stayed verified=false without that path.
+      if (!lawyer.verified && lawyer.kyc_status !== "expired") {
+        await notify(
+          lawyer.user_id,
+          "Practising certificate expired",
+          "Renew your practising certificate so an administrator can restore your verified listing.",
+          "/practice",
+        );
+        sent++;
+      }
     } else if (LICENSE_REMINDER_DAYS.includes(remaining)) {
       await notify(
         lawyer.user_id,
-        "Bar license expiring soon",
-        `Your bar license expires in ${remaining} day${remaining === 1 ? "" : "s"}. Update it in your Compliance tab.`,
+        "Practising certificate expiring soon",
+        `Your practising certificate expires in ${remaining} day${remaining === 1 ? "" : "s"}. Renew it from Practice to keep your verified listing.`,
         "/practice",
       );
       sent++;
@@ -157,7 +169,8 @@ async function checkCaseDeadlines(): Promise<{ reminders: number; missed: number
 }
 
 export async function runComplianceCheck() {
+  const kycExpired = await expireAdvocateKyc();
   const licenseReminders = await checkLicenses();
   const { reminders: deadlineReminders, missed: deadlinesMissed } = await checkCaseDeadlines();
-  return { licenseReminders, deadlineReminders, deadlinesMissed };
+  return { kycExpired, licenseReminders, deadlineReminders, deadlinesMissed };
 }

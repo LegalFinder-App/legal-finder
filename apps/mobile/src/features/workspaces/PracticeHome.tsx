@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { View } from "react-native";
+import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   Briefcase,
   CalendarDays,
   CreditCard,
@@ -10,6 +12,8 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react-native";
+import { startAdvocateKycRenewal } from "@/lib/onboarding";
+import { errorMessage } from "@/lib/toast";
 import { useTheme } from "@/theme/ThemeProvider";
 import {
   Avatar,
@@ -404,6 +408,76 @@ function Compliance() {
   );
 }
 
+function daysUntilPc(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(`${dateStr.slice(0, 10)}T00:00:00`);
+  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
+}
+
+function KycRenewalBanner({ lawyer }: { lawyer: Lawyer }) {
+  const { colors } = useTheme();
+  const [busy, setBusy] = useState(false);
+  const remaining = daysUntilPc(lawyer.bar_license_expires_at ?? lawyer.kyc_expires_at);
+  const expired =
+    lawyer.kyc_status === "expired" ||
+    lawyer.license_status === "expired" ||
+    (remaining !== null && remaining < 0) ||
+    (!lawyer.verified && lawyer.kyc_status !== "pending");
+  const expiringSoon =
+    !expired &&
+    (lawyer.kyc_status === "pending" ||
+      lawyer.license_status === "expiring" ||
+      (remaining !== null && remaining <= 30));
+  if (!expired && !expiringSoon) return null;
+
+  const renew = async () => {
+    setBusy(true);
+    try {
+      await startAdvocateKycRenewal();
+      toast.success("Renewal started", {
+        description: "Upload this year’s practising certificate and a fresh selfie.",
+      });
+      router.push("/apply" as never);
+    } catch (error) {
+      toast.error(errorMessage(error, "Couldn't start renewal"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <View style={{ gap: 10 }}>
+        <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+          <AlertTriangle size={18} color={expired ? colors.destructive : colors.warning} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text variant="bodyStrong">
+              {expired
+                ? "Your practising certificate has expired"
+                : remaining !== null
+                  ? `Practising certificate expires in ${remaining} day${remaining === 1 ? "" : "s"}`
+                  : "Practising certificate needs renewal"}
+            </Text>
+            <Text variant="small" tone="muted">
+              {expired
+                ? "Your verified listing is paused until you renew and an administrator re-checks your documents."
+                : "Renew now so your verified listing stays active after the certificate date."}
+            </Text>
+          </View>
+        </View>
+        <Button
+          title="Renew practising certificate"
+          size="sm"
+          loading={busy}
+          onPress={() => void renew()}
+        />
+      </View>
+    </Card>
+  );
+}
+
 export function PracticeHome() {
   const { colors } = useTheme();
   const { user } = useSession();
@@ -411,6 +485,7 @@ export function PracticeHome() {
   const appts = useQuery(appointmentsQuery(user?.id));
   const docs = useQuery(documentsQuery(user?.id));
   const payments = useQuery(paymentsQuery);
+  const listing = useQuery(myLawyerProfileQuery(user?.id));
   const [tab, setTab] = useState<Tab>("pipeline");
   const rows = cases.data ?? [];
   // RLS also returns payments this advocate made as a client; only fees paid to them count.
@@ -429,6 +504,7 @@ export function PracticeHome() {
         void appts.refetch();
         void docs.refetch();
         void payments.refetch();
+        void listing.refetch();
       }}
     >
       <PageHeading
@@ -436,6 +512,7 @@ export function PracticeHome() {
         title="Practice"
         description="Your pipeline, clients, calendar and public profile."
       />
+      {listing.data ? <KycRenewalBanner lawyer={listing.data} /> : null}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
         <StatTile
           label="Open matters"

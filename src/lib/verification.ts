@@ -3,7 +3,7 @@
 // (20261109090000_onboarding_verification_hardening.sql); these explain them to the reviewer
 // and catch softer problems early.
 import type { ApplicationDocument, ApplicationRole, RoleApplicationRow } from "@/lib/onboarding";
-import { REQUIREMENTS } from "@/lib/onboarding";
+import { requirementsFor } from "@/lib/onboarding";
 
 export type CheckStatus = "pass" | "warn" | "fail";
 export type AutoCheck = { key: string; label: string; status: CheckStatus; detail: string };
@@ -42,6 +42,12 @@ export const REVIEW_CHECKLISTS: Record<ApplicationRole, ChecklistItem[]> = {
       key: "documents_genuine",
       label: "Documents look genuine and legible",
       hint: "No signs of editing; stamps and signatures present.",
+      required: true,
+    },
+    {
+      key: "selfie",
+      label: "Selfie matches the ID photo",
+      hint: "Same person as the National ID / passport; face and ID both clear.",
       required: true,
     },
     {
@@ -105,8 +111,24 @@ export const REVIEW_CHECKLISTS: Record<ApplicationRole, ChecklistItem[]> = {
   ],
 };
 
-export function checklistComplete(role: ApplicationRole, checks: Record<string, unknown>) {
-  return REVIEW_CHECKLISTS[role].every((c) => !c.required || checks[c.key] === true);
+/** Checklist for this application — renewals skip enrolment (already on file). */
+export function checklistFor(
+  role: ApplicationRole,
+  details?: Record<string, string> | null,
+): ChecklistItem[] {
+  const items = REVIEW_CHECKLISTS[role];
+  if (role === "lawyer" && details?.purpose === "renewal") {
+    return items.map((c) => (c.key === "enrolment" ? { ...c, required: false } : c));
+  }
+  return items;
+}
+
+export function checklistComplete(
+  role: ApplicationRole,
+  checks: Record<string, unknown>,
+  details?: Record<string, string> | null,
+) {
+  return checklistFor(role, details).every((c) => !c.required || checks[c.key] === true);
 }
 
 const DAY = 86_400_000;
@@ -168,7 +190,7 @@ export function runAutomaticChecks(input: {
   today: Date;
 }): AutoCheck[] {
   const { app, documents, applications, listings, email, today } = input;
-  const req = REQUIREMENTS[app.role];
+  const req = requirementsFor(app.role, app.details);
   const checks: AutoCheck[] = [];
 
   const missingFields = req.fields.filter((f) => !f.optional && !app.details[f.key]?.trim());

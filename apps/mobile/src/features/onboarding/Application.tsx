@@ -38,10 +38,12 @@ import {
   applicationDocumentsQuery,
   editable,
   isApplicationRole,
+  isRenewalApplication,
   missingItems,
   myApplicationsQuery,
   openApplicationDocument,
   removeApplicationDocument,
+  requirementsFor,
   saveApplication,
   startApplication,
   submitApplication,
@@ -93,17 +95,24 @@ export function ApplicationView({ initialRole }: { initialRole?: ApplicationRole
   const open = (apps.data ?? []).find((a) => editable(a.status) || a.status === "submitted");
   // An explicit choice, then an application under way, then the role picked at sign-up.
   const role = picked ?? open?.role ?? requested;
+  const application = role
+    ? ((apps.data ?? []).find((a) => a.role === role) ?? null)
+    : null;
+  // PC renewal reuses the lawyer application while the advocate already has the role.
+  const renewing =
+    application &&
+    isRenewalApplication(application.details) &&
+    (editable(application.status) || application.status === "submitted");
 
   if (!role) return <RolePicker onPick={setPicked} />;
-  if (roles.includes(role)) return <Approved role={role} />;
+  if (roles.includes(role) && !renewing) return <Approved role={role} />;
 
-  const application = (apps.data ?? []).find((a) => a.role === role) ?? null;
   return (
     <ApplicationForm
       key={role}
       role={role}
       application={application}
-      canChangeRole={!application}
+      canChangeRole={!application && !renewing}
       onChangeRole={() => setPicked(null)}
     />
   );
@@ -172,7 +181,7 @@ function ApplicationForm({
   const { colors } = useTheme();
   const { user } = useSession();
   const qc = useQueryClient();
-  const req = REQUIREMENTS[role];
+  const meta = REQUIREMENTS[role];
   // The draft made by the first upload or save, until the applications list catches up.
   const [created, setCreated] = useState<RoleApplicationRow | null>(null);
   const app = application ?? created;
@@ -185,6 +194,8 @@ function ApplicationForm({
   const [missing, setMissing] = useState<string[]>([]);
   if (!user) return null;
 
+  const req = { ...meta, ...requirementsFor(role, details) };
+  const renewal = isRenewalApplication(details);
   const status = app?.status ?? "draft";
   const canEdit = editable(status);
   const documents = docs.data ?? [];
@@ -244,6 +255,15 @@ function ApplicationForm({
       );
     // The desktop app has no camera roll: its file picker covers photos too.
     if (Platform.OS === "web") return upload("files");
+    // Selfie: camera first so the live face+ID shot is the default path.
+    if (kind === "selfie") {
+      showAlert("Selfie holding your ID", "Prefer a live camera photo with your face and ID clear.", [
+        { text: "Take a photo", onPress: () => upload("camera") },
+        { text: "Choose a photo", onPress: () => upload("photos") },
+        { text: "Cancel", style: "cancel" },
+      ]);
+      return;
+    }
     showAlert("Add a document", "A clear photo or a PDF, up to 10 MB.", [
       { text: "Take a photo", onPress: () => upload("camera") },
       { text: "Choose a photo", onPress: () => upload("photos") },
@@ -312,7 +332,7 @@ function ApplicationForm({
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Text variant="h3" style={{ flex: 1 }}>
-            {req.title}
+            {renewal ? "Practising certificate renewal" : req.title}
           </Text>
           <StatusPill
             value={STATUS_LABELS[status]}
@@ -350,7 +370,9 @@ function ApplicationForm({
           </View>
         ) : (
           <Text variant="small" tone="muted" style={{ marginTop: 8 }}>
-            {req.intro}
+            {renewal
+              ? "Upload this year’s practising certificate and a fresh selfie. An administrator re-checks them before your verified listing is switched back on."
+              : req.intro}
           </Text>
         )}
       </Card>
@@ -488,7 +510,7 @@ function ApplicationForm({
           </Text>
         </Pressable>
       ) : null}
-      {status !== "submitted" ? (
+      {status !== "submitted" && !renewal ? (
         <Pressable accessibilityRole="button" onPress={withdraw}>
           <Text variant="small" tone="muted" align="center">
             I don’t need a professional account — use LegalFinder as a client

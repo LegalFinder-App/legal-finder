@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
+import { markAuthHandoff } from "@/lib/auth-handoff";
 import { navigateAfterAuth } from "@/lib/rbac";
 import { ROLE_HOME } from "@/lib/session";
 
@@ -33,25 +34,43 @@ export function isAlreadySignedInError(err: unknown): boolean {
   );
 }
 
+/** Block until the Clerk cookie is visible server-side (or timeout). */
+export async function waitForServerSession(maxMs = 8_000): Promise<string | null> {
+  const deadline = Date.now() + maxMs;
+  let attempt = 0;
+  while (Date.now() < deadline) {
+    try {
+      const { userId } = await checkClerkSession();
+      if (userId) return userId;
+    } catch {
+      // provisioning / transport blip
+    }
+    await sleep(120 + Math.min(attempt, 10) * 40);
+    attempt++;
+  }
+  return null;
+}
+
 /** Background-only: provision profile / sync cookie. Never block leaving /auth on this. */
 export function warmServerSessionInBackground() {
-  void (async () => {
-    for (let i = 0; i < 12; i++) {
-      try {
-        const { userId } = await checkClerkSession();
-        if (userId) return;
-      } catch {
-        // keep trying
-      }
-      await sleep(250 + i * 100);
-    }
-  })();
+  void waitForServerSession(6_000);
+}
+
+async function resolveHome(queryClient: QueryClient, userId: string): Promise<AfterAuthDestination> {
+  void queryClient.invalidateQueries({ queryKey: ["roles", userId] });
+  void queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+  return Promise.race([
+    navigateAfterAuth(queryClient, userId).catch(() => "/dashboard" as AfterAuthDestination),
+    new Promise<AfterAuthDestination>((resolve) =>
+      window.setTimeout(() => resolve("/dashboard"), 800),
+    ),
+  ]);
 }
 
 /**
- * Soft-navigate to the role home. Soft SPA nav keeps the in-memory Clerk session (navbar +
- * workspace). Hard-nav was wiping that session when the cookie lagged, which left people
- * "already signed in" to Clerk but stuck on marketing Sign in buttons.
+ * Soft-navigate to the role home. Safe for email/password once Clerk is already live in this
+ * SPA tab. Prefer `finishAuthWithHardNav` after OAuth — soft-nav races the cookie and bounces
+ * through /auth.
  */
 export async function continueAfterAuth(opts: {
   queryClient: QueryClient;
@@ -59,23 +78,32 @@ export async function continueAfterAuth(opts: {
   navigate: AfterAuthNavigate;
 }): Promise<AfterAuthDestination> {
   const { queryClient, userId, navigate } = opts;
-
   warmServerSessionInBackground();
-  void queryClient.invalidateQueries({ queryKey: ["roles", userId] });
-  void queryClient.invalidateQueries({ queryKey: ["profile", userId] });
-
-  const home = await Promise.race([
-    navigateAfterAuth(queryClient, userId).catch(() => "/dashboard" as AfterAuthDestination),
-    new Promise<AfterAuthDestination>((resolve) =>
-      window.setTimeout(() => resolve("/dashboard"), 800),
-    ),
-  ]);
-
+  const home = await resolveHome(queryClient, userId);
   await navigate({ to: home });
   return home;
 }
 
-/** Full document navigation — OAuth callback only, after the provider round-trip. */
+/**
+ * OAuth / SSO exit: wait until the session cookie works, then one hard navigation to the
+ * workspace. Staying on /sso-callback (or AuthHandoff) until then avoids the
+ * callback → /auth form → dashboard flash.
+ */
+export async function finishAuthWithHardNav(opts: {
+  queryClient: QueryClient;
+  userId: string;
+}): Promise<AfterAuthDestination> {
+  markAuthHandoff();
+  const { queryClient, userId } = opts;
+  // Cookie must exist before _authenticated's beforeLoad runs on the next document load.
+  await waitForServerSession(8_000);
+  const home = await resolveHome(queryClient, userId);
+  markAuthHandoff();
+  window.location.replace(home);
+  return home;
+}
+
+/** Full document navigation — last resort paths (e.g. true OTP hand-off to /auth). */
 export function hardNavigateTo(path: string) {
   window.location.assign(path);
 }

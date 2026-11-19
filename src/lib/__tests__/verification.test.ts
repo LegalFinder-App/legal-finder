@@ -20,6 +20,7 @@ const app = (over: Partial<RoleApplicationRow> = {}): RoleApplicationRow => ({
     roll_number: "UG 1234",
     practising_certificate_number: "PC-77",
     practising_certificate_expiry: "2027-03-01",
+    national_id_number: "CM90123456789",
     firm: "Nakato & Co",
     district: "Kampala",
     phone: "+256 772 123456",
@@ -47,7 +48,13 @@ const docs = (kinds: string[]): ApplicationDocument[] =>
     created_at: "2026-11-08T07:30:00Z",
   }));
 
-const allDocs = docs(["practising_certificate", "enrolment_certificate", "national_id"]);
+const allDocs = docs([
+  "practising_certificate",
+  "enrolment_certificate",
+  "national_id",
+  "national_id_back",
+  "selfie",
+]);
 const byKey = (checks: ReturnType<typeof runAutomaticChecks>, key: string) =>
   checks.find((c) => c.key === key);
 
@@ -180,8 +187,17 @@ describe("helpers", () => {
         certificate: true,
         enrolment: true,
         documents_genuine: true,
+        selfie: true,
       }),
     ).toBe(true);
+    expect(
+      checklistComplete("lawyer", {
+        identity: true,
+        certificate: true,
+        enrolment: true,
+        documents_genuine: true,
+      }),
+    ).toBe(false);
     expect(checklistComplete("lawyer", { identity: true, certificate: true })).toBe(false);
   });
 });
