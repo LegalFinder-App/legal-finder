@@ -1,5 +1,5 @@
 // Server-only. Retrieves real LegalFinder records for Counsellor AI citations and Legal Research
-// mode. Failures return an empty list so the assistant still answers without inventing sources.
+// mode. Prefer pgvector hybrid search when embeddings exist; fall back to keyword catalogue scan.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type {
   CounsellorSource,
@@ -10,6 +10,7 @@ import type {
   SourceKind,
 } from "@/lib/assistant-sources";
 import { DEFAULT_RESEARCH_FILTERS, emptyFacets } from "@/lib/assistant-sources";
+import { vectorSearchSources } from "@/lib/legal-rag/retrieve.server";
 
 const STOP = new Set([
   "the",
@@ -188,7 +189,6 @@ function matchesFilters(source: CounsellorSource, filters: ResearchFilters): boo
       if (fromYear && source.year < fromYear) return false;
       if (toYear && source.year > toYear) return false;
     } else {
-      // Editorial advice has no decision date — exclude when a date filter is active.
       return false;
     }
   }
@@ -212,9 +212,49 @@ function buildFacets(items: CounsellorSource[]): ResearchFacets {
   };
 }
 
+function mergeSources(primary: CounsellorSource[], secondary: CounsellorSource[], limit: number) {
+  const seen = new Set<string>();
+  const out: CounsellorSource[] = [];
+  for (const source of [...primary, ...secondary]) {
+    const key = `${source.kind}:${source.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(source);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+async function keywordSearch(
+  query: string,
+  filters: ResearchFilters,
+  limit: number,
+): Promise<{ sources: CounsellorSource[]; facets: ResearchFacets }> {
+  const corpus = await loadCorpus();
+  const terms = keywords(query);
+  const filtered = corpus.filter((item) => matchesFilters(item, filters));
+
+  const scored: Scored[] = filtered
+    .map((item) => ({
+      ...item,
+      score: scoreText(haystackFor(item), terms),
+    }))
+    .filter((item) => (terms.length === 0 ? true : item.score > 0));
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const aDate = a.decidedOn ?? (a.year ? `${a.year}-01-01` : "");
+    const bDate = b.decidedOn ?? (b.year ? `${b.year}-01-01` : "");
+    return bDate.localeCompare(aDate);
+  });
+
+  const sources = scored.slice(0, limit).map(({ score: _score, ...source }) => source);
+  return { sources, facets: buildFacets(filtered) };
+}
+
 /**
- * Full Legal Research search with optional filters. Empty query + no filters returns the most
- * recent / catalogue-ordered slice so the research pane is never a blank wall.
+ * Full Legal Research search with optional filters. Uses vector RAG when indexed, plus keyword
+ * merge so sparse corpora still return useful hits.
  */
 export async function searchLegalResearch(
   query: string,
@@ -222,29 +262,22 @@ export async function searchLegalResearch(
   limit = 24,
 ): Promise<ResearchSearchResult> {
   try {
-    const corpus = await loadCorpus();
-    const terms = keywords(query);
-    const filtered = corpus.filter((item) => matchesFilters(item, filters));
+    const keyword = await keywordSearch(query, filters, limit);
+    const vector = query.trim()
+      ? await vectorSearchSources(query, limit, {
+          kinds: filters.kinds.length ? filters.kinds : undefined,
+          court: filters.court,
+          category: filters.category,
+        })
+      : [];
 
-    const scored: Scored[] = filtered
-      .map((item) => ({
-        ...item,
-        score: scoreText(haystackFor(item), terms),
-      }))
-      .filter((item) => (terms.length === 0 ? true : item.score > 0));
+    const vectorFiltered = vector.filter((item) => matchesFilters(item, filters));
+    const sources = mergeSources(vectorFiltered, keyword.sources, limit);
 
-    scored.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      const aDate = a.decidedOn ?? (a.year ? `${a.year}-01-01` : "");
-      const bDate = b.decidedOn ?? (b.year ? `${b.year}-01-01` : "");
-      return bDate.localeCompare(aDate);
-    });
-
-    const sources = scored.slice(0, limit).map(({ score: _score, ...source }) => source);
     return {
       query: query.trim(),
       sources,
-      facets: buildFacets(filtered),
+      facets: keyword.facets,
     };
   } catch (error) {
     console.error("[assistant-sources] research search failed", error);

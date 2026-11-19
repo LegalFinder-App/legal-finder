@@ -14,6 +14,7 @@ const recommendedImageKitVariables = [
 // missing key failed silently at runtime (a confusing "nothing happens" moment for a user
 // clicking Pay or asking the assistant a question) instead of showing up here at build time.
 const recommendedAssistantVariables = ["ANTHROPIC_API_KEY"];
+const recommendedCronVariables = ["CRON_SECRET"];
 const recommendedPesapalVariables = ["PESAPAL_CONSUMER_KEY", "PESAPAL_CONSUMER_SECRET"];
 const recommendedFlutterwaveVariables = ["FLUTTERWAVE_SECRET_KEY", "FLUTTERWAVE_WEBHOOK_HASH"];
 const recommendedWebPushVariables = ["VITE_WEB_PUSH_PUBLIC_KEY", "WEB_PUSH_PRIVATE_KEY"];
@@ -53,6 +54,13 @@ if (process.env.VERCEL === "1") {
   if (missingAssistant.length > 0) {
     console.warn(
       `The AI assistant will be unavailable until these Vercel env vars are set: ${missingAssistant.join(", ")}.`,
+    );
+  }
+
+  const missingCron = recommendedCronVariables.filter((key) => !process.env[key]?.trim());
+  if (missingCron.length > 0) {
+    console.warn(
+      `Cron routes (/api/cron/*) will reject callers until ${missingCron.join(", ")} is set.`,
     );
   }
 

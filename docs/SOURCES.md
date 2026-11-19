@@ -87,11 +87,13 @@ Checked on 2026-11-08 with a handful of requests, at least 4 s apart, identified
 - Every item gets a "Report a concern / request removal" link; items removed at the source are
   marked removed and hidden at the next sync.
 
-## Decisions needed from the owner
+## Decisions (Phase 0 — 2026-11-19)
 
-1. **UPF and Judiciary:** proceed with headline + short summary + link aggregation, given neither
-   publishes terms? (Recommended, plus a courtesy note to each communications office.)
-2. **ULII:** send the access request (draft in `docs/ULII_ACCESS_REQUEST.md`), including the
-   commercial-use question.
-3. **Summaries:** first-sentences extraction (no AI, deterministic) — recommended — or AI
-   summaries for UPF/Judiciary only (would go behind the existing AI-consent rules).
+1. **UPF and Judiciary:** proceed with headline + short summary + link aggregation (active in
+   `legal_feed` + `legal_source_registry` as `feed-upf` / `feed-judiciary`). Courtesy note to each
+   communications office still recommended.
+2. **ULII:** access letter ready in `docs/ULII_ACCESS_REQUEST.md` (sender: **Bitingo Josaphat JB**).
+   Do **not** set `ULII_ENABLED=true` until a written API reply is filed. Registry rows
+   `ulii-judgments` / `ulii-legislation` stay `pending_licence`.
+3. **Summaries:** first-sentences extraction (no AI, deterministic) — locked.
+4. **Corpus inventory:** `docs/CORPUS_INVENTORY.md` + table `legal_source_registry`.

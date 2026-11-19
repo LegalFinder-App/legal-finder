@@ -56,6 +56,7 @@ import { Route as ApiAssistantResearchRouteImport } from './routes/api.assistant
 import { Route as ApiAssistantStreamRouteImport } from './routes/api.assistant.stream'
 import { Route as ApiCronComplianceCheckRouteImport } from './routes/api.cron.compliance-check'
 import { Route as ApiCronLegalFeedRouteImport } from './routes/api.cron.legal-feed'
+import { Route as ApiCronLegalIndexRouteImport } from './routes/api.cron.legal-index'
 import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
 import { Route as ApiMobileSplatRouteImport } from './routes/api.mobile.$'
 import { Route as ApiMobileAssistantRouteImport } from './routes/api.mobile.assistant'
@@ -324,6 +325,11 @@ const ApiCronLegalFeedRoute = ApiCronLegalFeedRouteImport.update({
   path: '/api/cron/legal-feed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronLegalIndexRoute = ApiCronLegalIndexRouteImport.update({
+  id: '/api/cron/legal-index',
+  path: '/api/cron/legal-index',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFlutterwaveWebhookRoute = ApiFlutterwaveWebhookRouteImport.update({
   id: '/api/flutterwave/webhook',
   path: '/api/flutterwave/webhook',
@@ -515,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/api/assistant/stream': typeof ApiAssistantStreamRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
+  '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
@@ -587,6 +594,7 @@ export interface FileRoutesByTo {
   '/api/assistant/stream': typeof ApiAssistantStreamRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
+  '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
@@ -663,6 +671,7 @@ export interface FileRoutesById {
   '/api/assistant/stream': typeof ApiAssistantStreamRoute
   '/api/cron/compliance-check': typeof ApiCronComplianceCheckRoute
   '/api/cron/legal-feed': typeof ApiCronLegalFeedRoute
+  '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRoute
@@ -739,6 +748,7 @@ export interface FileRouteTypes {
     | '/api/assistant/stream'
     | '/api/cron/compliance-check'
     | '/api/cron/legal-feed'
+    | '/api/cron/legal-index'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
     | '/api/mobile/assistant'
@@ -811,6 +821,7 @@ export interface FileRouteTypes {
     | '/api/assistant/stream'
     | '/api/cron/compliance-check'
     | '/api/cron/legal-feed'
+    | '/api/cron/legal-index'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
     | '/api/mobile/assistant'
@@ -886,6 +897,7 @@ export interface FileRouteTypes {
     | '/api/assistant/stream'
     | '/api/cron/compliance-check'
     | '/api/cron/legal-feed'
+    | '/api/cron/legal-index'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
     | '/api/mobile/assistant'
@@ -943,6 +955,7 @@ export interface RootRouteChildren {
   ApiAssistantStreamRoute: typeof ApiAssistantStreamRoute
   ApiCronComplianceCheckRoute: typeof ApiCronComplianceCheckRoute
   ApiCronLegalFeedRoute: typeof ApiCronLegalFeedRoute
+  ApiCronLegalIndexRoute: typeof ApiCronLegalIndexRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
   ApiMobileSplatRoute: typeof ApiMobileSplatRoute
   ApiMobileAssistantRoute: typeof ApiMobileAssistantRoute
@@ -1293,6 +1306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronLegalFeedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/legal-index': {
+      id: '/api/cron/legal-index'
+      path: '/api/cron/legal-index'
+      fullPath: '/api/cron/legal-index'
+      preLoaderRoute: typeof ApiCronLegalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/flutterwave/webhook': {
       id: '/api/flutterwave/webhook'
       path: '/api/flutterwave/webhook'
@@ -1611,6 +1631,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAssistantStreamRoute: ApiAssistantStreamRoute,
   ApiCronComplianceCheckRoute: ApiCronComplianceCheckRoute,
   ApiCronLegalFeedRoute: ApiCronLegalFeedRoute,
+  ApiCronLegalIndexRoute: ApiCronLegalIndexRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
   ApiMobileSplatRoute: ApiMobileSplatRoute,
   ApiMobileAssistantRoute: ApiMobileAssistantRoute,

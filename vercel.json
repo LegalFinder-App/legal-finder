@@ -9,6 +9,10 @@
     {
       "path": "/api/cron/legal-feed",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/legal-index",
+      "schedule": "15 5 * * *"
     }
   ],
   "headers": [

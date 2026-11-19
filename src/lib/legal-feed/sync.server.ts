@@ -259,25 +259,18 @@ async function syncJudiciary(
 
 async function syncUlii(): Promise<SourceResult> {
   // ULII's terms forbid scraping; only an agreed API may be used (docs/ULII_ACCESS_REQUEST.md).
-  // Even when enabled, nothing is fetched until the API contract from ULII is implemented here.
-  if (process.env.ULII_ENABLED !== "true") {
+  const { evaluateUliiGate } = await import("./ulii-gate");
+  const gate = evaluateUliiGate(process.env);
+  if (!gate.ok) {
     return {
       source: "ulii",
       fetched: 0,
       upserted: 0,
       removed: 0,
-      skipped: "disabled (ULII_ENABLED is not true)",
+      skipped: gate.reason,
     };
   }
-  if (!process.env.ULII_API_BASE || !process.env.ULII_API_TOKEN) {
-    return {
-      source: "ulii",
-      fetched: 0,
-      upserted: 0,
-      removed: 0,
-      skipped: "missing ULII_API_BASE/ULII_API_TOKEN",
-    };
-  }
+  // Future: licensed API client only — never HTML scrape of ulii.org.
   return {
     source: "ulii",
     fetched: 0,
@@ -311,6 +304,18 @@ export async function runLegalFeedSync() {
         last_error: null,
         state: state as Json,
       });
+      // Mirror success onto the Phase 0 source registry (feed-judiciary / feed-upf).
+      const registrySlug = source === "judiciary" ? "feed-judiciary" : "feed-upf";
+      const { error: registryError } = await admin
+        .from("legal_source_registry")
+        .update({
+          last_synced_at: startedAt,
+          last_success_at: new Date().toISOString(),
+        })
+        .eq("slug", registrySlug);
+      if (registryError) {
+        console.error(`[legal-feed] registry touch ${registrySlug}:`, registryError.message);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`[legal-feed] ${source}:`, message);
