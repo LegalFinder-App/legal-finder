@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
-import { BookOpen, ExternalLink, Globe, SendHorizontal, ShieldCheck } from "lucide-react-native";
+import { BookOpen, ExternalLink, Globe, SendHorizontal, ShieldCheck, Square } from "lucide-react-native";
 import { CounsellorMark } from "@/components/CounsellorMark";
 import { CounsellorResearch } from "@/components/CounsellorResearch";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -24,11 +24,13 @@ import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { AiConsentGate } from "@/components/AiConsent";
 import {
+  ApiError,
   api,
   type AssistantAdvocate,
   type AssistantSource,
   type AssistantWebSource,
 } from "@/lib/api";
+import { streamAssistantReply } from "@/lib/assistant-stream";
 import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 import { mediaUrl } from "@/lib/media";
 import { appSettingsQuery } from "@/lib/queries";
@@ -184,8 +186,11 @@ function Counsellor() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [thinking, setThinking] = useState(false);
+  const [streamingId, setStreamingId] = useState<string | null>(null);
+  const [statusLabel, setStatusLabel] = useState("Understanding your question");
   const [researchSeed, setResearchSeed] = useState("");
   const listRef = useRef<FlatList<Turn>>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setWebSearch(mode === "research");
@@ -198,44 +203,110 @@ function Counsellor() {
     return () => sub.remove();
   }, []);
 
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  const stop = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setThinking(false);
+    setStreamingId(null);
+  };
+
+  const patchAssistant = (
+    assistantId: string,
+    patch: Partial<Turn> | ((prev: Turn) => Partial<Turn>),
+  ) => {
+    setTurns((t) =>
+      t.map((turn) => {
+        if (turn.id !== assistantId) return turn;
+        const next = typeof patch === "function" ? patch(turn) : patch;
+        return { ...turn, ...next };
+      }),
+    );
+  };
+
   const ask = async (text: string, askMode: CounsellorMode = mode) => {
     const content = text.trim();
     if (!content || thinking) return;
     // Phone Research tab hides chat — switch so the reply is visible. Desktop keeps the split.
     if (!wide) setMode("assistant");
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     const userTurn: Turn = { id: newId(), role: "user", content };
+    const assistantId = newId();
+    const assistantTurn: Turn = { id: assistantId, role: "assistant", content: "" };
     const next = [...turns, userTurn].slice(-20);
-    setTurns(next);
+    setTurns([...next, assistantTurn]);
     setDraft("");
     setThinking(true);
-    try {
-      const payload = next.map(({ role, content: body }) => ({ role, content: body }));
+    setStreamingId(assistantId);
+    setStatusLabel("Understanding your question");
+
+    const payload = next.map(({ role, content: body }) => ({ role, content: body }));
+    let sawDelta = false;
+
+    const finishWithJsonFallback = async () => {
       const { reply, sources, advocates, webSources } = await api.askAssistant(payload, {
         mode: askMode,
         webSearch,
       });
-      setTurns((t) => [
-        ...t,
-        {
-          id: newId(),
-          role: "assistant",
-          content: reply,
-          sources: sources ?? [],
-          advocates: advocates ?? [],
-          webSources: webSources ?? [],
+      patchAssistant(assistantId, {
+        content: reply,
+        sources: sources ?? [],
+        advocates: advocates ?? [],
+        webSources: webSources ?? [],
+      });
+    };
+
+    try {
+      await streamAssistantReply(payload, {
+        signal: controller.signal,
+        mode: askMode,
+        webSearch,
+        onStatus: (label) => setStatusLabel(label),
+        onSources: (sources) => patchAssistant(assistantId, { sources }),
+        onWebSources: (webSources) => patchAssistant(assistantId, { webSources }),
+        onAdvocates: (advocates) => patchAssistant(assistantId, { advocates }),
+        onDelta: (chunk) => {
+          sawDelta = true;
+          patchAssistant(assistantId, (prev) => ({ content: `${prev.content}${chunk}` }));
         },
-      ]);
+      });
+
+      if (!sawDelta && !controller.signal.aborted) {
+        patchAssistant(assistantId, {
+          content: "I didn't get a response — please try again.",
+        });
+      }
     } catch (error) {
-      setTurns((t) => [
-        ...t,
-        {
-          id: newId(),
-          role: "assistant",
+      if (controller.signal.aborted) {
+        patchAssistant(assistantId, (prev) =>
+          prev.content.trim()
+            ? {}
+            : { content: "Stopped." },
+        );
+      } else if (error instanceof ApiError && error.status === 404) {
+        try {
+          await finishWithJsonFallback();
+        } catch (fallbackError) {
+          patchAssistant(assistantId, {
+            content: `⚠️ ${errorMessage(fallbackError, "Counsellor AI couldn't respond. Please try again.")}`,
+          });
+        }
+      } else {
+        patchAssistant(assistantId, {
           content: `⚠️ ${errorMessage(error, "Counsellor AI couldn't respond. Please try again.")}`,
-        },
-      ]);
+        });
+      }
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setThinking(false);
+      setStreamingId(null);
     }
   };
 
@@ -245,6 +316,7 @@ function Counsellor() {
   };
 
   const lastAssistant = [...turns].reverse().find((t) => t.role === "assistant");
+  const showThinking = thinking && !turns.some((t) => t.id === streamingId && t.content);
   const showResearchPane = mode === "research";
   const splitResearch = wide && showResearchPane;
 
@@ -341,14 +413,24 @@ function Counsellor() {
                   >
                     COUNSELLOR AI
                   </Text>
-                  {!item.content.startsWith("⚠️") ? (
+                  {item.id === streamingId ? (
+                    <Text variant="caption" tone="muted">
+                      Writing
+                    </Text>
+                  ) : !item.content.startsWith("⚠️") ? (
                     <GroundingPill
                       grounded={(item.sources?.length ?? 0) > 0}
                       colors={colors}
                     />
                   ) : null}
                 </View>
-                <Markdown text={displayText(item.content)} />
+                {item.content ? (
+                  <Markdown text={displayText(item.content)} />
+                ) : item.id === streamingId ? (
+                  <Text variant="small" tone="muted">
+                    {statusLabel}…
+                  </Text>
+                ) : null}
                 {(item.webSources?.length ?? 0) > 0 && (
                   <View style={{ gap: 8 }}>
                     <Text variant="caption" tone="muted">
@@ -530,7 +612,7 @@ function Counsellor() {
             )
           }
           ListFooterComponent={
-            thinking ? (
+            showThinking ? (
               <View
                 style={[
                   styles.assistant,
@@ -545,13 +627,13 @@ function Counsellor() {
               >
                 <ActivityIndicator color={colors.brass} />
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontFamily: fonts.sansSemiBold }}>Retrieving LegalFinder sources</Text>
+                  <Text style={{ fontFamily: fonts.sansSemiBold }}>{statusLabel}</Text>
                   <Text variant="caption" tone="muted">
                     Counsellor AI is drafting a careful reply…
                   </Text>
                 </View>
               </View>
-            ) : lastAssistant && !lastAssistant.content.startsWith("⚠️") ? (
+            ) : !thinking && lastAssistant && !lastAssistant.content.startsWith("⚠️") ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingTop: 4 }}>
                 {FOLLOW_UPS.map((s) => (
                   <Chip key={s} label={s} onPress={() => void ask(s)} />
@@ -588,23 +670,32 @@ function Counsellor() {
                 },
               ]}
             />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Send"
-              disabled={!draft.trim() || thinking}
-              onPress={() => void ask(draft, mode === "research" ? "research" : "assistant")}
-              style={[
-                styles.send,
-                { backgroundColor: draft.trim() && !thinking ? colors.brass : colors.muted },
-              ]}
-            >
-              <SendHorizontal
-                size={20}
-                color={
-                  draft.trim() && !thinking ? colors.brassForeground : colors.mutedForeground
-                }
-              />
-            </Pressable>
+            {thinking ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Stop generating"
+                onPress={stop}
+                style={[styles.send, { backgroundColor: colors.destructive }]}
+              >
+                <Square size={16} color={colors.destructiveForeground} fill={colors.destructiveForeground} />
+              </Pressable>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Send"
+                disabled={!draft.trim()}
+                onPress={() => void ask(draft, mode === "research" ? "research" : "assistant")}
+                style={[
+                  styles.send,
+                  { backgroundColor: draft.trim() ? colors.brass : colors.muted },
+                ]}
+              >
+                <SendHorizontal
+                  size={20}
+                  color={draft.trim() ? colors.brassForeground : colors.mutedForeground}
+                />
+              </Pressable>
+            )}
           </View>
           <Text
             variant="caption"

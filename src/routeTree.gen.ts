@@ -77,6 +77,7 @@ import { Route as AuthenticatedAdminContentStationsRouteImport } from './routes/
 import { Route as AuthenticatedAdminContentWantedRouteImport } from './routes/_authenticated/admin/content/wanted'
 import { Route as ApiMobileAccountDeleteRouteImport } from './routes/api.mobile.account.delete'
 import { Route as ApiMobileAssistantResearchRouteImport } from './routes/api.mobile.assistant.research'
+import { Route as ApiMobileAssistantStreamRouteImport } from './routes/api.mobile.assistant.stream'
 import { Route as ApiMobileDocumentsDraftRouteImport } from './routes/api.mobile.documents.draft'
 import { Route as ApiMobileDocumentsGenerateRouteImport } from './routes/api.mobile.documents.generate'
 import { Route as ApiMobileDocumentsTemplatesRouteImport } from './routes/api.mobile.documents.templates'
@@ -444,6 +445,12 @@ const ApiMobileAssistantResearchRoute =
     path: '/research',
     getParentRoute: () => ApiMobileAssistantRoute,
   } as any)
+const ApiMobileAssistantStreamRoute =
+  ApiMobileAssistantStreamRouteImport.update({
+    id: '/stream',
+    path: '/stream',
+    getParentRoute: () => ApiMobileAssistantRoute,
+  } as any)
 const ApiMobileDocumentsDraftRoute = ApiMobileDocumentsDraftRouteImport.update({
   id: '/api/mobile/documents/draft',
   path: '/api/mobile/documents/draft',
@@ -556,6 +563,7 @@ export interface FileRoutesByFullPath {
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
   '/api/mobile/assistant/research': typeof ApiMobileAssistantResearchRoute
+  '/api/mobile/assistant/stream': typeof ApiMobileAssistantStreamRoute
   '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
   '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
   '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
@@ -631,6 +639,7 @@ export interface FileRoutesByTo {
   '/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
   '/api/mobile/assistant/research': typeof ApiMobileAssistantResearchRoute
+  '/api/mobile/assistant/stream': typeof ApiMobileAssistantStreamRoute
   '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
   '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
   '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
@@ -710,6 +719,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/content/wanted': typeof AuthenticatedAdminContentWantedRoute
   '/api/mobile/account/delete': typeof ApiMobileAccountDeleteRoute
   '/api/mobile/assistant/research': typeof ApiMobileAssistantResearchRoute
+  '/api/mobile/assistant/stream': typeof ApiMobileAssistantStreamRoute
   '/api/mobile/documents/draft': typeof ApiMobileDocumentsDraftRoute
   '/api/mobile/documents/generate': typeof ApiMobileDocumentsGenerateRoute
   '/api/mobile/documents/templates': typeof ApiMobileDocumentsTemplatesRoute
@@ -789,6 +799,7 @@ export interface FileRouteTypes {
     | '/admin/content/wanted'
     | '/api/mobile/account/delete'
     | '/api/mobile/assistant/research'
+    | '/api/mobile/assistant/stream'
     | '/api/mobile/documents/draft'
     | '/api/mobile/documents/generate'
     | '/api/mobile/documents/templates'
@@ -864,6 +875,7 @@ export interface FileRouteTypes {
     | '/admin/content/wanted'
     | '/api/mobile/account/delete'
     | '/api/mobile/assistant/research'
+    | '/api/mobile/assistant/stream'
     | '/api/mobile/documents/draft'
     | '/api/mobile/documents/generate'
     | '/api/mobile/documents/templates'
@@ -942,6 +954,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content/wanted'
     | '/api/mobile/account/delete'
     | '/api/mobile/assistant/research'
+    | '/api/mobile/assistant/stream'
     | '/api/mobile/documents/draft'
     | '/api/mobile/documents/generate'
     | '/api/mobile/documents/templates'
@@ -1479,6 +1492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobileAssistantResearchRouteImport
       parentRoute: typeof ApiMobileAssistantRoute
     }
+    '/api/mobile/assistant/stream': {
+      id: '/api/mobile/assistant/stream'
+      path: '/stream'
+      fullPath: '/api/mobile/assistant/stream'
+      preLoaderRoute: typeof ApiMobileAssistantStreamRouteImport
+      parentRoute: typeof ApiMobileAssistantRoute
+    }
     '/api/mobile/documents/draft': {
       id: '/api/mobile/documents/draft'
       path: '/api/mobile/documents/draft'
@@ -1647,10 +1667,12 @@ const WantedRouteWithChildren =
 
 interface ApiMobileAssistantRouteChildren {
   ApiMobileAssistantResearchRoute: typeof ApiMobileAssistantResearchRoute
+  ApiMobileAssistantStreamRoute: typeof ApiMobileAssistantStreamRoute
 }
 
 const ApiMobileAssistantRouteChildren: ApiMobileAssistantRouteChildren = {
   ApiMobileAssistantResearchRoute: ApiMobileAssistantResearchRoute,
+  ApiMobileAssistantStreamRoute: ApiMobileAssistantStreamRoute,
 }
 
 const ApiMobileAssistantRouteWithChildren =
