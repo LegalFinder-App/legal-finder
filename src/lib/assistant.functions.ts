@@ -2,10 +2,29 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { rateLimited } from "@/lib/rate-limit-middleware";
 
-const chatMessageSchema = z.object({
-  role: z.enum(["user", "assistant"]),
-  content: z.string().min(1).max(4000),
-});
+/** User turns stay short; assistant turns can be longer (web search + research replies). */
+const MAX_USER_CHARS = 4000;
+const MAX_ASSISTANT_CHARS = 24_000;
+
+const chatMessageSchema = z
+  .object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().min(1).max(MAX_ASSISTANT_CHARS),
+  })
+  .superRefine((message, ctx) => {
+    if (message.role === "user" && message.content.length > MAX_USER_CHARS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.too_big,
+        maximum: MAX_USER_CHARS,
+        type: "string",
+        inclusive: true,
+        message: `String must contain at most ${MAX_USER_CHARS} character(s)`,
+        path: ["content"],
+      });
+    }
+  });
+
+export { MAX_USER_CHARS, MAX_ASSISTANT_CHARS };
 
 const attachmentSchema = z.object({
   id: z.string().min(1).max(80),

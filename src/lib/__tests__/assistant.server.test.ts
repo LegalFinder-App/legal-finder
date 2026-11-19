@@ -203,6 +203,23 @@ describe("chatRequestSchema", () => {
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toBe("The last message must be a question from you.");
   });
+
+  it("allows long assistant history but still caps user turns at 4000", () => {
+    const longReply = "a".repeat(5000);
+    const ok = chatRequestSchema.safeParse({
+      messages: [
+        { role: "user", content: "First question?" },
+        { role: "assistant", content: longReply },
+        { role: "user", content: "What should I do next?" },
+      ],
+    });
+    expect(ok.success).toBe(true);
+
+    const tooLongUser = chatRequestSchema.safeParse({
+      messages: [{ role: "user", content: "u".repeat(4001) }],
+    });
+    expect(tooLongUser.success).toBe(false);
+  });
 });
 
 describe("draftDocument", () => {
