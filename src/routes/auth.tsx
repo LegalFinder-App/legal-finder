@@ -156,7 +156,7 @@ function AuthPage() {
       redirectedRef.current = false;
       try {
         markAuthHandoff();
-        window.location.replace("/opening");
+        window.location.replace("/dashboard");
       } catch {
         toast.error("Signed in, but we couldn't open your workspace", {
           description: "Tap Open workspace in the header, or refresh the page.",
@@ -204,25 +204,25 @@ function AuthPage() {
   }, [authLoaded, isSignedIn, userId, clerk.loaded, clerk.session?.status, clerk.user?.id]);
 
   // Clerk's Dashboard "Sign-in URL" is often /auth after OAuth. Never stay on the form:
-  // hop to /sso-callback once to finalize, or /opening if we already have a session.
+  // hop to /sso-callback once to finalize, or straight into the workspace if already signed in.
   useEffect(() => {
     if (!ssoHandoff && !hasAuthHandoff()) return;
     if (verificationCode !== null) return;
     const existing = clientClerkUserId() || (isSignedIn ? userId : null);
     if (existing) {
       markAuthHandoff();
-      window.location.replace(`${window.location.origin}/opening`);
+      window.location.replace(`${window.location.origin}/dashboard`);
       return;
     }
     try {
       if (sessionStorage.getItem("lf:sso-callback-hop")) {
-        // Already tried callback — hold on finishing UI via /opening, not this form.
-        window.location.replace(`${window.location.origin}/opening`);
+        // Already tried callback — enter the app shell, never park on /opening.
+        window.location.replace(`${window.location.origin}/dashboard`);
         return;
       }
       sessionStorage.setItem("lf:sso-callback-hop", "1");
     } catch {
-      window.location.replace(`${window.location.origin}/opening`);
+      window.location.replace(`${window.location.origin}/dashboard`);
       return;
     }
     window.location.replace(`${window.location.origin}/sso-callback`);

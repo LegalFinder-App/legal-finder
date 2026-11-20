@@ -74,14 +74,17 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
     const userId = await resolveUserId();
     if (!userId) {
-      // Mid-SSO: never dump onto the sign-in form — hold on /opening until the cookie lands.
-      let handoff = false;
+      // Never send people back to /opening from here — that caused an infinite
+      // /opening → /dashboard → /opening reload loop when the cookie lagged.
       try {
-        handoff = Boolean(sessionStorage.getItem("lf:auth-handoff"));
+        sessionStorage.removeItem("lf:auth-handoff");
+        sessionStorage.removeItem("lf:opening-exit");
+        sessionStorage.removeItem("lf:opening-attempts");
+        sessionStorage.removeItem("lf:sso-callback-hop");
       } catch {
         // ignore
       }
-      throw redirect({ to: handoff ? "/opening" : "/auth" });
+      throw redirect({ to: "/auth" });
     }
     return { user: { id: userId } };
   },
@@ -98,6 +101,8 @@ function WorkspaceLayout() {
     clearAuthHandoff();
     try {
       sessionStorage.removeItem("lf:sso-callback-hop");
+      sessionStorage.removeItem("lf:opening-exit");
+      sessionStorage.removeItem("lf:opening-attempts");
     } catch {
       // ignore
     }

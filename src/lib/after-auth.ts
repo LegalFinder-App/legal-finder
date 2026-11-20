@@ -34,17 +34,28 @@ export function isAlreadySignedInError(err: unknown): boolean {
   );
 }
 
+/** One RPC with a hard cap — a hung serverFn must not freeze /opening forever. */
+async function checkClerkSessionOnce(timeoutMs: number): Promise<string | null> {
+  try {
+    const result = await Promise.race([
+      checkClerkSession(),
+      sleep(timeoutMs).then(() => null),
+    ]);
+    return result?.userId ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Block until the Clerk cookie is visible server-side (or timeout). */
 export async function waitForServerSession(maxMs = 8_000): Promise<string | null> {
   const deadline = Date.now() + maxMs;
   let attempt = 0;
   while (Date.now() < deadline) {
-    try {
-      const { userId } = await checkClerkSession();
-      if (userId) return userId;
-    } catch {
-      // provisioning / transport blip
-    }
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    const userId = await checkClerkSessionOnce(Math.min(2_500, remaining));
+    if (userId) return userId;
     await sleep(120 + Math.min(attempt, 10) * 40);
     attempt++;
   }
@@ -95,17 +106,13 @@ export async function finishAuthWithHardNav(opts: {
 }): Promise<AfterAuthDestination> {
   markAuthHandoff();
   const { queryClient, userId } = opts;
-  // Cookie must exist before _authenticated's beforeLoad runs on the next document load.
-  const serverId = await waitForServerSession(8_000);
-  if (!serverId) {
-    // Don't hard-nav into a protected route that will bounce to /auth.
-    markAuthHandoff();
-    if (!window.location.pathname.startsWith("/opening")) {
-      window.location.replace("/opening");
-    }
-    throw new Error("Session cookie not ready yet");
+  // Do not block on the cookie — hard-nav immediately. `_authenticated` resolves Clerk on load.
+  void waitForServerSession(4_000);
+  const id = userId || clientClerkUserId();
+  if (!id) {
+    throw new Error("No session id to open workspace");
   }
-  const home = await resolveHome(queryClient, serverId);
+  const home = await resolveHome(queryClient, id);
   markAuthHandoff();
   window.location.replace(home);
   return home;

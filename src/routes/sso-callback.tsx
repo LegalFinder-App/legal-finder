@@ -56,8 +56,9 @@ function SsoCallbackPage() {
         await finishAuthWithHardNav({ queryClient, userId });
       } catch (err) {
         console.error("[sso-callback] workspace", err);
+        // Never park on /opening — go straight into the app shell.
         markAuthHandoff();
-        window.location.replace("/opening");
+        window.location.replace("/dashboard");
       }
     };
 
@@ -68,9 +69,8 @@ function SsoCallbackPage() {
         await openWorkspace(id);
         return true;
       }
-      // Hold on /opening — never /auth or a bare /dashboard bounce.
       markAuthHandoff();
-      window.location.replace("/opening");
+      window.location.replace("/dashboard");
       return true;
     };
 
@@ -235,7 +235,7 @@ function SsoCallbackPage() {
           description: "Please try again, or sign in with email instead.",
         });
         markAuthHandoff();
-        window.location.replace("/opening");
+        window.location.replace("/dashboard");
       }
     })();
   }, [clerk, queryClient, signIn, signInFetch, signUp, signUpFetch]);
