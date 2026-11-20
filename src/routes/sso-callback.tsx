@@ -57,7 +57,7 @@ function SsoCallbackPage() {
       } catch (err) {
         console.error("[sso-callback] workspace", err);
         markAuthHandoff();
-        window.location.replace("/dashboard");
+        window.location.replace("/opening");
       }
     };
 
@@ -68,8 +68,9 @@ function SsoCallbackPage() {
         await openWorkspace(id);
         return true;
       }
+      // Hold on /opening — never /auth or a bare /dashboard bounce.
       markAuthHandoff();
-      window.location.replace("/dashboard");
+      window.location.replace("/opening");
       return true;
     };
 
@@ -233,9 +234,8 @@ function SsoCallbackPage() {
         toast.error(err instanceof Error ? err.message : "Couldn't finish social sign-in", {
           description: "Please try again, or sign in with email instead.",
         });
-        // Still avoid the sign-in form flash when a cookie may appear shortly.
         markAuthHandoff();
-        window.location.replace("/dashboard");
+        window.location.replace("/opening");
       }
     })();
   }, [clerk, queryClient, signIn, signInFetch, signUp, signUpFetch]);

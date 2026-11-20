@@ -96,8 +96,16 @@ export async function finishAuthWithHardNav(opts: {
   markAuthHandoff();
   const { queryClient, userId } = opts;
   // Cookie must exist before _authenticated's beforeLoad runs on the next document load.
-  await waitForServerSession(8_000);
-  const home = await resolveHome(queryClient, userId);
+  const serverId = await waitForServerSession(8_000);
+  if (!serverId) {
+    // Don't hard-nav into a protected route that will bounce to /auth.
+    markAuthHandoff();
+    if (!window.location.pathname.startsWith("/opening")) {
+      window.location.replace("/opening");
+    }
+    throw new Error("Session cookie not ready yet");
+  }
+  const home = await resolveHome(queryClient, serverId);
   markAuthHandoff();
   window.location.replace(home);
   return home;

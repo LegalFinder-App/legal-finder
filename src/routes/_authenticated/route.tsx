@@ -73,7 +73,16 @@ export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
     const userId = await resolveUserId();
-    if (!userId) throw redirect({ to: "/auth" });
+    if (!userId) {
+      // Mid-SSO: never dump onto the sign-in form — hold on /opening until the cookie lands.
+      let handoff = false;
+      try {
+        handoff = Boolean(sessionStorage.getItem("lf:auth-handoff"));
+      } catch {
+        // ignore
+      }
+      throw redirect({ to: handoff ? "/opening" : "/auth" });
+    }
     return { user: { id: userId } };
   },
   component: WorkspaceLayout,

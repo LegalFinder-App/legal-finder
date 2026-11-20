@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as JudgementsRouteImport } from './routes/judgements'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as OpeningRouteImport } from './routes/opening'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -124,6 +125,11 @@ const JudgementsRoute = JudgementsRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpeningRoute = OpeningRouteImport.update({
+  id: '/opening',
+  path: '/opening',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
@@ -504,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/delete-account': typeof DeleteAccountRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/opening': typeof OpeningRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/delete-account': typeof DeleteAccountRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/opening': typeof OpeningRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -660,6 +668,7 @@ export interface FileRoutesById {
   '/delete-account': typeof DeleteAccountRoute
   '/judgements': typeof JudgementsRoute
   '/library': typeof LibraryRoute
+  '/opening': typeof OpeningRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -740,6 +749,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/judgements'
     | '/library'
+    | '/opening'
     | '/privacy-policy'
     | '/report'
     | '/reset-password'
@@ -818,6 +828,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/judgements'
     | '/library'
+    | '/opening'
     | '/privacy-policy'
     | '/report'
     | '/reset-password'
@@ -895,6 +906,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/judgements'
     | '/library'
+    | '/opening'
     | '/privacy-policy'
     | '/report'
     | '/reset-password'
@@ -975,6 +987,7 @@ export interface RootRouteChildren {
   DeleteAccountRoute: typeof DeleteAccountRoute
   JudgementsRoute: typeof JudgementsRoute
   LibraryRoute: typeof LibraryRoute
+  OpeningRoute: typeof OpeningRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ReportRoute: typeof ReportRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -1070,6 +1083,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opening': {
+      id: '/opening'
+      path: '/opening'
+      fullPath: '/opening'
+      preLoaderRoute: typeof OpeningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy-policy': {
@@ -1687,6 +1707,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeleteAccountRoute: DeleteAccountRoute,
   JudgementsRoute: JudgementsRoute,
   LibraryRoute: LibraryRoute,
+  OpeningRoute: OpeningRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ReportRoute: ReportRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -1728,13 +1749,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

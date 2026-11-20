@@ -19,7 +19,7 @@ const HIGHLIGHTS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: ShieldCheck,
     title: "Private by design",
-    body: "Two-step verification, and access rules enforced inside the database itself.",
+    body: "Encrypted sessions, email checks when needed, and access rules enforced in the database.",
   },
 ];
 
