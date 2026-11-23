@@ -1,7 +1,7 @@
 import { Platform, useWindowDimensions, type ViewStyle } from "react-native";
 
 /** Window width from which the desktop app shows its sidebar instead of the bottom tab bar. */
-const WIDE_FROM = 900;
+const WIDE_FROM = 960;
 
 /**
  * True in the desktop app when the window is wide enough for the sidebar layout. Phones — and for
@@ -12,8 +12,8 @@ export function useWideLayout(): boolean {
   return Platform.OS === "web" && width >= WIDE_FROM;
 }
 
-/** A centred column at a comfortable reading/form width, for wide windows. */
-export const wideColumn: ViewStyle = { width: "100%", maxWidth: 920, alignSelf: "center" };
+/** A centred column at a comfortable reading/form width, for wide windows (HP/Dell included). */
+export const wideColumn: ViewStyle = { width: "100%", maxWidth: 840, alignSelf: "center" };
 
 /**
  * wideColumn with page padding — add to a scroll view's contentContainerStyle when

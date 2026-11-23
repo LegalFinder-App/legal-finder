@@ -323,7 +323,7 @@ export function ResearchPanel({
     <aside
       className={cn(
         "flex h-full w-full max-w-full shrink-0 flex-col bg-gradient-to-b from-card/70 via-card/45 to-background/30 backdrop-blur-md",
-        !isSheet && "border-l border-border/70 lg:w-[min(26rem,40vw)] xl:w-[min(28rem,36vw)]",
+        !isSheet && "border-l border-border/70 xl:w-full",
       )}
     >
       <div className="flex items-center justify-between gap-2 border-b border-border/70 px-3 py-3 sm:px-4">

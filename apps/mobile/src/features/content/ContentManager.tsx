@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { ImagePlus, Pencil, Plus, Trash2 } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { fonts } from "@/theme/tokens";
 import {
   Button,
   Card,
@@ -82,7 +83,7 @@ function ImageField({
   };
   return (
     <View style={{ gap: 8 }}>
-      <Text variant="small" style={{ fontFamily: "PublicSans_500Medium" }}>
+      <Text variant="small" style={{ fontFamily: fonts.sansMedium }}>
         {label}
       </Text>
       {value ? (

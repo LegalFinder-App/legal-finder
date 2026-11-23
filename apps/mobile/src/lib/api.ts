@@ -104,7 +104,18 @@ export const api = {
   session: () => apiPost<{ userId: string; roles: string[] }>("/api/mobile/session"),
   askAssistant: (
     messages: { role: "user" | "assistant"; content: string }[],
-    options: { mode?: "assistant" | "research"; webSearch?: boolean } = {},
+    options: {
+      mode?: "assistant" | "research";
+      webSearch?: boolean;
+      attachments?: {
+        id: string;
+        kind: "image" | "pdf";
+        url: string;
+        name: string;
+        mimeType: string;
+        size: number;
+      }[];
+    } = {},
   ) =>
     apiPost<{
       reply: string;
@@ -115,6 +126,7 @@ export const api = {
       messages,
       mode: options.mode,
       webSearch: options.webSearch ?? false,
+      attachments: options.attachments,
     }),
   /** Corpus search for Legal Research mode — same backend as the website research pane. */
   searchResearch: (request: {

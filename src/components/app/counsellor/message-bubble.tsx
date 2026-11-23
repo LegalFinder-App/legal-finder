@@ -78,7 +78,12 @@ export function MessageBubble({
         isUser ? "justify-end" : "justify-start",
       )}
     >
-      <div className={cn("w-full", isUser ? "max-w-[min(42rem,100%)]" : "max-w-[min(46rem,100%)]")}>
+      <div
+        className={cn(
+          "w-full min-w-0 max-w-full",
+          isUser ? "sm:max-w-[min(42rem,100%)]" : "sm:max-w-[min(46rem,100%)]",
+        )}
+      >
         <div
           className={cn(
             "relative rounded-2xl border px-4 py-3.5 shadow-sm",

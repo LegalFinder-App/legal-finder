@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   quote: { borderLeftWidth: 3, paddingLeft: 16, marginHorizontal: 20, paddingHorizontal: 0 },
   // Wide desktop window: the header stays a centred block and sections keep a comfortable
-  // measure instead of running edge to edge.
+  // measure instead of running edge to edge on large HP/Dell monitors.
   wideHeader: {
     paddingTop: 48,
     paddingBottom: 40,
@@ -241,7 +241,17 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
   wideActions: { alignSelf: "center", width: 360 },
-  wideSection: { paddingHorizontal: 48, maxWidth: 1120 },
-  widePillar: { width: "31%" },
-  wideQuote: { marginHorizontal: 48, maxWidth: 1024 },
+  wideSection: {
+    width: "100%",
+    maxWidth: 960,
+    alignSelf: "center",
+    paddingHorizontal: 40,
+  },
+  widePillar: { width: "31%", maxWidth: 280 },
+  wideQuote: {
+    width: "100%",
+    maxWidth: 840,
+    alignSelf: "center",
+    marginHorizontal: 40,
+  },
 });

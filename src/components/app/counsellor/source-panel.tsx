@@ -27,7 +27,7 @@ export function SourcePanel({ mode, sources, onOpenSource, retrieving = false }:
   const hasSources = sources.length > 0;
 
   return (
-    <aside className="counsellor-drawer hidden h-full w-[17.5rem] shrink-0 flex-col overflow-y-auto border-l border-border/70 bg-gradient-to-b from-card/70 via-card/40 to-background/40 px-4 py-5 lg:flex xl:w-[20rem]">
+    <aside className="counsellor-drawer hidden h-full w-[16rem] shrink-0 flex-col overflow-y-auto border-l border-border/70 bg-gradient-to-b from-card/70 via-card/40 to-background/40 px-3 py-4 xl:flex 2xl:w-[18.5rem] 2xl:px-4 2xl:py-5">
       <SectionHeading
         eyebrow={mode === "research" || hasSources ? "Sources" : "Quick lookup"}
         title={

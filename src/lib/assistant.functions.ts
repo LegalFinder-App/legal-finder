@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { rateLimited } from "@/lib/rate-limit-middleware";
+import { rateLimitedAi } from "@/lib/rate-limit-middleware";
 
 /** User turns stay short; assistant turns can be longer (web search + research replies). */
 const MAX_USER_CHARS = 4000;
@@ -82,7 +82,7 @@ export const researchRequestSchema = z.object({
  * dual-purpose, so server-only deps must not load at module scope).
  */
 export const askAssistant = createServerFn({ method: "POST" })
-  .middleware([rateLimited("assistant")])
+  .middleware([rateLimitedAi("assistant")])
   .validator(chatRequestSchema)
   .handler(async ({ data }) => {
     const { runAssistant } = await import("@/lib/assistant.server");

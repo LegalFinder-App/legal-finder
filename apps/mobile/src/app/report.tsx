@@ -4,6 +4,7 @@ import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Phone, ShieldOff } from "lucide-react-native";
 import { useTheme } from "@/theme/ThemeProvider";
+import { fonts } from "@/theme/tokens";
 import {
   Button,
   Card,
@@ -92,7 +93,7 @@ export default function ReportScreen() {
           />
         </View>
       </Card>
-      <Text variant="small" style={{ fontFamily: "PublicSans_500Medium" }}>
+      <Text variant="small" style={{ fontFamily: fonts.sansMedium }}>
         Category
       </Text>
       <ChipRow

@@ -15,6 +15,8 @@ export const RATE_LIMITS = {
   // Each answer is a paid model call; a long conversation is still well inside this.
   assistant: { limit: 30, windowSeconds: 10 * 60 },
   drafting: { limit: 15, windowSeconds: 10 * 60 },
+  // Corpus FTS only (no Anthropic) — same cadence as assistant, without AI consent.
+  research: { limit: 30, windowSeconds: 10 * 60 },
   documents: { limit: 30, windowSeconds: 10 * 60 },
   uploads: { limit: 30, windowSeconds: 10 * 60 },
   payments: { limit: 10, windowSeconds: 10 * 60 },

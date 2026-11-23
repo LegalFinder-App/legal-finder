@@ -7,11 +7,14 @@ import { ZodError } from "zod";
 import type { AppDatabase } from "@/integrations/supabase/app-database";
 import { UnauthorizedError, authenticateClerkRequest } from "@/integrations/supabase/auth.server";
 import { RateLimitError, enforceRateLimit, type RateLimitBucket } from "@/lib/rate-limit.server";
+import { AiConsentRequiredError, requireAiConsent } from "@/lib/ai-consent.server";
 
 export class BadRequestError extends Error {}
 class PayloadTooLargeError extends Error {}
 
 type Context = { request: Request; userId: string; supabase: SupabaseClient<AppDatabase> };
+
+const AI_BUCKETS: ReadonlySet<RateLimitBucket> = new Set(["assistant", "drafting"]);
 
 // The largest legitimate body is a 20-message assistant conversation (20 × 4,000 characters),
 // a little over 240 KB if every character takes three bytes. Anything bigger is refused before
@@ -43,6 +46,9 @@ export function mobilePost<TBody, TResult>(
   return async ({ request }: { request: Request }): Promise<Response> => {
     try {
       const { userId, supabase } = await authenticateClerkRequest(request);
+      if (options.rateLimit && AI_BUCKETS.has(options.rateLimit)) {
+        await requireAiConsent(userId);
+      }
       if (options.rateLimit) await enforceRateLimit(options.rateLimit, userId);
       const raw = await readJsonBody(request);
       const body = schema ? schema.parse(raw) : (raw as TBody);
@@ -51,6 +57,9 @@ export function mobilePost<TBody, TResult>(
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return Response.json({ error: "Please sign in again." }, { status: 401 });
+      }
+      if (error instanceof AiConsentRequiredError) {
+        return Response.json({ error: error.message }, { status: 403 });
       }
       if (error instanceof RateLimitError) {
         return Response.json(

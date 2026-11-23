@@ -38,8 +38,25 @@ Types for the database come from the web app — run `npm run sync-types` after 
 
 ## Running
 
-Native modules (Clerk, biometrics, notifications…) mean **Expo Go is not enough**; use a
-development build:
+### Expo Go on a physical iPhone (quick smoke test)
+
+1. Copy `.env.example` → `.env` and fill the three `EXPO_PUBLIC_*` keys (same values as the
+   website’s `VITE_CLERK_PUBLISHABLE_KEY` / `VITE_SUPABASE_*`).
+2. On the iPhone, update **Expo Go** in the App Store to **58.x** (Settings → Expo Go →
+   version, or App Store → Updates). Store Expo Go is SDK 58-only; this project is SDK 58.
+3. From repo root: `npm run mobile:start:go` (tunnel). Same Wi‑Fi LAN also works with
+   `npm run mobile:start` then scan the QR in Expo Go.
+4. First launch shows the animated logo splash, then a one-time onboarding walkthrough
+   (`features/welcome/`). To see onboarding again, clear app data or remove
+   `legalfinder.onboarding.v1` from AsyncStorage.
+5. Sign in with **email and password** (same account as the website). Google / Apple / LinkedIn
+   OAuth does **not** work in Expo Go (Clerk rejects the changing `exp://…` tunnel redirect).
+   Passkeys and push are also Expo Go–limited — use a development/EAS build for those.
+   For native social SSO later, allowlist `legalfinder://sso-callback` in Clerk → Native
+   applications → mobile SSO redirect URLs.
+
+Native modules (biometrics, passkeys, push…) mean **Expo Go is not a release substitute**. For a
+full native build:
 
 ```bash
 npx expo run:android          # builds + installs a dev build on a device/emulator
@@ -67,6 +84,7 @@ same exports — never in `Platform.OS` checks scattered through screens:
 | `lib/files`              | `expo-file-system`, share sheet     | blobs, Save dialog                          |
 | `lib/push`               | Expo push                           | not available (controls hidden)             |
 | `components/BiometricGate` | Face ID / fingerprint lock        | not available (control hidden)              |
+| Clerk passkeys             | Sign-in + Settings (native only)  | not available (use password / browser SSO)  |
 | `components/ui/DateTimeField` | native picker                  | the browser engine's date input             |
 
 Layout adapts through `useWideLayout()` (`lib/layout.ts`): on a wide desktop window
@@ -153,6 +171,20 @@ the repo root issues fresh backup codes before each submission.
 
 The same profiles build Android in the cloud (`--platform android`) if this machine is short on
 disk; upload the existing upload keystore to EAS first (`eas credentials`) so Play accepts it.
+
+### Clerk passkeys (optional, native builds only)
+
+Passkey UI is wired (`@clerk/expo-passkeys`, Settings → Passkeys, Sign in with a passkey). It
+does **not** work in Expo Go. Before it works on a device:
+
+1. Clerk Dashboard → **Native applications** — register iOS (`com.legalfinder.app`) and Android
+   with the release SHA-256 fingerprints.
+2. Associated domains / Digital Asset Links for `webcredentials` / `assetlinks` as Clerk documents.
+3. Rebuild with EAS or `npx expo prebuild` + `run:ios` / `run:android` (physical Android device for
+   passkeys; iOS 16+).
+
+Until those steps are done, the buttons may error with a cancelled / not-allowed message — that is
+expected.
 
 ### Push notifications (optional)
 

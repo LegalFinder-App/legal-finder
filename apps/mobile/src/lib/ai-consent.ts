@@ -1,14 +1,25 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as SecureStore from "./secure-store";
 import { useSession } from "./session";
+import { supabase } from "./supabase";
+import { clearCounsellorDataForUser } from "./counsellor-storage";
 
-// The assistant and AI-assisted drafting send what the person types to Anthropic (through our
-// server — src/lib/assistant.server.ts and document-drafting.server.ts on the website). App
-// Store guideline 5.1.2(i) requires saying which third-party AI receives it and getting a clear
-// yes first, and our privacy policy names consent as the basis for these features. The answer is
-// kept per account on this device; the Settings switch withdraws it.
+// Consent is stored on profiles.ai_consent_at (server-enforced) and cached on-device.
 const storageKey = (userId: string) => `lf.ai-consent.${userId}`;
 const queryKey = (userId: string | undefined) => ["ai-consent", userId] as const;
+
+async function readConsent(userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("ai_consent_at")
+    .eq("id", userId)
+    .maybeSingle();
+  if (data?.ai_consent_at) {
+    await SecureStore.setItemAsync(storageKey(userId), data.ai_consent_at);
+    return true;
+  }
+  return false;
+}
 
 export function useAiConsent() {
   const { user } = useSession();
@@ -17,15 +28,26 @@ export function useAiConsent() {
   const stored = useQuery({
     queryKey: queryKey(userId),
     enabled: Boolean(userId),
-    staleTime: Infinity,
-    queryFn: async () => (await SecureStore.getItemAsync(storageKey(userId as string))) !== null,
+    staleTime: 30_000,
+    queryFn: () => readConsent(userId as string),
   });
 
   const set = async (allowed: boolean) => {
     if (!userId) return;
-    // The stored value is the time of the yes, in case it is ever needed as a record.
-    if (allowed) await SecureStore.setItemAsync(storageKey(userId), new Date().toISOString());
-    else await SecureStore.deleteItemAsync(storageKey(userId));
+    const stamp = allowed ? new Date().toISOString() : null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ ai_consent_at: stamp })
+      .eq("id", userId);
+    if (error) {
+      console.error("[ai-consent]", error.message);
+      return;
+    }
+    if (allowed && stamp) await SecureStore.setItemAsync(storageKey(userId), stamp);
+    else {
+      await SecureStore.deleteItemAsync(storageKey(userId));
+      await clearCounsellorDataForUser(userId);
+    }
     queryClient.setQueryData(queryKey(userId), allowed);
   };
 

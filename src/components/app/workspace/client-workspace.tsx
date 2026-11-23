@@ -1,11 +1,16 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Briefcase, CalendarDays, FileText, Users } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Briefcase, CalendarDays, FileText, MessageSquare, Scale, Sparkles } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { EmptyState, StatusPill } from "@/components/common/bits";
-import { StatCardRow } from "./shared/stat-card-row";
+import {
+  MetricTile,
+  WorkspaceFrame,
+  WorkspaceHeader,
+  WorkspacePanel,
+} from "@/components/app/shell/workspace-chrome";
 import { MattersList } from "./shared/matters-list";
 import { AppointmentsList } from "./shared/appointments-list";
 import { DocumentVault } from "./shared/document-vault";
@@ -20,7 +25,6 @@ import {
   conversationsQuery,
   notificationsQuery,
 } from "@/lib/queries";
-import { DEMO_APPOINTMENTS, DEMO_CASES } from "@/lib/demo-data";
 import { requestBrowserNotificationPermission } from "@/lib/platform-notifications";
 
 export function ClientWorkspace() {
@@ -57,10 +61,9 @@ export function ClientWorkspace() {
     navigate({ to: "/dashboard", replace: true });
   }, [searchStr, navigate]);
 
-  const liveCases = cases.data ?? [];
-  const liveAppts = appts.data ?? [];
-  const caseRows = liveCases.length > 0 ? liveCases : [...DEMO_CASES];
-  const appointmentRows = liveAppts.length > 0 ? liveAppts : [...DEMO_APPOINTMENTS];
+  const caseRows = cases.data ?? [];
+  const appointmentRows = appts.data ?? [];
+  const firstName = user?.fullName?.split(" ")[0];
 
   const enableNotifications = async () => {
     const permission = await requestBrowserNotificationPermission();
@@ -68,107 +71,199 @@ export function ClientWorkspace() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="eyebrow text-brass">Client workspace</p>
-      <h1 className="mt-2 font-display text-4xl font-semibold">Overview</h1>
+    <WorkspaceFrame className="pb-14">
+      <WorkspaceHeader
+        eyebrow="Client workspace"
+        title={firstName ? `Welcome back, ${firstName}` : "Your overview"}
+        description="Matters, hearings, documents and messages — one place to follow your legal work in Uganda."
+        action={
+          <>
+            <Button asChild variant="outline" size="sm" className="rounded-xl">
+              <Link to="/messages">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Messages
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="rounded-xl">
+              <Link to="/assistant">
+                <Sparkles className="h-3.5 w-3.5" />
+                Ask Counsellor
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
-      <div className="mt-8">
-        <StatCardRow
-          stats={[
-            {
-              label: "Open matters",
-              value: caseRows.length,
-              icon: <Briefcase className="h-4 w-4" />,
-            },
-            {
-              label: "Appointments",
-              value: appointmentRows.length,
-              icon: <CalendarDays className="h-4 w-4" />,
-            },
-            {
-              label: "Documents",
-              value: (docs.data ?? []).length,
-              icon: <FileText className="h-4 w-4" />,
-            },
-            {
-              label: "Conversations",
-              value: convos.data?.length ?? 0,
-              icon: <Users className="h-4 w-4" />,
-            },
-          ]}
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricTile
+          label="Open matters"
+          value={caseRows.length}
+          icon={<Briefcase className="h-4 w-4" />}
+        />
+        <MetricTile
+          label="Appointments"
+          value={appointmentRows.length}
+          icon={<CalendarDays className="h-4 w-4" />}
+        />
+        <MetricTile
+          label="Documents"
+          value={(docs.data ?? []).length}
+          icon={<FileText className="h-4 w-4" />}
+        />
+        <MetricTile
+          label="Conversations"
+          value={convos.data?.length ?? 0}
+          icon={<MessageSquare className="h-4 w-4" />}
         />
       </div>
 
-      <section className="mt-10">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-xl font-semibold">Notifications</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Real-time alerts for cases, messages, appointments and admin activity.
-            </p>
-          </div>
-          {typeof window !== "undefined" &&
+      <div className="mt-8 grid gap-5 lg:grid-cols-5">
+        <WorkspacePanel
+          eyebrow="Stay informed"
+          title="Notifications"
+          description="Cases, messages, appointments and admin activity."
+          className="lg:col-span-3"
+          action={
+            typeof window !== "undefined" &&
             "Notification" in window &&
-            Notification.permission !== "granted" && (
-              <Button variant="outline" size="sm" onClick={() => void enableNotifications()}>
-                Enable notifications
+            Notification.permission !== "granted" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl"
+                onClick={() => void enableNotifications()}
+              >
+                Enable alerts
               </Button>
-            )}
-        </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <PushRegistrationCard userId={user?.id} />
-          <PwaInstallCard />
-        </div>
-        <div className="mt-4 space-y-3">
+            ) : undefined
+          }
+        >
+          <div className="mb-4 grid gap-3 sm:grid-cols-2">
+            <PushRegistrationCard userId={user?.id} />
+            <PwaInstallCard />
+          </div>
           {(notifications.data ?? []).length === 0 ? (
             <EmptyState
               title="No notifications yet"
               description="You’ll see live updates here as soon as activity arrives."
             />
           ) : (
-            (notifications.data ?? []).slice(0, 5).map((n) => (
-              <div key={n.id} className="card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-display font-semibold">{n.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+            <ul className="space-y-2.5">
+              {(notifications.data ?? []).slice(0, 5).map((n) => (
+                <li
+                  key={n.id}
+                  className="flex items-start justify-between gap-3 rounded-xl border border-border/70 bg-secondary/20 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-display text-sm font-semibold">{n.title}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
                       {n.body ?? "Open the workspace for details."}
                     </p>
                   </div>
                   <StatusPill value={n.read ? "resolved" : "pending"} />
-                </div>
-              </div>
-            ))
+                </li>
+              ))}
+            </ul>
           )}
-        </div>
-      </section>
+        </WorkspacePanel>
 
-      <div className="mt-10">
+        <WorkspacePanel eyebrow="Quick start" title="Trusted next steps" className="lg:col-span-2">
+          <ul className="space-y-2">
+            <li>
+              <Link
+                to="/lawyers"
+                className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/60 px-3.5 py-3 transition-colors hover:border-brass/35 hover:bg-secondary/40"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-brass">
+                  <Scale className="h-4 w-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Find a verified advocate</span>
+                  <span className="text-xs text-muted-foreground">Browse the directory</span>
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/assistant"
+                className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/60 px-3.5 py-3 transition-colors hover:border-brass/35 hover:bg-secondary/40"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-brass">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Ask Counsellor AI</span>
+                  <span className="text-xs text-muted-foreground">Plain-language guidance</span>
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/messages"
+                className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/60 px-3.5 py-3 transition-colors hover:border-brass/35 hover:bg-secondary/40"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-brass">
+                  <MessageSquare className="h-4 w-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">Open messages</span>
+                  <span className="text-xs text-muted-foreground">Talk to your advocate</span>
+                </span>
+              </Link>
+            </li>
+          </ul>
+        </WorkspacePanel>
+      </div>
+
+      <div className="mt-8">
         <LiveCourtroomPanel title="Your live hearings" />
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-2">
-        <section>
-          <h2 className="font-display text-xl font-semibold">Matters</h2>
-          <div className="mt-4">
+      <div className="mt-8 grid gap-5 lg:grid-cols-2">
+        <WorkspacePanel eyebrow="Caseload" title="Matters">
+          {caseRows.length === 0 && !cases.isLoading ? (
+            <EmptyState
+              title="No matters yet"
+              description="Book a verified advocate or ask Counsellor AI to get oriented."
+              action={
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button asChild size="sm" className="rounded-xl">
+                    <Link to="/lawyers">Find an advocate</Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="rounded-xl">
+                    <Link to="/assistant">Ask Counsellor</Link>
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
             <MattersList cases={caseRows} isLoading={cases.isLoading} />
-          </div>
-        </section>
-        <section>
-          <h2 className="font-display text-xl font-semibold">Upcoming appointments</h2>
-          <div className="mt-4">
+          )}
+        </WorkspacePanel>
+        <WorkspacePanel eyebrow="Schedule" title="Upcoming appointments">
+          {appointmentRows.length === 0 && !appts.isLoading ? (
+            <EmptyState
+              title="No appointments yet"
+              description="When you book a consultation, it will show up here."
+              action={
+                <Button asChild size="sm" className="rounded-xl">
+                  <Link to="/lawyers">Browse advocates</Link>
+                </Button>
+              }
+            />
+          ) : (
             <AppointmentsList appointments={appointmentRows} isLoading={appts.isLoading} />
-          </div>
-        </section>
-        <section className="lg:col-span-2">
+          )}
+        </WorkspacePanel>
+        <div className="lg:col-span-2">
           <DocumentVault
             userId={user?.id}
             documents={docs.data ?? []}
             isLoading={docs.isLoading}
-            allowDemoFallback
+            allowDemoFallback={false}
           />
-        </section>
+        </div>
       </div>
-    </div>
+    </WorkspaceFrame>
   );
 }

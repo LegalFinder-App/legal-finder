@@ -32,7 +32,12 @@
     "desktop:dist:mac": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --mac",
     "desktop:dist:win:eperm-fix": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --win -c.electronDist=.electron-dist-win32-x64",
     "desktop:dist:linux:eperm-fix": "npm run desktop:web && electron-builder --config platforms/desktop/electron-builder.yml --linux -c.electronDist=.electron-dist-linux-x64",
-    "tokens:export": "node scripts/export-design-tokens.mjs"
+    "tokens:export": "node scripts/export-design-tokens.mjs",
+    "eas:login": "npm run eas:login --prefix apps/mobile",
+    "eas:android": "npm run eas:android --prefix apps/mobile",
+    "eas:android:store": "npm run eas:android:store --prefix apps/mobile",
+    "mobile:start": "npm run start --prefix apps/mobile",
+    "mobile:start:go": "npm run start:go --prefix apps/mobile"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

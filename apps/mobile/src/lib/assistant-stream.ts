@@ -2,6 +2,7 @@ import { env } from "./env";
 import { getAuthToken } from "./auth-token";
 import { bridgedFetch } from "./bridged-fetch";
 import { ApiError, type AssistantAdvocate, type AssistantSource, type AssistantWebSource } from "./api";
+import type { CounsellorAttachment } from "./assistant-attachments";
 
 export type StreamChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -15,6 +16,7 @@ export type StreamHandlers = {
   signal?: AbortSignal;
   mode?: "assistant" | "research";
   webSearch?: boolean;
+  attachments?: CounsellorAttachment[];
 };
 
 const ROUTE_MISSING = "Only HTML requests are supported here";
@@ -93,6 +95,7 @@ export async function streamAssistantReply(
     messages,
     mode: handlers.mode ?? "assistant",
     webSearch: handlers.webSearch ?? false,
+    attachments: handlers.attachments,
   });
 
   let response: Response;

@@ -7,8 +7,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BookOpen, ExternalLink, Filter, Search } from "lucide-react-native";
+import { loadResearchHistoryRaw, saveResearchHistoryRaw } from "@/lib/counsellor-storage";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, radius } from "@/theme/tokens";
 import { Button, Chip, Segmented, SelectField, Text } from "@/components/ui";
@@ -55,8 +55,6 @@ const KIND_OPTIONS: { value: SourceKind; label: string }[] = [
   { value: "news", label: "Headlines" },
 ];
 
-const HISTORY_KEY = "legalfinder.counsellor.research.v1.mobile";
-
 function emptyFacets(): ResearchFacets {
   return {
     courts: [],
@@ -88,11 +86,13 @@ export function CounsellorResearch({
   onUseInChat,
   onOpenSource,
   seededQuery = "",
+  userId = null,
 }: {
   onAskAboutSource: (source: AssistantSource) => void;
   onUseInChat: (query: string) => void;
   onOpenSource: (source: AssistantSource) => void;
   seededQuery?: string;
+  userId?: string | null;
 }) {
   const { colors } = useTheme();
   const [query, setQuery] = useState(seededQuery);
@@ -108,7 +108,9 @@ export function CounsellorResearch({
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    void AsyncStorage.getItem(HISTORY_KEY).then((raw) => {
+    setHistory([]);
+    if (!userId) return;
+    void loadResearchHistoryRaw(userId).then((raw) => {
       if (!raw) return;
       try {
         const parsed = JSON.parse(raw) as HistoryEntry[];
@@ -117,11 +119,12 @@ export function CounsellorResearch({
         // ignore corrupt cache
       }
     });
-  }, []);
+  }, [userId]);
 
   const persistHistory = (entries: HistoryEntry[]) => {
     setHistory(entries);
-    void AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, 20)));
+    if (!userId) return;
+    void saveResearchHistoryRaw(userId, JSON.stringify(entries.slice(0, 20)));
   };
 
   const runSearch = async (

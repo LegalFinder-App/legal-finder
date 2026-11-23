@@ -369,16 +369,7 @@ function BookingBar({ lawyer }: { lawyer: Lawyer }) {
       }
 
       const { data: payment, error: paymentError } = await supabase
-        .from("payments")
-        .insert({
-          appointment_id: appointment.id,
-          client_id: user.id,
-          lawyer_id: lawyer.user_id,
-          amount: fee,
-          currency: "UGX",
-          description: `Consultation with ${lawyer.full_name}`,
-        })
-        .select()
+        .rpc("create_consultation_payment", { p_appointment_id: appointment.id })
         .single();
       if (paymentError || !payment) {
         setOpen(false);

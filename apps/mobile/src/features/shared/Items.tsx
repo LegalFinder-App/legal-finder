@@ -54,14 +54,20 @@ export function AppointmentItem({
         <StatusPill value={appointment.status} />
       </View>
       {video ? (
-        <Button
-          title="Join video room"
-          variant="outline"
-          size="sm"
-          icon={<Video size={14} color={colors.foreground} />}
-          onPress={() => void Linking.openURL(roomUrl(appointment.subject || appointment.id))}
-          style={{ marginTop: 12, alignSelf: "flex-start" }}
-        />
+        <View style={{ marginTop: 12, gap: 6 }}>
+          <Button
+            title="Join video room"
+            variant="outline"
+            size="sm"
+            icon={<Video size={14} color={colors.foreground} />}
+            onPress={() => void Linking.openURL(roomUrl(appointment.subject || appointment.id))}
+            style={{ alignSelf: "flex-start" }}
+          />
+          <Text variant="caption" tone="muted">
+            Opens a third-party meeting room (Jitsi). Not an official court recording, transcript,
+            or registry filing.
+          </Text>
+        </View>
       ) : null}
     </Card>
   );

@@ -25,7 +25,8 @@ export const Route = createFileRoute("/api/mobile/assistant/research")({
               },
               body.limit ?? 24,
             ),
-          { rateLimit: "assistant" },
+          // Research is corpus FTS only — do not require AI consent (matches web).
+          { rateLimit: "research" },
         )(ctx);
       },
     },

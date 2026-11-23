@@ -1,8 +1,19 @@
 import { useMemo } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { Activity, Briefcase, ShieldCheck, Users } from "lucide-react";
-import { StatCard, LoadingRows, SectionHeading, Stars } from "@/components/common/bits";
+import {
+  Activity,
+  ArrowUpRight,
+  Briefcase,
+  FileCheck2,
+  Flag,
+  ShieldCheck,
+  Users,
+  Wallet,
+} from "lucide-react";
+import { LoadingRows, Stars } from "@/components/common/bits";
+import { MetricTile, WorkspacePanel } from "@/components/app/shell/workspace-chrome";
 import {
   Table,
   TableBody,
@@ -17,6 +28,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
 import {
   allCasesQuery,
   allPaymentsQuery,
@@ -31,6 +43,13 @@ const signupsConfig: ChartConfig = { count: { label: "New signups", color: "var(
 const casesConfig: ChartConfig = { count: { label: "Cases", color: "var(--primary)" } };
 const auditConfig: ChartConfig = { count: { label: "Audit events", color: "var(--brass)" } };
 const revenueConfig: ChartConfig = { amount: { label: "Revenue", color: "var(--brass)" } };
+
+const QUICK_LINKS = [
+  { to: "/admin/applications", label: "Applications", icon: FileCheck2 },
+  { to: "/admin/reports", label: "Reports", icon: Flag },
+  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/payouts", label: "Payouts", icon: Wallet },
+] as const;
 
 export function AdminOverview() {
   const { user } = useSession();
@@ -123,48 +142,59 @@ export function AdminOverview() {
     payments.isLoading;
 
   return (
-    <div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard
+    <div className="space-y-8">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <MetricTile
           label="Registered users"
           value={profiles.data?.length ?? 0}
           icon={<Users className="h-4 w-4" />}
         />
-        <StatCard
+        <MetricTile
           label="Verified advocates"
           value={lawyers.data?.filter((lawyer) => lawyer.verified).length ?? 0}
-          hint={`${lawyers.data?.length ?? 0} total`}
+          hint={`${lawyers.data?.length ?? 0} listed`}
           icon={<ShieldCheck className="h-4 w-4" />}
         />
-        <StatCard
+        <MetricTile
           label="Open matters"
           value={cases.data?.filter((c) => c.status === "open").length ?? 0}
           icon={<Briefcase className="h-4 w-4" />}
         />
-        <StatCard
-          label="Audit events (100 latest)"
+        <MetricTile
+          label="Audit events"
           value={auditLogs.data?.length ?? 0}
+          hint="Latest 100"
           icon={<Activity className="h-4 w-4" />}
         />
-        <StatCard
-          label="Revenue (completed)"
+        <MetricTile
+          label="Revenue"
           value={totalRevenue.toLocaleString()}
-          hint="All-time"
-          icon={<Activity className="h-4 w-4" />}
+          hint="Completed · all-time"
+          icon={<Wallet className="h-4 w-4" />}
+          className="sm:col-span-2 xl:col-span-1"
         />
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {QUICK_LINKS.map((link) => (
+          <Button key={link.to} asChild variant="outline" size="sm" className="rounded-xl">
+            <Link to={link.to}>
+              <link.icon className="h-3.5 w-3.5 text-brass" />
+              {link.label}
+              <ArrowUpRight className="h-3.5 w-3.5 opacity-50" />
+            </Link>
+          </Button>
+        ))}
+      </div>
+
       {isLoading ? (
-        <div className="mt-10">
-          <LoadingRows rows={3} />
-        </div>
+        <LoadingRows rows={3} />
       ) : (
-        <div className="mt-10 grid gap-8 lg:grid-cols-2">
-          <section className="card p-5">
-            <SectionHeading eyebrow="Growth" title="Signups, last 6 months" />
-            <ChartContainer config={signupsConfig} className="mt-4 aspect-auto h-56 w-full">
+        <div className="grid gap-5 lg:grid-cols-2">
+          <WorkspacePanel eyebrow="Growth" title="Signups" description="New accounts, last 6 months">
+            <ChartContainer config={signupsConfig} className="aspect-auto h-52 w-full">
               <LineChart data={signupSeries} margin={{ left: 0, right: 12 }}>
-                <CartesianGrid vertical={false} />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} />
                 <YAxis width={28} tickLine={false} axisLine={false} allowDecimals={false} />
                 <ChartTooltip content={<ChartTooltipContent />} />
@@ -172,43 +202,37 @@ export function AdminOverview() {
                   type="monotone"
                   dataKey="count"
                   stroke="var(--color-count)"
-                  strokeWidth={2}
+                  strokeWidth={2.25}
                   dot={false}
                 />
               </LineChart>
             </ChartContainer>
-          </section>
+          </WorkspacePanel>
 
-          <section className="card p-5">
-            <SectionHeading eyebrow="Caseload" title="Cases by status" />
+          <WorkspacePanel eyebrow="Caseload" title="Cases by status">
             {caseStatusSeries.length === 0 ? (
-              <p className="mt-8 text-center text-sm text-muted-foreground">
-                No cases recorded yet.
-              </p>
+              <p className="py-10 text-center text-sm text-muted-foreground">No cases recorded yet.</p>
             ) : (
-              <ChartContainer config={casesConfig} className="mt-4 aspect-auto h-56 w-full">
+              <ChartContainer config={casesConfig} className="aspect-auto h-52 w-full">
                 <BarChart data={caseStatusSeries} margin={{ left: 0, right: 12 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    className="capitalize"
-                  />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} />
                   <YAxis width={28} tickLine={false} axisLine={false} allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+                  <Bar dataKey="count" fill="var(--color-count)" radius={[6, 6, 2, 2]} />
                 </BarChart>
               </ChartContainer>
             )}
-          </section>
+          </WorkspacePanel>
 
-          <section className="card p-5">
-            <SectionHeading eyebrow="Revenue" title="Completed payments, last 6 months" />
-            <ChartContainer config={revenueConfig} className="mt-4 aspect-auto h-56 w-full">
+          <WorkspacePanel
+            eyebrow="Revenue"
+            title="Completed payments"
+            description="Last 6 months"
+          >
+            <ChartContainer config={revenueConfig} className="aspect-auto h-52 w-full">
               <LineChart data={revenueSeries} margin={{ left: 0, right: 12 }}>
-                <CartesianGrid vertical={false} />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} />
                 <YAxis width={40} tickLine={false} axisLine={false} allowDecimals={false} />
                 <ChartTooltip content={<ChartTooltipContent />} />
@@ -216,18 +240,17 @@ export function AdminOverview() {
                   type="monotone"
                   dataKey="amount"
                   stroke="var(--color-amount)"
-                  strokeWidth={2}
+                  strokeWidth={2.25}
                   dot={false}
                 />
               </LineChart>
             </ChartContainer>
-          </section>
+          </WorkspacePanel>
 
-          <section className="card p-5">
-            <SectionHeading eyebrow="Activity" title="Audit events, last 14 days" />
-            <ChartContainer config={auditConfig} className="mt-4 aspect-auto h-56 w-full">
+          <WorkspacePanel eyebrow="Activity" title="Audit events" description="Last 14 days">
+            <ChartContainer config={auditConfig} className="aspect-auto h-52 w-full">
               <BarChart data={auditSeries} margin={{ left: 0, right: 12 }}>
-                <CartesianGrid vertical={false} />
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
@@ -237,22 +260,26 @@ export function AdminOverview() {
                 />
                 <YAxis width={28} tickLine={false} axisLine={false} allowDecimals={false} />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+                <Bar dataKey="count" fill="var(--color-count)" radius={[6, 6, 2, 2]} />
               </BarChart>
             </ChartContainer>
-          </section>
+          </WorkspacePanel>
 
-          <section className="card p-5 lg:col-span-2">
-            <SectionHeading eyebrow="Performance" title="Top advocates" />
+          <WorkspacePanel
+            eyebrow="Performance"
+            title="Top advocates"
+            description="By completed revenue and rating"
+            className="lg:col-span-2"
+          >
             {advocatePerformance.length === 0 ? (
-              <p className="mt-8 text-center text-sm text-muted-foreground">
+              <p className="py-10 text-center text-sm text-muted-foreground">
                 No advocate activity recorded yet.
               </p>
             ) : (
-              <div className="mt-4 overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-border/70">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="hover:bg-transparent">
                       <TableHead>Advocate</TableHead>
                       <TableHead>Rating</TableHead>
                       <TableHead>Cases</TableHead>
@@ -266,13 +293,11 @@ export function AdminOverview() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Stars value={row.rating} />
-                            <span className="text-xs text-muted-foreground">
-                              ({row.reviewCount})
-                            </span>
+                            <span className="text-xs text-muted-foreground">({row.reviewCount})</span>
                           </div>
                         </TableCell>
-                        <TableCell>{row.caseload}</TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="tabular-nums">{row.caseload}</TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">
                           {row.revenue.toLocaleString()}
                         </TableCell>
                       </TableRow>
@@ -281,7 +306,7 @@ export function AdminOverview() {
                 </Table>
               </div>
             )}
-          </section>
+          </WorkspacePanel>
         </div>
       )}
     </div>

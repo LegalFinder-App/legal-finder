@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  ActionSheetIOS,
   ActivityIndicator,
+  Alert,
   FlatList,
   Linking,
+  Platform,
   Pressable,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { Stack, router } from "expo-router";
@@ -13,12 +17,22 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardEvents } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
-import { BookOpen, ExternalLink, Globe, SendHorizontal, ShieldCheck, Square } from "lucide-react-native";
+import {
+  BookOpen,
+  ExternalLink,
+  Globe,
+  Lock,
+  Paperclip,
+  SendHorizontal,
+  ShieldCheck,
+  Sparkles,
+  Square,
+} from "lucide-react-native";
 import { CounsellorMark } from "@/components/CounsellorMark";
 import { CounsellorResearch } from "@/components/CounsellorResearch";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useWideLayout, wideColumn } from "@/lib/layout";
-import { fonts } from "@/theme/tokens";
+import { fonts, radius } from "@/theme/tokens";
 import { Chip, EmptyState, KeyboardLift, Segmented, Text } from "@/components/ui";
 import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -31,10 +45,18 @@ import {
   type AssistantWebSource,
 } from "@/lib/api";
 import { streamAssistantReply } from "@/lib/assistant-stream";
+import {
+  MAX_ATTACHMENTS,
+  pickCounsellorImage,
+  pickCounsellorPdf,
+  type CounsellorAttachment,
+} from "@/lib/assistant-attachments";
+import { loadCounsellorTurns, saveCounsellorTurns } from "@/lib/counsellor-storage";
 import { COUNSELLOR_CREATOR } from "@/lib/counsellor-meta";
 import { mediaUrl } from "@/lib/media";
 import { appSettingsQuery } from "@/lib/queries";
-import { errorMessage } from "@/lib/toast";
+import { useSession } from "@/lib/session";
+import { errorMessage, toast } from "@/lib/toast";
 import { Image } from "expo-image";
 
 type CounsellorMode = "assistant" | "research";
@@ -46,24 +68,59 @@ type Turn = {
   sources?: AssistantSource[];
   advocates?: AssistantAdvocate[];
   webSources?: AssistantWebSource[];
+  attachments?: CounsellorAttachment[];
 };
 
-const STARTERS = [
-  "Understand my legal rights in Uganda",
-  "Find relevant Ugandan laws for employment",
-  "How do I find and read court judgments?",
-  "Find a verified advocate in Kampala",
-  "What should I check in a legal document?",
-  "First steps after an unfair dismissal",
-];
+/** Same prompt cards as web `counsellor/types.ts` PROMPT_CARDS. */
+const PROMPT_CARDS = [
+  {
+    id: "rights",
+    title: "Understand my rights",
+    prompt:
+      "Explain my basic legal rights in Uganda in plain language, cite any LegalFinder sources you use, and say when I should speak to a verified advocate.",
+  },
+  {
+    id: "laws",
+    title: "Employment dispute",
+    prompt:
+      "I may have been unfairly dismissed in Uganda. What laws and first steps should I know from LegalFinder sources, and can you suggest a matching advocate?",
+  },
+  {
+    id: "judgments",
+    title: "Read a judgment",
+    prompt:
+      "How do I find and read relevant Ugandan court judgments on LegalFinder, and what should I check before relying on a summary?",
+  },
+  {
+    id: "advocate",
+    title: "Find an advocate",
+    prompt:
+      "Recommend a verified advocate on LegalFinder for a family matter in Kampala, with a short description of why they fit.",
+  },
+  {
+    id: "document",
+    title: "Before I sign",
+    prompt: "What should I check carefully in a retainer agreement before I sign in Uganda?",
+  },
+  {
+    id: "arrest",
+    title: "After an arrest",
+    prompt:
+      "What are my rights after an arrest in Uganda under the Constitution and related guides on LegalFinder, what should I do next, and who could help?",
+  },
+] as const;
+
+const TRUST = [
+  { icon: ShieldCheck, label: "Grounded in LegalFinder" },
+  { icon: Lock, label: "Private on this device" },
+  { icon: Sparkles, label: "Not a licensed advocate" },
+] as const;
 
 const SHORTCUTS: { path: string; label: string; href: string }[] = [
-  { path: "/lawyers", label: "Find an advocate", href: "/(tabs)/advocates" },
-  { path: "/advice", label: "Legal guides", href: "/(tabs)/learn" },
-  { path: "/judgements", label: "Judgements", href: "/judgements" },
-  { path: "/report", label: "Report an incident", href: "/report" },
-  { path: "/stations", label: "Police stations", href: "/stations" },
-  { path: "/safety", label: "Safety tips", href: "/safety" },
+  { path: "/lawyers", label: "Advocates", href: "/(tabs)/advocates" },
+  { path: "/advice", label: "Advice", href: "/(tabs)/learn" },
+  { path: "/judgements", label: "Judgments", href: "/judgements" },
+  { path: "/library", label: "Library", href: "/(tabs)/learn" },
 ];
 
 const FOLLOW_UPS = [
@@ -181,20 +238,50 @@ function Counsellor() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const wide = useWideLayout();
+  const { width: windowWidth } = useWindowDimensions();
+  // Split research only when there's real room (avoids crushed chat on 13" laptop browsers).
+  const canSplitResearch = wide && windowWidth >= 1100;
+  const { user } = useSession();
+  const userId = user?.id ?? null;
   const [mode, setMode] = useState<CounsellorMode>("assistant");
   const [webSearch, setWebSearch] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
+  const [attachments, setAttachments] = useState<CounsellorAttachment[]>([]);
   const [thinking, setThinking] = useState(false);
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [statusLabel, setStatusLabel] = useState("Understanding your question");
   const [researchSeed, setResearchSeed] = useState("");
+  const [hydrated, setHydrated] = useState(false);
   const listRef = useRef<FlatList<Turn>>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setWebSearch(mode === "research");
   }, [mode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setHydrated(false);
+    if (!userId) {
+      setTurns([]);
+      setHydrated(true);
+      return;
+    }
+    void loadCounsellorTurns(userId).then((stored) => {
+      if (cancelled) return;
+      setTurns(stored);
+      setHydrated(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!hydrated || !userId) return;
+    void saveCounsellorTurns(userId, turns);
+  }, [hydrated, turns, userId]);
 
   useEffect(() => {
     const sub = KeyboardEvents.addListener("keyboardDidShow", () =>
@@ -206,6 +293,34 @@ function Counsellor() {
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
+
+  const attachFile = () => {
+    if (attachments.length >= MAX_ATTACHMENTS || thinking) return;
+    const pick = async (kind: "image" | "pdf") => {
+      try {
+        const next =
+          kind === "image" ? await pickCounsellorImage() : await pickCounsellorPdf();
+        if (next) setAttachments((prev) => [...prev, next].slice(0, MAX_ATTACHMENTS));
+      } catch (error) {
+        toast.error(errorMessage(error, "Couldn't attach that file."));
+      }
+    };
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ["Cancel", "Photo", "PDF"], cancelButtonIndex: 0 },
+        (index) => {
+          if (index === 1) void pick("image");
+          if (index === 2) void pick("pdf");
+        },
+      );
+      return;
+    }
+    Alert.alert("Attach", undefined, [
+      { text: "Photo", onPress: () => void pick("image") },
+      { text: "PDF", onPress: () => void pick("pdf") },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
 
   const stop = () => {
     abortRef.current?.abort();
@@ -229,7 +344,8 @@ function Counsellor() {
 
   const ask = async (text: string, askMode: CounsellorMode = mode) => {
     const content = text.trim();
-    if (!content || thinking) return;
+    const pendingAttachments = attachments;
+    if ((!content && pendingAttachments.length === 0) || thinking) return;
     // Phone Research tab hides chat — switch so the reply is visible. Desktop keeps the split.
     if (!wide) setMode("assistant");
 
@@ -237,12 +353,18 @@ function Counsellor() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const userTurn: Turn = { id: newId(), role: "user", content };
+    const userTurn: Turn = {
+      id: newId(),
+      role: "user",
+      content: content || "(Attachment)",
+      attachments: pendingAttachments.length ? pendingAttachments : undefined,
+    };
     const assistantId = newId();
     const assistantTurn: Turn = { id: assistantId, role: "assistant", content: "" };
     const next = [...turns, userTurn].slice(-20);
     setTurns([...next, assistantTurn]);
     setDraft("");
+    setAttachments([]);
     setThinking(true);
     setStreamingId(assistantId);
     setStatusLabel("Understanding your question");
@@ -254,6 +376,7 @@ function Counsellor() {
       const { reply, sources, advocates, webSources } = await api.askAssistant(payload, {
         mode: askMode,
         webSearch,
+        attachments: pendingAttachments,
       });
       patchAssistant(assistantId, {
         content: reply,
@@ -268,6 +391,7 @@ function Counsellor() {
         signal: controller.signal,
         mode: askMode,
         webSearch,
+        attachments: pendingAttachments,
         onStatus: (label) => setStatusLabel(label),
         onSources: (sources) => patchAssistant(assistantId, { sources }),
         onWebSources: (webSources) => patchAssistant(assistantId, { webSources }),
@@ -318,7 +442,7 @@ function Counsellor() {
   const lastAssistant = [...turns].reverse().find((t) => t.role === "assistant");
   const showThinking = thinking && !turns.some((t) => t.id === streamingId && t.content);
   const showResearchPane = mode === "research";
-  const splitResearch = wide && showResearchPane;
+  const splitResearch = canSplitResearch && showResearchPane;
 
   const chatColumn = (
     <View style={{ flex: 1 }}>
@@ -362,22 +486,92 @@ function Counsellor() {
             </View>
           }
           ListEmptyComponent={
-            <View style={{ gap: 18, marginTop: 12 }}>
-              <EmptyState
-                icon={<CounsellorMark size={24} color={colors.brass} />}
-                title="Clear guidance. Grounded in Ugandan law."
-                description="Counsellor retrieves LegalFinder publications and directory rows — never invents cites."
-              />
-              <Text variant="caption" tone="muted" align="center">
-                Created for LegalFinder by {COUNSELLOR_CREATOR}
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {STARTERS.map((s) => (
-                  <Chip key={s} label={s} onPress={() => void ask(s)} />
+            <View style={{ gap: 16, marginTop: 8, paddingBottom: 12 }}>
+              <View style={{ alignItems: "center", gap: 10 }}>
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: radius["2xl"],
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: colors.brass,
+                    backgroundColor: colors.accent,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CounsellorMark size={28} color={colors.brass} />
+                </View>
+                <Text variant="eyebrow" tone="brass">
+                  Counsellor AI
+                </Text>
+                <Text variant="h2" align="center">
+                  Clear guidance. Grounded in Ugandan law.
+                </Text>
+                <Text variant="small" tone="muted" align="center">
+                  Ask about process, rights, documents, or finding a verified advocate. Counsellor
+                  retrieves LegalFinder publications — never invents cites.
+                </Text>
+                <Text variant="caption" tone="muted" align="center">
+                  Created for LegalFinder by {COUNSELLOR_CREATOR}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                {TRUST.map(({ icon: Icon, label }) => (
+                  <View
+                    key={label}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      borderRadius: radius.full,
+                      borderWidth: StyleSheet.hairlineWidth,
+                      borderColor: colors.border,
+                      backgroundColor: colors.card,
+                    }}
+                  >
+                    <Icon size={12} color={colors.brass} />
+                    <Text variant="caption" tone="muted">
+                      {label}
+                    </Text>
+                  </View>
                 ))}
               </View>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {SHORTCUTS.slice(0, 4).map((s) => (
+              <View style={{ gap: 10 }}>
+                {PROMPT_CARDS.map((card) => (
+                  <Pressable
+                    key={card.id}
+                    accessibilityRole="button"
+                    disabled={thinking}
+                    onPress={() => void ask(card.prompt)}
+                    style={{
+                      borderRadius: radius["2xl"],
+                      borderWidth: StyleSheet.hairlineWidth,
+                      borderColor: colors.border,
+                      backgroundColor: colors.card,
+                      padding: 14,
+                      gap: 4,
+                      opacity: thinking ? 0.6 : 1,
+                    }}
+                  >
+                    <Text variant="bodyStrong">{card.title}</Text>
+                    <Text variant="caption" tone="muted" numberOfLines={2}>
+                      {card.prompt}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+                {SHORTCUTS.map((s) => (
                   <Chip key={s.path} label={s.label} onPress={() => router.push(s.href as never)} />
                 ))}
               </View>
@@ -646,64 +840,129 @@ function Counsellor() {
           style={[
             styles.composerWrap,
             {
-              borderTopColor: colors.border,
-              backgroundColor: colors.card,
+              backgroundColor: colors.background,
               paddingBottom: Math.max(insets.bottom, 10),
             },
           ]}
         >
-          <View style={styles.composer}>
-            <TextInput
-              value={draft}
-              onChangeText={setDraft}
-              placeholder="Ask Counsellor AI…"
-              placeholderTextColor={colors.mutedForeground}
-              multiline
-              maxLength={4000}
-              accessibilityLabel="Message to Counsellor AI"
-              style={[
-                styles.input,
-                {
-                  color: colors.foreground,
-                  backgroundColor: colors.background,
-                  borderColor: colors.border,
-                },
-              ]}
-            />
-            {thinking ? (
+          <View
+            style={{
+              borderRadius: radius["2xl"],
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: colors.border,
+              backgroundColor: colors.card,
+              padding: 10,
+              gap: 8,
+            }}
+          >
+            {attachments.length > 0 ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {attachments.map((file) => (
+                  <Pressable
+                    key={file.id}
+                    accessibilityLabel={`Remove ${file.name}`}
+                    onPress={() => setAttachments((prev) => prev.filter((a) => a.id !== file.id))}
+                    style={{
+                      borderRadius: radius.lg,
+                      borderWidth: StyleSheet.hairlineWidth,
+                      borderColor: colors.border,
+                      overflow: "hidden",
+                      backgroundColor: colors.secondary,
+                    }}
+                  >
+                    {file.kind === "image" ? (
+                      <Image source={{ uri: file.url }} style={{ width: 56, height: 56 }} />
+                    ) : (
+                      <View style={{ paddingHorizontal: 10, paddingVertical: 8, maxWidth: 140 }}>
+                        <Text variant="caption" numberOfLines={2}>
+                          PDF · {file.name}
+                        </Text>
+                      </View>
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            <View style={styles.composer}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Stop generating"
-                onPress={stop}
-                style={[styles.send, { backgroundColor: colors.destructive }]}
+                accessibilityLabel="Attach file"
+                disabled={thinking || attachments.length >= MAX_ATTACHMENTS}
+                onPress={attachFile}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: radius.lg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: colors.muted,
+                }}
               >
-                <Square size={16} color={colors.destructiveForeground} fill={colors.destructiveForeground} />
+                <Paperclip size={18} color={colors.brass} />
               </Pressable>
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Send"
-                disabled={!draft.trim()}
-                onPress={() => void ask(draft, mode === "research" ? "research" : "assistant")}
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                placeholder="Ask Counsellor AI a legal question…"
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+                maxLength={4000}
+                accessibilityLabel="Message to Counsellor AI"
                 style={[
-                  styles.send,
-                  { backgroundColor: draft.trim() ? colors.brass : colors.muted },
+                  styles.input,
+                  {
+                    color: colors.foreground,
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  },
                 ]}
-              >
-                <SendHorizontal
-                  size={20}
-                  color={draft.trim() ? colors.brassForeground : colors.mutedForeground}
-                />
-              </Pressable>
-            )}
+              />
+              {thinking ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Stop generating"
+                  onPress={stop}
+                  style={[styles.send, { backgroundColor: colors.destructive }]}
+                >
+                  <Square
+                    size={16}
+                    color={colors.destructiveForeground}
+                    fill={colors.destructiveForeground}
+                  />
+                </Pressable>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Send"
+                  disabled={!draft.trim() && attachments.length === 0}
+                  onPress={() => void ask(draft, mode === "research" ? "research" : "assistant")}
+                  style={[
+                    styles.send,
+                    {
+                      backgroundColor:
+                        draft.trim() || attachments.length > 0 ? colors.brass : colors.muted,
+                    },
+                  ]}
+                >
+                  <SendHorizontal
+                    size={20}
+                    color={
+                      draft.trim() || attachments.length > 0
+                        ? colors.brassForeground
+                        : colors.mutedForeground
+                    }
+                  />
+                </Pressable>
+              )}
+            </View>
           </View>
           <Text
             variant="caption"
             tone="muted"
             align="center"
-            style={{ paddingHorizontal: 12, paddingTop: 8 }}
+            style={{ paddingHorizontal: 4, paddingTop: 8 }}
           >
-            Links to originals · honest authority labels · we do not scrape ULII
+            Grounded replies · not legal advice · we do not scrape ULII
           </Text>
         </View>
     </View>
@@ -711,6 +970,7 @@ function Counsellor() {
 
   const researchColumn = (
     <CounsellorResearch
+      userId={userId}
       seededQuery={researchSeed}
       onOpenSource={openSource}
       onAskAboutSource={askAboutSource}
@@ -778,8 +1038,9 @@ function Counsellor() {
             <View style={{ flex: 1, minWidth: 0 }}>{chatColumn}</View>
             <View
               style={{
-                width: 380,
-                maxWidth: "42%",
+                flexGrow: 0,
+                flexShrink: 0,
+                width: Math.min(360, Math.max(280, windowWidth * 0.34)),
                 borderLeftWidth: StyleSheet.hairlineWidth,
                 borderLeftColor: colors.border,
               }}
@@ -865,9 +1126,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   composerWrap: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
-    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
   composer: {
     flexDirection: "row",
@@ -876,18 +1136,24 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 46,
+    minHeight: 44,
     maxHeight: 148,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
+    borderRadius: radius.xl,
+    paddingHorizontal: 14,
+    paddingTop: 11,
+    paddingBottom: 11,
     fontFamily: fonts.sans,
     fontSize: 15,
     lineHeight: 22,
   },
-  send: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
+  send: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   webChip: {
     flexDirection: "row",
     alignItems: "center",

@@ -11,6 +11,7 @@ import {
   useSocialSignIn,
   type SocialStrategy as Strategy,
 } from "@/lib/social-sign-in";
+import { isExpoGo } from "@/lib/runtime";
 import { errorMessage, toast } from "@/lib/toast";
 
 function GoogleMark() {
@@ -61,6 +62,16 @@ export function SocialButtons({
       setBusy(null);
     }
   };
+
+  // Expo Go: tunnel exp:// redirects change every session and aren't on Clerk's allowlist.
+  // Email/password works; Google/Apple/LinkedIn need a native (EAS / run:ios) build.
+  if (isExpoGo) {
+    return (
+      <Text variant="caption" tone="muted" align="center" style={{ marginTop: 8 }}>
+        Expo Go: sign in with email and password. Google, Apple and LinkedIn need a native build.
+      </Text>
+    );
+  }
 
   return (
     <View style={styles.wrap}>

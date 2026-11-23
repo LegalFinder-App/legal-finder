@@ -22,6 +22,7 @@ import {
 } from "@/components/ui";
 import { RequireAuth } from "@/components/RequireAuth";
 import { appLockAvailable, isAppLockEnabled, setAppLockEnabled } from "@/components/BiometricGate";
+import { PasskeyManager } from "@/components/PasskeyManager";
 import { PayoutDetailsCard } from "@/features/payouts/PayoutDetailsCard";
 import { useSession } from "@/lib/session";
 import { useAiConsent } from "@/lib/ai-consent";
@@ -34,7 +35,9 @@ import {
 } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { clearCounsellorDataForUser } from "@/lib/counsellor-storage";
 import { queryClient } from "@/lib/query-client";
+import { isExpoGo } from "@/lib/runtime";
 import { shareText } from "@/lib/share";
 import { errorMessage, toast } from "@/lib/toast";
 
@@ -187,8 +190,10 @@ function Settings() {
           style: "destructive",
           onPress: async () => {
             setDeleting(true);
+            const accountId = user?.id ?? clerkUser?.id ?? null;
             try {
               await api.deleteAccount();
+              await clearCounsellorDataForUser(accountId);
               await clerk.signOut().catch(() => undefined);
               queryClient.clear();
               toast.success("Your account has been deleted");
@@ -310,11 +315,20 @@ function Settings() {
       <Card>
         <SwitchField
           label="AI features"
-          description="Let Counsellor AI and AI-assisted drafting send what you type (and any attachments) to Anthropic. With Web search on in Counsellor, the query also retrieves live web results. Off: both ask again before they are used."
+          description="Let Counsellor AI and AI-assisted drafting send what you type (and any attachments) to Anthropic. With Web search on in Counsellor, the query also retrieves live web results. Off: both ask again before they are used. Consent is saved to your account."
           value={aiConsent.allowed}
           onChange={(on) => void (on ? aiConsent.allow() : aiConsent.withdraw())}
         />
       </Card>
+
+      {!isExpoGo ? (
+        <>
+          <SectionTitle title="Passkeys" />
+          <Card>
+            <PasskeyManager />
+          </Card>
+        </>
+      ) : null}
 
       <SectionTitle title="Appearance" />
       <Segmented<ThemePreference>

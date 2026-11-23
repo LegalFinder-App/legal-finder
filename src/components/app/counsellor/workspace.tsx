@@ -89,13 +89,18 @@ export function CounsellorWorkspace() {
   const abortRef = useRef<AbortController | null>(null);
   const stickRef = useRef(true);
 
+  // Below xl (1280px): drawer/sheet rails — docked history + sources crush chat on 13–15" laptops.
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
+    const mq = window.matchMedia("(max-width: 1279px)");
     const sync = () => setIsNarrow(mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    if (isNarrow && mode === "research") setResearchOpen(false);
+  }, [isNarrow, mode]);
 
   useEffect(() => {
     // Wait for a real account id so we never hydrate under a shared key (privacy).
@@ -457,7 +462,7 @@ export function CounsellorWorkspace() {
   };
 
   return (
-    <div className="counsellor-shell relative flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden rounded-none border-y border-border/70 bg-gradient-to-b from-secondary/40 via-background to-background sm:mx-2 sm:my-2 sm:h-[calc(100dvh-5rem)] sm:min-h-[480px] sm:rounded-2xl sm:border md:mx-3 md:my-3 lg:mx-4 lg:h-[calc(100dvh-5.5rem)]">
+    <div className="counsellor-shell relative flex h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] max-h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden border-t border-border/60 bg-[linear-gradient(180deg,oklch(0.55_0.08_80/0.06),transparent_18%),var(--background)]">
       <CounsellorSidebar
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}
@@ -484,11 +489,13 @@ export function CounsellorWorkspace() {
       />
 
       <section className="relative flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border/70 bg-card/80 px-4 py-3.5 backdrop-blur-md sm:px-6 sm:py-3 lg:pl-5">
-          <div className="min-w-0 pl-11 lg:pl-0">
+        <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border/60 bg-card/90 px-3 py-3 shadow-sm backdrop-blur-xl sm:gap-3 sm:px-5 sm:py-3.5 xl:pl-5">
+          <div className="min-w-0 pl-11 xl:pl-0">
             <div className="flex items-center gap-2">
-              <CounsellorMark className="hidden h-4 w-4 text-brass sm:block" />
-              <h1 className="truncate font-display text-base font-semibold tracking-tight sm:text-lg">
+              <span className="hidden h-8 w-8 place-items-center rounded-xl bg-accent text-brass ring-1 ring-brass/20 md:grid">
+                <CounsellorMark className="h-4 w-4" />
+              </span>
+              <h1 className="truncate font-display text-sm font-semibold tracking-tight sm:text-base md:text-lg">
                 {messages.length === 0
                   ? mode === "research"
                     ? "Legal Research"
@@ -501,7 +508,7 @@ export function CounsellorWorkspace() {
                 </span>
               )}
             </div>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-[11px]">
               {mode === "research"
                 ? webSearch
                   ? "Corpus-first · web search on · verify carefully"
@@ -512,17 +519,17 @@ export function CounsellorWorkspace() {
               {sending ? " · drafting" : " · ready"}
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             {mode === "research" && (
               <button
                 type="button"
                 onClick={() => setResearchOpen(true)}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-background px-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground lg:hidden"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-background px-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground xl:hidden"
                 aria-expanded={researchOpen}
                 aria-controls="counsellor-research-sheet"
               >
                 <PanelRightOpen className="h-3.5 w-3.5" />
-                Sources
+                <span className="hidden min-[380px]:inline">Sources</span>
               </button>
             )}
             <button
@@ -536,13 +543,13 @@ export function CounsellorWorkspace() {
           </div>
         </header>
 
-        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="flex min-h-0 flex-1 flex-col xl:flex-row">
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="relative min-h-0 flex-1">
               <div
                 ref={scrollRef}
                 onScroll={onScroll}
-                className="absolute inset-0 overflow-y-auto px-3 py-4 sm:px-6"
+                className="absolute inset-0 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4"
               >
                 {messages.length === 0 ? (
                   <WelcomeScreen
@@ -583,8 +590,8 @@ export function CounsellorWorkspace() {
               )}
             </div>
 
-            <div className="border-t border-border/70 bg-card/80 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:px-6">
-              <div className="mx-auto max-w-3xl">
+            <div className="border-t border-border/60 bg-card/90 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-8px_30px_-20px_oklch(0.2_0.04_262/0.35)] backdrop-blur-xl sm:px-5 sm:pt-3">
+              <div className="mx-auto w-full max-w-3xl min-w-0">
                 <MessageComposer
                   value={draft}
                   onChange={setDraft}
@@ -608,8 +615,8 @@ export function CounsellorWorkspace() {
             <div
               className={
                 researchOpen
-                  ? "relative hidden min-h-0 shrink-0 lg:flex lg:flex-col"
-                  : "relative hidden lg:block"
+                  ? "relative hidden min-h-0 w-full max-w-[min(22rem,36vw)] shrink-0 xl:flex xl:flex-col"
+                  : "relative hidden xl:block"
               }
             >
               <ResearchPanel {...researchPanelProps} open={researchOpen} />
@@ -632,7 +639,7 @@ export function CounsellorWorkspace() {
           <SheetContent
             id="counsellor-research-sheet"
             side="bottom"
-            className="flex h-[min(92dvh,44rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-none"
+            className="flex h-[min(92dvh,min(44rem,100%))] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-none"
           >
             <SheetTitle className="sr-only">Legal Research</SheetTitle>
             <SheetDescription className="sr-only">

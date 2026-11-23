@@ -27,7 +27,7 @@ async function ensureAndroidChannel() {
   await Notifications.setNotificationChannelAsync("default", {
     name: "LegalFinder updates",
     importance: Notifications.AndroidImportance.HIGH,
-    lightColor: "#bb8739",
+    lightColor: "#956809",
   });
 }
 

@@ -152,8 +152,8 @@ export function MessageComposer({
           aria-describedby="counsellor-composer-hint"
           className="max-h-[180px] min-h-[48px] w-full resize-none bg-transparent px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/70 disabled:opacity-60"
         />
-        <div className="flex items-center justify-between gap-3 px-2 pb-1 pt-0.5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-0.5 sm:gap-3 sm:px-2">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             {allowAttachments && (
               <>
                 <input
@@ -169,7 +169,7 @@ export function MessageComposer({
                   variant="ghost"
                   size="sm"
                   disabled={sending || uploading || attachments.length >= MAX_ATTACHMENTS}
-                  className="h-8 gap-1.5 rounded-xl px-2 text-muted-foreground"
+                  className="h-8 shrink-0 gap-1.5 rounded-xl px-2 text-muted-foreground"
                   onClick={() => fileRef.current?.click()}
                   aria-label="Attach image or PDF"
                 >
@@ -180,7 +180,7 @@ export function MessageComposer({
             )}
             <p
               id="counsellor-composer-hint"
-              className="text-[11px] leading-snug text-muted-foreground"
+              className="hidden truncate text-[11px] leading-snug text-muted-foreground min-[420px]:block"
             >
               {dragging ? "Drop files to attach" : "Enter to send · Shift+Enter for a new line"}
             </p>
@@ -212,11 +212,14 @@ export function MessageComposer({
           )}
         </div>
       </form>
-      <CounsellorTrustStrip className="mt-2.5" />
-      <p className="mt-2 px-1 text-center text-[11px] leading-relaxed text-muted-foreground">
+      <CounsellorTrustStrip className="mt-2 hidden sm:flex" />
+      <p className="mt-1.5 hidden px-1 text-center text-[11px] leading-relaxed text-muted-foreground md:block">
         Grounded in LegalFinder’s Uganda corpus and official headlines — with links to originals.
         Not a substitute for a licensed advocate. Attached files are sent to our AI provider only
         for that answer. We do not scrape ULII.
+      </p>
+      <p className="mt-1.5 px-1 text-center text-[10px] leading-relaxed text-muted-foreground md:hidden">
+        Guidance only — not a substitute for a licensed advocate.
       </p>
     </div>
   );

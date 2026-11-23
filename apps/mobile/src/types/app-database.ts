@@ -113,6 +113,73 @@ type UserBlockRow = { blocker_id: string; blocked_id: string; created_at: string
 export type ApplicationRole = "lawyer" | "police" | "judiciary";
 export type ApplicationStatus =
   "draft" | "submitted" | "changes_requested" | "approved" | "rejected";
+export type LegalFeedSource = "judiciary" | "upf" | "ulii";
+
+/** Phase 0 source catalogue — 20261119120000_legal_source_registry.sql */
+export type LegalSourceKind =
+  | "judgment"
+  | "legislation"
+  | "editorial"
+  | "catalogue"
+  | "news"
+  | "feed";
+export type LegalSourceAuthority =
+  | "judgment"
+  | "legislation"
+  | "editorial"
+  | "catalogue"
+  | "news";
+export type LegalSourceHostPolicy = "host_full_text" | "host_metadata" | "link_only";
+export type LegalSourceApiStatus =
+  | "disabled"
+  | "pending_licence"
+  | "licensed"
+  | "active"
+  | "link_only";
+
+export type LegalSourceRegistryRow = {
+  id: string;
+  slug: string;
+  name: string;
+  kind: LegalSourceKind;
+  authority: LegalSourceAuthority;
+  host_policy: LegalSourceHostPolicy;
+  licence: string;
+  api_status: LegalSourceApiStatus;
+  home_url: string | null;
+  attribution: string | null;
+  last_synced_at: string | null;
+  last_success_at: string | null;
+  content_checksum: string | null;
+  notes: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LegalFeedItemRow = {
+  id: string;
+  source: LegalFeedSource;
+  source_id: string;
+  url: string;
+  title: string;
+  summary: string | null;
+  summary_withheld: boolean;
+  category: string | null;
+  published_at: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  removed_at: string | null;
+};
+
+type LegalFeedSyncStateRow = {
+  source: LegalFeedSource;
+  last_run_at: string | null;
+  last_success_at: string | null;
+  last_error: string | null;
+  state: Json;
+};
+
 export type RoleApplicationRow = {
   id: string;
   user_id: string;
@@ -120,10 +187,11 @@ export type RoleApplicationRow = {
   status: ApplicationStatus;
   details: Record<string, string>;
   review_note: string | null;
-  review_checks?: Record<string, unknown> | null;
   submitted_at: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
+  /** Reviewer checklist: { key: boolean, _by, _at } (record_application_checks). */
+  review_checks: Record<string, boolean | string>;
   created_at: string;
   updated_at: string;
 };
@@ -166,6 +234,58 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
         Args: Record<string, never>;
         Returns: number;
       };
+      match_legal_chunks: {
+        Args: {
+          query_embedding: number[] | string;
+          match_count?: number;
+          filter_kinds?: string[] | null;
+          filter_court?: string | null;
+          filter_category?: string | null;
+        };
+        Returns: Array<{
+          id: string;
+          source_kind: string;
+          source_id: string;
+          title: string;
+          citation: string | null;
+          authority: string;
+          chunk_text: string;
+          source_url: string | null;
+          href: string | null;
+          court: string | null;
+          category: string | null;
+          case_number: string | null;
+          decided_on: string | null;
+          year: number | null;
+          similarity: number;
+        }>;
+      };
+      search_legal_chunks: {
+        Args: {
+          query_text: string;
+          match_count?: number;
+          filter_kinds?: string[] | null;
+          filter_court?: string | null;
+          filter_category?: string | null;
+        };
+        Returns: Array<{
+          id: string;
+          source_kind: string;
+          source_id: string;
+          title: string;
+          citation: string | null;
+          authority: string;
+          chunk_text: string;
+          source_url: string | null;
+          href: string | null;
+          court: string | null;
+          category: string | null;
+          case_number: string | null;
+          decided_on: string | null;
+          year: number | null;
+          similarity: number;
+        }>;
+      };
     };
     Tables: Omit<BaseDatabase["public"]["Tables"], "cases" | "lawyers"> & {
       cases: Omit<BaseDatabase["public"]["Tables"]["cases"], "Row" | "Insert" | "Update"> & {
@@ -179,6 +299,8 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
       };
       lawyers: Omit<BaseDatabase["public"]["Tables"]["lawyers"], "Row" | "Insert" | "Update"> & {
         Row: BaseDatabase["public"]["Tables"]["lawyers"]["Row"] & {
+          bar_license_expires_at: string | null;
+          license_status: LawyerLicenseStatus;
           practising_certificate_number: string | null;
           enrolment_certificate_ref: string | null;
           kyc_status: "none" | "pending" | "verified" | "expired" | "rejected";
@@ -187,8 +309,6 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           kyc_application_id: string | null;
           kyc_vendor: string | null;
           kyc_vendor_ref: string | null;
-          bar_license_expires_at: string | null;
-          license_status: LawyerLicenseStatus;
         };
         Insert: BaseDatabase["public"]["Tables"]["lawyers"]["Insert"] & {
           bar_license_expires_at?: string | null;
@@ -361,6 +481,114 @@ export type AppDatabase = Omit<BaseDatabase, "public"> & {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      legal_source_registry: {
+        Row: LegalSourceRegistryRow;
+        Insert: Omit<
+          LegalSourceRegistryRow,
+          "id" | "created_at" | "updated_at" | "metadata"
+        > & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          metadata?: Json;
+          last_synced_at?: string | null;
+          last_success_at?: string | null;
+          content_checksum?: string | null;
+          notes?: string | null;
+          home_url?: string | null;
+          attribution?: string | null;
+        };
+        Update: Partial<LegalSourceRegistryRow>;
+        Relationships: [];
+      };
+      legal_chunks: {
+        Row: {
+          id: string;
+          source_kind: "advice" | "judgment" | "library" | "news";
+          source_id: string;
+          source_registry_slug: string | null;
+          chunk_index: number;
+          title: string;
+          citation: string | null;
+          authority: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
+          chunk_text: string;
+          source_url: string | null;
+          href: string | null;
+          court: string | null;
+          category: string | null;
+          case_number: string | null;
+          decided_on: string | null;
+          year: number | null;
+          published_at: string | null;
+          content_hash: string;
+          embedding: string | number[] | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          source_kind: "advice" | "judgment" | "library" | "news";
+          source_id: string;
+          source_registry_slug?: string | null;
+          chunk_index?: number;
+          title: string;
+          citation?: string | null;
+          authority: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
+          chunk_text: string;
+          source_url?: string | null;
+          href?: string | null;
+          court?: string | null;
+          category?: string | null;
+          case_number?: string | null;
+          decided_on?: string | null;
+          year?: number | null;
+          published_at?: string | null;
+          content_hash: string;
+          embedding?: string | number[] | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          title?: string;
+          citation?: string | null;
+          authority?: "judgment" | "legislation" | "editorial" | "catalogue" | "news";
+          chunk_text?: string;
+          source_url?: string | null;
+          href?: string | null;
+          court?: string | null;
+          category?: string | null;
+          case_number?: string | null;
+          decided_on?: string | null;
+          year?: number | null;
+          published_at?: string | null;
+          content_hash?: string;
+          embedding?: string | number[] | null;
+          source_registry_slug?: string | null;
+          chunk_index?: number;
+        };
+        Relationships: [];
+      };
+      legal_feed_items: {
+        Row: LegalFeedItemRow;
+        Insert: Omit<
+          LegalFeedItemRow,
+          "id" | "first_seen_at" | "last_seen_at" | "removed_at" | "summary_withheld"
+        > & {
+          id?: string;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          removed_at?: string | null;
+          summary_withheld?: boolean;
+        };
+        Update: Partial<LegalFeedItemRow>;
+        Relationships: [];
+      };
+      legal_feed_sync_state: {
+        Row: LegalFeedSyncStateRow;
+        Insert: Partial<LegalFeedSyncStateRow> & { source: LegalFeedSource };
+        Update: Partial<LegalFeedSyncStateRow>;
         Relationships: [];
       };
       content_reports: {

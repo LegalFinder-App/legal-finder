@@ -174,9 +174,11 @@ export function StatTile({
         <Text variant="eyebrow" tone="muted" numberOfLines={1} style={{ flex: 1 }}>
           {label}
         </Text>
-        {icon}
+        {icon ? (
+          <View style={[styles.statIcon, { backgroundColor: colors.accent }]}>{icon}</View>
+        ) : null}
       </View>
-      <Text variant="h1" style={{ marginTop: 6 }}>
+      <Text variant="h1" style={{ marginTop: 8, fontFamily: fonts.sansBold }}>
         {value}
       </Text>
       {hint ? (
@@ -209,8 +211,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 140,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.xl,
-    padding: 14,
+    borderRadius: radius["2xl"],
+    padding: 16,
   },
   statTop: { flexDirection: "row", alignItems: "center", gap: 8 },
+  statIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

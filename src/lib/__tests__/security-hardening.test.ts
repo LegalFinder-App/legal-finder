@@ -3,7 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // The shared limiter calls a database function; tests switch between "available" and
 // "not applied yet" to prove both paths, and that an outage never blocks people.
 const rpc = vi.hoisted(() => vi.fn());
-vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { rpc } }));
+const profileMaybeSingle = vi.hoisted(() => vi.fn());
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: {
+    rpc,
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: profileMaybeSingle,
+        }),
+      }),
+    }),
+  },
+}));
 vi.mock("@/integrations/supabase/auth.server", () => {
   class UnauthorizedError extends Error {}
   return {
@@ -25,10 +37,13 @@ import {
 } from "../rate-limit.server";
 import { MAX_BODY_BYTES, mobilePost } from "../mobile-api.server";
 import { ACCOUNT_ID_PATTERN } from "@/integrations/clerk/deprovisioning.server";
+import { requireAiConsent, AiConsentRequiredError } from "../ai-consent.server";
 import { z } from "zod";
 
 beforeEach(() => {
   rpc.mockReset();
+  profileMaybeSingle.mockReset();
+  profileMaybeSingle.mockResolvedValue({ data: { ai_consent_at: "2026-11-23T00:00:00Z" }, error: null });
   resetInMemoryLimits();
   resetDatabaseFallback();
   vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -136,6 +151,17 @@ describe("rate limiting", () => {
   });
 });
 
+describe("requireAiConsent", () => {
+  it("allows when profiles.ai_consent_at is set", async () => {
+    await expect(requireAiConsent("user_abc")).resolves.toBeUndefined();
+  });
+
+  it("throws when consent is missing", async () => {
+    profileMaybeSingle.mockResolvedValue({ data: { ai_consent_at: null }, error: null });
+    await expect(requireAiConsent("user_abc")).rejects.toBeInstanceOf(AiConsentRequiredError);
+  });
+});
+
 describe("mobilePost", () => {
   const handler = mobilePost(z.object({ text: z.string().max(10) }), async (_ctx, body) => body, {
     rateLimit: "account",
@@ -173,6 +199,23 @@ describe("mobilePost", () => {
     const res = await post(JSON.stringify({ text: "x" }));
     expect(res.status).toBe(429);
     expect(Number(res.headers.get("retry-after"))).toBeGreaterThan(0);
+  });
+
+  it("returns 403 on Anthropic buckets when AI consent is missing", async () => {
+    profileMaybeSingle.mockResolvedValue({ data: { ai_consent_at: null }, error: null });
+    const assistant = mobilePost(
+      z.object({ text: z.string() }),
+      async (_ctx, body) => body,
+      { rateLimit: "assistant" },
+    );
+    const res = await assistant({
+      request: new Request("https://x.test/api/mobile/assistant", {
+        method: "POST",
+        body: JSON.stringify({ text: "hi" }),
+      }),
+    });
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toMatch(/Counsellor AI/i);
   });
 });
 

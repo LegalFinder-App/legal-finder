@@ -6,6 +6,7 @@ import { Button, Input, Text } from "@/components/ui";
 import { AuthScaffold } from "@/components/auth/AuthScaffold";
 import { SocialButtons } from "@/components/auth/SocialButtons";
 import { useTheme } from "@/theme/ThemeProvider";
+import { isExpoGo } from "@/lib/runtime";
 import { errorMessage, toast } from "@/lib/toast";
 
 function finishSignIn() {
@@ -62,6 +63,30 @@ export default function SignInScreen() {
       await handleOutcome();
     } catch (error) {
       toast.error(errorMessage(error, "Sign-in failed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitPasskey = async () => {
+    setBusy(true);
+    try {
+      const withPasskey = signIn as typeof signIn & {
+        passkey?: (opts: { flow: "discoverable" }) => Promise<{ error?: Error | null }>;
+      };
+      if (typeof withPasskey.passkey !== "function") {
+        throw new Error(
+          "Passkeys need a native LegalFinder build and Clerk Dashboard setup — not Expo Go.",
+        );
+      }
+      const { error } = await withPasskey.passkey({ flow: "discoverable" });
+      if (error) throw error;
+      await handleOutcome();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (!/not allowed|cancel|cancelled|canceled/i.test(message)) {
+        toast.error(errorMessage(error, "Passkey sign-in failed"));
+      }
     } finally {
       setBusy(false);
     }
@@ -162,6 +187,16 @@ export default function SignInScreen() {
         size="lg"
         fullWidth
       />
+      {!isExpoGo ? (
+        <Button
+          title="Sign in with a passkey"
+          variant="outline"
+          onPress={() => void submitPasskey()}
+          loading={busy}
+          size="lg"
+          fullWidth
+        />
+      ) : null}
       <SocialButtons onDone={finishSignIn} onEmailCode={() => void startEmailCode()} />
       <View style={{ flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 8 }}>
         <Text variant="small" tone="muted">

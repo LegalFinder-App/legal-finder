@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarClock, Camera, ClipboardList, ExternalLink, Mic, Video } from "lucide-react";
+import { CalendarClock, Camera, ClipboardList, ExternalLink, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, StatusPill } from "@/components/common/bits";
 import { appointmentsQuery, documentsQuery } from "@/lib/queries";
@@ -30,28 +30,36 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
   );
 
   const trialRoomBase = import.meta.env.VITE_LIVE_TRIAL_ROOM_BASE_URL || "https://meet.jit.si";
-  const activeHearing = liveHearings[0] ?? (appointments.data ?? [])[0] ?? null;
+  const activeHearing = liveHearings[0] ?? null;
   const roomSlug = activeHearing
     ? normalizeRoomSlug(activeHearing.subject || activeHearing.id)
-    : "legalfinder-courtroom";
-  const roomUrl = `${trialRoomBase.replace(/\/$/, "")}/${roomSlug}`;
+    : null;
+  const roomUrl = roomSlug
+    ? `${trialRoomBase.replace(/\/$/, "")}/${roomSlug}`
+    : null;
 
   return (
-    <section className="card p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-4">
+    <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-plate sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-4">
         <div>
           <p className="eyebrow text-brass">Court operations</p>
           <h2 className="mt-1 font-display text-xl font-semibold">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Hearings can be launched as live video rooms, with the hearing record, evidence
-            checklist and documents shown alongside the session.
+            Video hearings can open in a third-party meeting room (default Jitsi). This is a
+            convenience link — not an official court recording, transcript or registry filing.
           </p>
         </div>
-        <Button asChild variant="brass" size="sm" disabled={!activeHearing}>
-          <a href={roomUrl} target="_blank" rel="noreferrer">
-            Join courtroom room <ExternalLink className="h-4 w-4" />
-          </a>
-        </Button>
+        {roomUrl ? (
+          <Button asChild variant="brass" size="sm" className="rounded-xl">
+            <a href={roomUrl} target="_blank" rel="noreferrer">
+              Join meeting room <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        ) : (
+          <Button variant="brass" size="sm" className="rounded-xl" disabled>
+            Join meeting room
+          </Button>
+        )}
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
@@ -59,8 +67,8 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
           {liveHearings.length === 0 ? (
             <EmptyState
               icon={<Video className="h-8 w-8" />}
-              title="No live hearings scheduled"
-              description="Mark an appointment as video, remote or live hearing to surface it here."
+              title="No video hearings scheduled"
+              description="When you book a video or live hearing, a join link will appear here."
             />
           ) : (
             liveHearings.slice(0, 3).map((hearing) => {
@@ -68,7 +76,7 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
               return (
                 <div
                   key={hearing.id}
-                  className="rounded-lg border border-border bg-secondary/30 p-4"
+                  className="rounded-xl border border-border/70 bg-secondary/25 p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -86,11 +94,7 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Camera className="h-3.5 w-3.5" />
-                      Live room ready
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Mic className="h-3.5 w-3.5" />
-                      Audio and transcript notes
+                      Third-party video room
                     </span>
                   </div>
                 </div>
@@ -99,35 +103,29 @@ export function LiveCourtroomPanel({ title = "Live court trials" }: { title?: st
           )}
         </div>
 
-        <div className="space-y-3 card p-4">
+        <div className="space-y-3 rounded-xl border border-border/70 bg-secondary/15 p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-display text-base font-semibold">Hearing workspace</p>
               <p className="text-xs text-muted-foreground">
-                Open the live room, review filings and track evidence.
+                Documents on file for this account — open the meeting only when a hearing exists.
               </p>
             </div>
             <ClipboardList className="h-5 w-5 text-brass" />
           </div>
 
-          <div className="rounded-md bg-secondary/40 p-3 text-sm text-foreground/85">
-            <p className="font-semibold">Room link</p>
-            <p className="mt-1 break-all text-xs text-muted-foreground">{roomUrl}</p>
-          </div>
-
-          <div className="rounded-md bg-secondary/40 p-3 text-sm text-foreground/85">
-            <p className="font-semibold">Available evidence</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {documents.data?.length ?? 0} document(s) ready for presentation and sharing during
-              the hearing.
+          <div className="rounded-lg bg-card/80 p-3 text-sm ring-1 ring-border/60">
+            <p className="font-semibold">Meeting link</p>
+            <p className="mt-1 break-all text-xs text-muted-foreground">
+              {roomUrl ?? "Available once a video hearing is scheduled."}
             </p>
           </div>
 
-          <div className="rounded-md bg-secondary/40 p-3 text-sm text-foreground/85">
-            <p className="font-semibold">Live trial flow</p>
+          <div className="rounded-lg bg-card/80 p-3 text-sm ring-1 ring-border/60">
+            <p className="font-semibold">Documents on file</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              The courtroom room can be opened on iOS, Android, macOS, Windows and Linux through the
-              same web bundle, with installable PWA support for browsers that expose it.
+              {documents.data?.length ?? 0} document(s) in your vault — share them yourself in the
+              meeting if needed. LegalFinder does not record or transcribe the call.
             </p>
           </div>
         </div>

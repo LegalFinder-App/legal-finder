@@ -46,7 +46,7 @@ type Action = {
 
 const ACTIONS: Action[] = [
   { icon: Users, label: "Find advocate", href: "/(tabs)/advocates" },
-  { icon: Sparkles, label: "Ask assistant", href: "/assistant" },
+  { icon: Sparkles, label: "Counsellor AI", href: "/assistant" },
   { icon: FileText, label: "Documents", href: "/documents" },
   { icon: ShieldAlert, label: "Report", href: "/report" },
 ];

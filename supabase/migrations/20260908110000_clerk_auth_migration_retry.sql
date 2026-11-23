@@ -298,8 +298,9 @@ CREATE POLICY "push_subscription_own" ON public.push_subscriptions FOR ALL TO au
 
 CREATE POLICY "payments_read" ON public.payments FOR SELECT TO authenticated
   USING (client_id = (auth.jwt()->>'sub') OR lawyer_id = (auth.jwt()->>'sub') OR public.has_role((auth.jwt()->>'sub'), 'admin'));
+-- Direct inserts closed — use create_consultation_payment() (20261123140000).
 CREATE POLICY "payments_client_insert" ON public.payments FOR INSERT TO authenticated
-  WITH CHECK (client_id = (auth.jwt()->>'sub'));
+  WITH CHECK (false);
 CREATE POLICY "payments_admin_update" ON public.payments FOR UPDATE TO authenticated
   USING (public.has_role((auth.jwt()->>'sub'), 'admin')) WITH CHECK (public.has_role((auth.jwt()->>'sub'), 'admin'));
 

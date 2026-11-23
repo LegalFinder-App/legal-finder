@@ -8,11 +8,13 @@ export async function handleAssistantStreamRequest(request: Request): Promise<Re
   const { UnauthorizedError, authenticateClerkRequest } =
     await import("@/integrations/supabase/auth.server");
   const { RateLimitError, enforceRateLimit } = await import("@/lib/rate-limit.server");
+  const { AiConsentRequiredError, requireAiConsent } = await import("@/lib/ai-consent.server");
   const { streamAssistant } = await import("@/lib/assistant.server");
   const { ZodError } = await import("zod");
 
   try {
     const { userId } = await authenticateClerkRequest(request);
+    await requireAiConsent(userId);
     await enforceRateLimit("assistant", userId);
 
     const raw = await request.json().catch(() => null);
@@ -67,6 +69,9 @@ export async function handleAssistantStreamRequest(request: Request): Promise<Re
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return Response.json({ error: "Please sign in again." }, { status: 401 });
+    }
+    if (error instanceof AiConsentRequiredError) {
+      return Response.json({ error: error.message }, { status: 403 });
     }
     if (error instanceof RateLimitError) {
       return Response.json(

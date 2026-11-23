@@ -38,6 +38,7 @@ import { initiatePesapalPayment } from "@/lib/payments.functions";
 import { prefetchForPage } from "@/lib/prefetch";
 import { appSettingsQuery } from "@/lib/app-settings";
 import { formatNumber } from "@/lib/format";
+import { ReportDialog } from "@/components/app/messaging/report-dialog";
 
 export const Route = createFileRoute("/lawyers/$lawyerId")({
   // Prefetch for the page, then hand the record's name to head() for the tab title.
@@ -81,11 +82,14 @@ export const Route = createFileRoute("/lawyers/$lawyerId")({
 
 function LawyerProfile() {
   const { lawyerId } = Route.useParams();
+  const { user } = useSession();
   const { data: lawyer, isLoading } = useQuery(lawyerQuery(lawyerId));
   const { data: reviews } = useQuery(reviewsQuery(lawyerId));
   const { data: siteMedia } = useQuery(siteMediaQuery);
+  const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
   const practiceIllustration =
     lawyer && siteMedia ? matchPracticeAreaMedia(siteMedia, lawyer.practice_areas) : undefined;
+  const reportingReview = (reviews ?? []).find((r) => r.id === reportingReviewId) ?? null;
 
   if (isLoading) {
     return (
@@ -289,18 +293,37 @@ function LawyerProfile() {
               ) : (
                 (reviews ?? []).map((r) => (
                   <div key={r.id} className="card p-5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold">{r.author_name}</p>
                       <Stars value={r.rating} />
                     </div>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                       {r.comment}
                     </p>
+                    {user && r.author_id && r.author_id !== user.id ? (
+                      <button
+                        type="button"
+                        className="mt-3 text-xs font-medium text-brass underline-offset-2 hover:underline"
+                        onClick={() => setReportingReviewId(r.id)}
+                      >
+                        Report review
+                      </button>
+                    ) : null}
                   </div>
                 ))
               )}
             </div>
             <ReviewForm lawyerId={lawyer.id} />
+            <ReportDialog
+              open={Boolean(reportingReview)}
+              target={
+                reportingReview
+                  ? { type: "review", id: reportingReview.id, label: "this review" }
+                  : null
+              }
+              reporterId={user?.id}
+              onClose={() => setReportingReviewId(null)}
+            />
           </div>
         </div>
 
@@ -416,18 +439,9 @@ function BookingDialog({
       return;
     }
 
-    // Paid consultation: create the pending payment record, then hand off to Pesapal.
+    // Paid consultation: fee-checked RPC, then hand off to Pesapal.
     const { data: payment, error: paymentError } = await supabase
-      .from("payments")
-      .insert({
-        appointment_id: appointment.id,
-        client_id: user.id,
-        lawyer_id: lawyerUserId,
-        amount: consultationFee,
-        currency: "UGX",
-        description: `Consultation with ${lawyerName}`,
-      })
-      .select()
+      .rpc("create_consultation_payment", { p_appointment_id: appointment.id })
       .single();
 
     if (paymentError || !payment) {

@@ -62,9 +62,9 @@ export function CounsellorSidebar({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onOpenChange(false);
     };
-    const mobile = window.matchMedia("(max-width: 1023px)");
+    const drawerMode = window.matchMedia("(max-width: 1279px)");
     const previous = document.body.style.overflow;
-    if (mobile.matches) document.body.style.overflow = "hidden";
+    if (drawerMode.matches) document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
 
     const root = drawerRef.current;
@@ -100,20 +100,20 @@ export function CounsellorSidebar({
   }, [open, onOpenChange]);
 
   const panel = (
-    <aside className="flex h-full w-[min(18.5rem,85vw)] flex-col border-r border-border/70 bg-card/95 backdrop-blur-md">
-      <div className="flex items-center justify-between gap-2 border-b border-border/70 px-4 py-4">
+    <aside className="flex h-full w-[min(18.5rem,85vw)] flex-col border-r border-border/60 bg-card/98 shadow-[4px_0_24px_-18px_oklch(0.2_0.04_262/0.45)] backdrop-blur-xl">
+      <div className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-4">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brass/15 text-brass">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-brass/25 bg-gradient-to-br from-brass/25 to-brass/5 text-brass shadow-inner">
             <CounsellorMark className="h-4 w-4" />
           </span>
           <div>
-            <p className="text-sm font-semibold tracking-tight">Counsellor AI</p>
-            <p className="text-[11px] text-muted-foreground">Legal intelligence</p>
+            <p className="font-display text-sm font-semibold tracking-tight">Counsellor AI</p>
+            <p className="text-[11px] text-muted-foreground">Grounded Uganda guidance</p>
           </div>
         </div>
         <button
           type="button"
-          className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary lg:hidden"
+          className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary xl:hidden"
           onClick={() => onOpenChange(false)}
           aria-label="Close sidebar"
         >
@@ -273,7 +273,7 @@ export function CounsellorSidebar({
       <button
         type="button"
         onClick={() => onOpenChange(true)}
-        className="absolute left-3 top-3.5 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card/90 text-foreground shadow-sm backdrop-blur lg:hidden"
+        className="absolute left-3 top-3.5 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card/90 text-foreground shadow-sm backdrop-blur xl:hidden"
         aria-label="Open conversation history"
         aria-expanded={open}
         aria-controls="counsellor-sidebar-drawer"
@@ -281,11 +281,11 @@ export function CounsellorSidebar({
         <Menu className="h-4 w-4" />
       </button>
 
-      <div className="hidden h-full shrink-0 lg:block">{panel}</div>
+      <div className="hidden h-full shrink-0 xl:block">{panel}</div>
 
       {open && (
         <div
-          className="fixed inset-0 z-40 lg:hidden"
+          className="fixed inset-0 z-40 xl:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Counsellor conversations"

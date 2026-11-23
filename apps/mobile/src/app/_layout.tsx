@@ -16,11 +16,10 @@ import { useFonts } from "expo-font";
 // One file per weight, by path: importing from a font package's index would bundle every weight
 // and italic it ships (dozens of unused font files in the app).
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
-import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
-import { PublicSans_400Regular } from "@expo-google-fonts/public-sans/400Regular";
-import { PublicSans_500Medium } from "@expo-google-fonts/public-sans/500Medium";
-import { PublicSans_600SemiBold } from "@expo-google-fonts/public-sans/600SemiBold";
-import { PublicSans_700Bold } from "@expo-google-fonts/public-sans/700Bold";
+import { PlusJakartaSans_400Regular } from "@expo-google-fonts/plus-jakarta-sans/400Regular";
+import { PlusJakartaSans_500Medium } from "@expo-google-fonts/plus-jakarta-sans/500Medium";
+import { PlusJakartaSans_600SemiBold } from "@expo-google-fonts/plus-jakarta-sans/600SemiBold";
+import { PlusJakartaSans_700Bold } from "@expo-google-fonts/plus-jakarta-sans/700Bold";
 import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono/500Medium";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
 import { persister, queryClient, shouldPersistQuery } from "@/lib/query-client";
@@ -34,6 +33,7 @@ import { useRealtimeSync } from "@/lib/realtime";
 import { BiometricGate } from "@/components/BiometricGate";
 import { ConnectionGate, StillConnecting } from "@/components/ConnectionGate";
 import { DesktopShell } from "@/components/DesktopShell";
+import { WelcomeGate } from "@/features/welcome/WelcomeGate";
 
 // Expo Router wraps the whole app in this; without it a render error closes a release build.
 export { RootErrorBoundary as ErrorBoundary } from "@/components/RootErrorBoundary";
@@ -109,30 +109,32 @@ function RootNavigator({ fontsLoaded }: { fontsLoaded: boolean }) {
     <>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <AuthBridge />
-      <BiometricGate>
-        <DesktopShell>
-          <Stack
-            screenOptions={{
-              headerStyle: { backgroundColor: colors.background },
-              headerTintColor: colors.foreground,
-              headerTitleStyle: { fontFamily: "Fraunces_600SemiBold", fontSize: 18 },
-              headerShadowVisible: false,
-              headerBackButtonDisplayMode: "minimal",
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
-          </Stack>
-        </DesktopShell>
-      </BiometricGate>
+      <WelcomeGate>
+        <BiometricGate>
+          <DesktopShell>
+            <Stack
+              screenOptions={{
+                headerStyle: { backgroundColor: colors.background },
+                headerTintColor: colors.foreground,
+                headerTitleStyle: { fontFamily: "PlusJakartaSans_600SemiBold", fontSize: 18 },
+                headerShadowVisible: false,
+                headerBackButtonDisplayMode: "minimal",
+                contentStyle: { backgroundColor: colors.background },
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: "modal" }} />
+            </Stack>
+          </DesktopShell>
+        </BiometricGate>
+      </WelcomeGate>
       <AlertHost />
       <Toaster
         position="top-center"
         theme={scheme}
         toastOptions={{
-          titleStyle: { fontFamily: "PublicSans_600SemiBold" },
-          descriptionStyle: { fontFamily: "PublicSans_400Regular" },
+          titleStyle: { fontFamily: "PlusJakartaSans_600SemiBold" },
+          descriptionStyle: { fontFamily: "PlusJakartaSans_400Regular" },
           // A phone toast spans the screen; on a wide desktop window that would be a banner.
           style: wide ? { width: 420, alignSelf: "center" } : undefined,
         }}
@@ -144,11 +146,10 @@ function RootNavigator({ fontsLoaded }: { fontsLoaded: boolean }) {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Fraunces_600SemiBold,
-    Fraunces_700Bold,
-    PublicSans_400Regular,
-    PublicSans_500Medium,
-    PublicSans_600SemiBold,
-    PublicSans_700Bold,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
     IBMPlexMono_500Medium,
   });
 

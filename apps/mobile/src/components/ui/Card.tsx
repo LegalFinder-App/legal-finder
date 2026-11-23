@@ -11,7 +11,7 @@ interface CardProps extends ViewProps {
   accessibilityLabel?: string;
 }
 
-/** The web's bordered "plate" card: white on paper, a soft ink shadow, 8px radius. */
+/** The web's bordered plate card: cool ink surface, soft shadow, 16px radius. */
 export function Card({
   children,
   onPress,
@@ -55,9 +55,9 @@ export function Card({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: radius.xl,
+    borderRadius: radius["2xl"],
     borderWidth: StyleSheet.hairlineWidth,
-    shadowColor: "#0b182b",
+    shadowColor: "#0a152a",
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 18,
     elevation: 2,

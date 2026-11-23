@@ -32,9 +32,11 @@ function Page() {
   return (
     <AiConsentGate
       onDecline={() => void navigate({ to: ROLE_HOME[primaryRole] })}
-      frameClassName="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-3xl items-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
+      frameClassName="flex min-h-0 w-full flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:py-8"
     >
-      <AssistantWorkspace />
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+        <AssistantWorkspace />
+      </div>
     </AiConsentGate>
   );
 }

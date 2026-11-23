@@ -7,11 +7,10 @@ const VERSION = "2.0.0";
 const ANDROID_VERSION_CODE = 13;
 const IOS_BUILD_NUMBER = "6";
 
-// The Expo (EAS) project these builds belong to — expo.dev/accounts/ochienodavid/projects/legalfinder,
-// created by `eas init`. An identifier, not a secret: EAS Build refuses to run without it, and Expo
-// push tokens are issued per project.
-const EXPO_OWNER = "ochienodavid";
-const EAS_PROJECT_ID = "3e51f2b9-07dc-4ca6-8644-68648a4eeb69";
+// The Expo (EAS) project these builds belong to — expo.dev project id (not a secret).
+// Push tokens and credentials are scoped to this project.
+const EXPO_OWNER = "legalfinders-team";
+const EAS_PROJECT_ID = "36ddc61d-d64d-495f-a1b4-12ac4cdaa8c9";
 
 // Push stays off in the app until everything behind it exists (README, "Push notifications"):
 // with only the project id above, the switch would appear on iOS and fail when tapped.
@@ -25,10 +24,12 @@ const config: ExpoConfig = {
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
-  backgroundColor: "#fcfaf6",
+  backgroundColor: "#f8fafc",
   ios: {
     bundleIdentifier: "com.legalfinder.app",
     buildNumber: IOS_BUILD_NUMBER,
+    // Passkeys: add associatedDomains (webcredentials:…) once Clerk Native Applications are set —
+    // see README "Clerk passkeys".
     // iPhone only for the first release. The layout is a phone layout (useWideLayout is desktop
     // only) and has never been run on an iPad, and iPad support needs its own App Store
     // screenshots. It can be switched on in a later version, but once a version ships with it
@@ -84,7 +85,7 @@ const config: ExpoConfig = {
     ],
     [
       "expo-notifications",
-      { icon: "./assets/notification-icon.png", color: "#bb8739", defaultChannel: "default" },
+      { icon: "./assets/notification-icon.png", color: "#956809", defaultChannel: "default" },
     ],
     [
       "expo-local-authentication",

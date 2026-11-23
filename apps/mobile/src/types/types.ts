@@ -622,6 +622,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          ai_consent_at: string | null;
           avatar_url: string | null;
           bio: string | null;
           city: string | null;
@@ -635,6 +636,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          ai_consent_at?: string | null;
           avatar_url?: string | null;
           bio?: string | null;
           city?: string | null;
@@ -648,6 +650,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          ai_consent_at?: string | null;
           avatar_url?: string | null;
           bio?: string | null;
           city?: string | null;
@@ -819,6 +822,33 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      consume_rate_limit: {
+        Args: {
+          p_key: string;
+          p_limit: number;
+          p_window_seconds: number;
+        };
+        Returns: {
+          allowed: boolean;
+          retry_after_seconds: number;
+        }[];
+      };
+      create_consultation_payment: {
+        Args: { p_appointment_id: string };
+        // Array form so .rpc(...).single() types correctly (payments omitted from Tables).
+        Returns: {
+          id: string;
+          appointment_id: string | null;
+          client_id: string;
+          lawyer_id: string | null;
+          amount: number;
+          currency: string;
+          status: string;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"];

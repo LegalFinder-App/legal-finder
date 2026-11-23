@@ -21,6 +21,8 @@
     scroll-padding-top: calc(var(--header-h) + var(--safe-top) + 1rem);
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    /* Windows laptop scrollbars + occasional 100vw children can otherwise force sideways scroll. */
+    overflow-x: clip;
   }
 
   body {
@@ -33,6 +35,8 @@
     /* Keeps scrollable content clear of a home indicator/gesture bar; 0px outside a native
        shell or notched device. */
     padding-bottom: var(--safe-bottom);
+    overflow-x: clip;
+    max-width: 100%;
   }
 
   h1,
@@ -284,6 +288,10 @@
   }
   @media (width >= 64rem) {
     --gutter: 2rem;
+  }
+  /* Extra breathing room on 1440p+ office monitors so the column doesn't feel edge-to-edge. */
+  @media (width >= 90rem) {
+    --gutter: 2.5rem;
   }
 }
 
@@ -843,6 +851,19 @@ html [data-sonner-toaster][data-sonner-theme="light"] {
 
 .counsellor-shell {
   animation: counsellor-rise 420ms var(--ease-standard, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  container-type: inline-size;
+  container-name: counsellor;
+}
+
+/* Keep prose / tables from blowing the chat column on narrow laptop widths. */
+.counsellor-shell .counsellor-prose {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.counsellor-shell .counsellor-prose pre,
+.counsellor-shell .counsellor-prose table {
+  max-width: 100%;
 }
 
 .counsellor-welcome {
