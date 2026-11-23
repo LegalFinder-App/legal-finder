@@ -2,8 +2,8 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export class AiConsentRequiredError extends Error {
-  constructor() {
-    super("Please allow Counsellor AI in Settings → Privacy before continuing.");
+  constructor(message = "Please allow Counsellor AI in Settings → Privacy before continuing.") {
+    super(message);
     this.name = "AiConsentRequiredError";
   }
 }
@@ -18,6 +18,11 @@ export async function requireAiConsent(userId: string): Promise<void> {
 
   if (error) {
     console.error("[ai-consent]", error.message);
+    if (/ai_consent_at|schema cache|column/i.test(error.message)) {
+      throw new AiConsentRequiredError(
+        "AI consent isn't set up on the database yet. Run migration 20261123130000_ai_consent.sql in the Supabase SQL Editor, then try Allow and continue again.",
+      );
+    }
     throw new AiConsentRequiredError();
   }
   if (!data?.ai_consent_at) throw new AiConsentRequiredError();

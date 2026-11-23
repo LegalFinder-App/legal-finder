@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/session";
-import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/lib/toast";
 import { clearCounsellorDataForUser } from "@/components/app/counsellor/storage";
+import { getAiConsent, setAiConsent } from "@/lib/ai-consent.functions";
 
 // The assistant and AI-assisted drafting send what the person types to Anthropic.
 // Consent is stored on profiles.ai_consent_at (server-enforced) and cached in localStorage.
@@ -9,18 +10,18 @@ const storageKey = (userId: string) => `lf.ai-consent.${userId}`;
 const queryKey = (userId: string | undefined) => ["ai-consent", userId] as const;
 
 async function readConsent(userId: string): Promise<boolean> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("ai_consent_at")
-    .eq("id", userId)
-    .maybeSingle();
-  if (data?.ai_consent_at) {
-    try {
-      window.localStorage.setItem(storageKey(userId), data.ai_consent_at);
-    } catch {
-      // ignore
+  try {
+    const result = await getAiConsent();
+    if (result.allowed && result.at) {
+      try {
+        window.localStorage.setItem(storageKey(userId), result.at);
+      } catch {
+        // ignore
+      }
+      return true;
     }
-    return true;
+  } catch (error) {
+    console.error("[ai-consent]", error);
   }
   try {
     window.localStorage.removeItem(storageKey(userId));
@@ -42,33 +43,37 @@ export function useAiConsent() {
   });
 
   const set = async (allowed: boolean) => {
-    if (!userId) return;
-    const stamp = allowed ? new Date().toISOString() : null;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ ai_consent_at: stamp })
-      .eq("id", userId);
-    if (error) {
-      console.error("[ai-consent]", error.message);
-      return;
+    if (!userId) {
+      toast.error("Please sign in again to continue.");
+      return false;
     }
     try {
-      if (allowed && stamp) window.localStorage.setItem(storageKey(userId), stamp);
-      else {
-        window.localStorage.removeItem(storageKey(userId));
-        clearCounsellorDataForUser(userId);
+      const result = await setAiConsent({ data: { allowed } });
+      try {
+        if (allowed && result.at) window.localStorage.setItem(storageKey(userId), result.at);
+        else {
+          window.localStorage.removeItem(storageKey(userId));
+          clearCounsellorDataForUser(userId);
+        }
+      } catch {
+        // query cache below still updates
       }
-    } catch {
-      // query cache below still updates
+      queryClient.setQueryData(queryKey(userId), allowed);
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not save AI permission. Please try again.";
+      toast.error(message);
+      console.error("[ai-consent]", message);
+      return false;
     }
-    queryClient.setQueryData(queryKey(userId), allowed);
   };
 
   return {
     loading: sessionLoading || (Boolean(userId) && stored.isLoading),
     allowed: stored.data === true,
     ready: Boolean(userId) && !stored.isLoading,
-    allow: () => void set(true),
-    withdraw: () => void set(false),
+    allow: () => set(true),
+    withdraw: () => set(false),
   };
 }

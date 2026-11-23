@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, Lock, Scale, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,20 @@ export function AiConsentGate({
   frameClassName?: string;
 }) {
   const consent = useAiConsent();
+  const [saving, setSaving] = useState(false);
 
   if (consent.allowed) return <>{children}</>;
   const frame = (content: ReactNode) =>
     frameClassName ? <div className={frameClassName}>{content}</div> : content;
+
+  const agree = async () => {
+    setSaving(true);
+    try {
+      await consent.allow();
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (consent.loading) {
     return frame(
@@ -101,8 +111,14 @@ export function AiConsentGate({
       </ul>
 
       <div className="mt-7 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-        <Button type="button" variant="brass" className="w-full sm:w-auto" onClick={consent.allow}>
-          Allow and continue
+        <Button
+          type="button"
+          variant="brass"
+          className="w-full sm:w-auto"
+          disabled={saving}
+          onClick={() => void agree()}
+        >
+          {saving ? "Saving…" : "Allow and continue"}
         </Button>
         <Button
           type="button"

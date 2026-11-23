@@ -61,6 +61,7 @@ import { Route as ApiCronLegalFeedRouteImport } from './routes/api.cron.legal-fe
 import { Route as ApiCronLegalIndexRouteImport } from './routes/api.cron.legal-index'
 import { Route as ApiFlutterwaveWebhookRouteImport } from './routes/api.flutterwave.webhook'
 import { Route as ApiMobileSplatRouteImport } from './routes/api.mobile.$'
+import { Route as ApiMobileAiConsentRouteImport } from './routes/api.mobile.ai-consent'
 import { Route as ApiMobileAssistantRouteImport } from './routes/api.mobile.assistant'
 import { Route as ApiMobileSessionRouteImport } from './routes/api.mobile.session'
 import { Route as ApiPesapalCallbackRouteImport } from './routes/api.pesapal.callback'
@@ -355,6 +356,11 @@ const ApiMobileSplatRoute = ApiMobileSplatRouteImport.update({
   path: '/api/mobile/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMobileAiConsentRoute = ApiMobileAiConsentRouteImport.update({
+  id: '/api/mobile/ai-consent',
+  path: '/api/mobile/ai-consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMobileAssistantRoute = ApiMobileAssistantRouteImport.update({
   id: '/api/mobile/assistant',
   path: '/api/mobile/assistant',
@@ -553,6 +559,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
+  '/api/mobile/ai-consent': typeof ApiMobileAiConsentRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRouteWithChildren
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
@@ -630,6 +637,7 @@ export interface FileRoutesByTo {
   '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
+  '/api/mobile/ai-consent': typeof ApiMobileAiConsentRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRouteWithChildren
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
@@ -711,6 +719,7 @@ export interface FileRoutesById {
   '/api/cron/legal-index': typeof ApiCronLegalIndexRoute
   '/api/flutterwave/webhook': typeof ApiFlutterwaveWebhookRoute
   '/api/mobile/$': typeof ApiMobileSplatRoute
+  '/api/mobile/ai-consent': typeof ApiMobileAiConsentRoute
   '/api/mobile/assistant': typeof ApiMobileAssistantRouteWithChildren
   '/api/mobile/session': typeof ApiMobileSessionRoute
   '/api/pesapal/callback': typeof ApiPesapalCallbackRoute
@@ -792,6 +801,7 @@ export interface FileRouteTypes {
     | '/api/cron/legal-index'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
+    | '/api/mobile/ai-consent'
     | '/api/mobile/assistant'
     | '/api/mobile/session'
     | '/api/pesapal/callback'
@@ -869,6 +879,7 @@ export interface FileRouteTypes {
     | '/api/cron/legal-index'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
+    | '/api/mobile/ai-consent'
     | '/api/mobile/assistant'
     | '/api/mobile/session'
     | '/api/pesapal/callback'
@@ -949,6 +960,7 @@ export interface FileRouteTypes {
     | '/api/cron/legal-index'
     | '/api/flutterwave/webhook'
     | '/api/mobile/$'
+    | '/api/mobile/ai-consent'
     | '/api/mobile/assistant'
     | '/api/mobile/session'
     | '/api/pesapal/callback'
@@ -1010,6 +1022,7 @@ export interface RootRouteChildren {
   ApiCronLegalIndexRoute: typeof ApiCronLegalIndexRoute
   ApiFlutterwaveWebhookRoute: typeof ApiFlutterwaveWebhookRoute
   ApiMobileSplatRoute: typeof ApiMobileSplatRoute
+  ApiMobileAiConsentRoute: typeof ApiMobileAiConsentRoute
   ApiMobileAssistantRoute: typeof ApiMobileAssistantRouteWithChildren
   ApiMobileSessionRoute: typeof ApiMobileSessionRoute
   ApiPesapalCallbackRoute: typeof ApiPesapalCallbackRoute
@@ -1393,6 +1406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobileSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mobile/ai-consent': {
+      id: '/api/mobile/ai-consent'
+      path: '/api/mobile/ai-consent'
+      fullPath: '/api/mobile/ai-consent'
+      preLoaderRoute: typeof ApiMobileAiConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/mobile/assistant': {
       id: '/api/mobile/assistant'
       path: '/api/mobile/assistant'
@@ -1730,6 +1750,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronLegalIndexRoute: ApiCronLegalIndexRoute,
   ApiFlutterwaveWebhookRoute: ApiFlutterwaveWebhookRoute,
   ApiMobileSplatRoute: ApiMobileSplatRoute,
+  ApiMobileAiConsentRoute: ApiMobileAiConsentRoute,
   ApiMobileAssistantRoute: ApiMobileAssistantRouteWithChildren,
   ApiMobileSessionRoute: ApiMobileSessionRoute,
   ApiPesapalCallbackRoute: ApiPesapalCallbackRoute,
@@ -1749,13 +1770,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

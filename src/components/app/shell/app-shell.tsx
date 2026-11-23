@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh max-h-svh overflow-hidden">
       <CollapseNavOnCounsellor />
       <AppSidebar />
       <SidebarInset className="min-h-0 overflow-hidden bg-[radial-gradient(ellipse_at_top,oklch(0.55_0.05_262/0.04),transparent_55%),var(--background)]">
