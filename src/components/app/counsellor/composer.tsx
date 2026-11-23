@@ -150,7 +150,7 @@ export function MessageComposer({
           placeholder={placeholder}
           aria-label="Message to Counsellor AI"
           aria-describedby="counsellor-composer-hint"
-          className="max-h-[180px] min-h-[48px] w-full resize-none bg-transparent px-3 py-2.5 text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/70 disabled:opacity-60"
+          className="max-h-[min(180px,28vh)] min-h-[44px] w-full resize-none bg-transparent px-2.5 py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/70 disabled:opacity-60 sm:min-h-[48px] sm:px-3 sm:py-2.5 sm:text-[15px]"
         />
         <div className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-0.5 sm:gap-3 sm:px-2">
           <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">

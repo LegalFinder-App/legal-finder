@@ -111,7 +111,7 @@ function JudgementsPage() {
             className="animate-aurora absolute -left-16 top-8 -z-10 h-64 w-64 rounded-full bg-[oklch(0.78_0.115_80/0.16)] blur-[90px]"
           />
 
-          <div className="grid gap-10 px-5 py-12 sm:px-10 sm:py-14 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-12 lg:px-14 lg:py-16">
+          <div className="grid gap-10 px-5 py-12 sm:px-8 sm:py-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:gap-10 lg:px-10 lg:py-12 2xl:px-14 2xl:py-16">
             <div>
               <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
                 <Gavel className="h-3.5 w-3.5" aria-hidden /> Case law

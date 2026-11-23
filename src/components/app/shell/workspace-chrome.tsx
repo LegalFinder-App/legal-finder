@@ -15,9 +15,9 @@ export function WorkspaceFrame({
   return (
     <div
       className={cn(
-        "relative mx-auto w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8",
-        // Cap below full HD so HP/Dell 1080p–1440p workspaces keep side margins.
-        wide ? "max-w-7xl" : "max-w-6xl",
+        "relative mx-auto w-full px-4 py-6 sm:px-5 sm:py-8 lg:px-6 lg:py-8",
+        // Keep workspaces readable on scaled Windows laptop CSS widths (~1280–1536).
+        wide ? "max-w-6xl" : "max-w-5xl",
         className,
       )}
     >

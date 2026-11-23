@@ -462,7 +462,7 @@ export function CounsellorWorkspace() {
   };
 
   return (
-    <div className="counsellor-shell relative flex h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] max-h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden border-t border-border/60 bg-[linear-gradient(180deg,oklch(0.55_0.08_80/0.06),transparent_18%),var(--background)]">
+    <div className="counsellor-shell relative flex h-[calc(100dvh-var(--header-h,3.5rem)-env(safe-area-inset-top,0px))] max-h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden border-t border-border/60 bg-[linear-gradient(180deg,oklch(0.55_0.08_80/0.06),transparent_18%),var(--background)]">
       <CounsellorSidebar
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}

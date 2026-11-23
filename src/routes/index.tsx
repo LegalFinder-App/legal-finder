@@ -163,7 +163,7 @@ function Index() {
             className="animate-aurora absolute -bottom-48 right-0 -z-10 h-[34rem] w-[34rem] rounded-full bg-[oklch(0.55_0.15_258/0.35)] blur-[120px] [animation-delay:-9s]"
           />
 
-          <div className="grid items-center gap-14 px-5 pb-16 pt-10 sm:px-10 sm:pb-20 sm:pt-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12 lg:px-14 lg:py-20 xl:px-16 xl:py-24">
+          <div className="grid items-center gap-10 px-5 pb-12 pt-9 sm:gap-12 sm:px-8 sm:pb-14 sm:pt-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:px-10 lg:py-14 2xl:gap-12 2xl:px-14 2xl:py-20">
             <div className="min-w-0">
               <p className="animate-rise inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-3.5 text-xs font-medium text-ink-foreground/85 surface-glass-ink">
                 <img
@@ -287,7 +287,7 @@ function Index() {
       )}
 
       {/* ---------- Pillars (bento) ---------- */}
-      <section className="container-page py-16 sm:py-20 lg:py-28">
+      <section className="container-page py-12 sm:py-16 lg:py-20 2xl:py-28">
         <div ref={pillarsRef}>
           <div className="reveal">
             <SectionHeading
@@ -332,7 +332,7 @@ function Index() {
       <HowItWorks advocates={list} />
 
       {/* ---------- Featured advocates ---------- */}
-      <section className="container-page py-16 sm:py-20 lg:py-28">
+      <section className="container-page py-12 sm:py-16 lg:py-20 2xl:py-28">
         <div ref={directoryRef}>
           <div className="reveal">
             <SectionHeading
@@ -439,7 +439,7 @@ function Index() {
       <section className="border-t border-border bg-secondary/40">
         <div
           ref={readingRef}
-          className="container-page grid gap-14 py-16 sm:py-20 lg:grid-cols-[1.3fr_1fr] lg:py-24"
+          className="container-page grid gap-10 py-12 sm:gap-12 sm:py-16 lg:grid-cols-[1.3fr_1fr] lg:py-20 2xl:gap-14 2xl:py-24"
         >
           <div>
             <div className="reveal">
@@ -510,13 +510,13 @@ function Index() {
         </div>
       </section>
 
-      <section className="container-page py-16 sm:py-20 lg:py-24">
+      <section className="container-page py-12 sm:py-16 lg:py-20 2xl:py-24">
         <PlatformMatrix />
       </section>
 
       {/* ---------- CTA ---------- */}
-      <section className="container-page pb-16 sm:pb-20">
-        <div className="relative isolate overflow-hidden rounded-[2rem] surface-ink px-6 py-16 text-center shadow-float dark:ring-1 dark:ring-white/10 sm:rounded-[2.5rem] sm:px-10 lg:py-24">
+      <section className="container-page pb-12 sm:pb-16 2xl:pb-20">
+        <div className="relative isolate overflow-hidden rounded-[2rem] surface-ink px-5 py-12 text-center shadow-float dark:ring-1 dark:ring-white/10 sm:rounded-[2.5rem] sm:px-8 sm:py-14 lg:py-16 2xl:px-10 2xl:py-20">
           <picture>
             <source
               type="image/avif"

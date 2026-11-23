@@ -53,7 +53,7 @@ function ReportHero({
           aria-hidden
           className="animate-aurora absolute -right-16 top-0 -z-10 h-72 w-72 rounded-full bg-[oklch(0.78_0.115_80/0.16)] blur-[90px]"
         />
-        <div className="px-5 py-12 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+        <div className="px-5 py-12 sm:px-10 sm:py-14 lg:px-10 lg:py-12 2xl:px-14 2xl:py-16">
           <p className="animate-rise inline-flex items-center gap-2 rounded-full px-3 py-1 eyebrow text-brass surface-glass-ink">
             <Shield className="h-3.5 w-3.5" aria-hidden /> Police services
           </p>

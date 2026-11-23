@@ -72,24 +72,25 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Fluid type scale: min at 320px; cap early so 1080p–ultrawide Windows desks don't inflate type. */
+/* Fluid type: keep readable on phones, but don't inflate on Windows laptop CSS widths
+   (FHD @ 125–150% OS scale ≈ 1280–1536 CSS px — the “zoomed in” complaint). */
 @theme {
-  --text-display: clamp(2.5rem, 1.85rem + 2.4vw, 4rem);
-  --text-display--line-height: 1.02;
-  --text-display--letter-spacing: -0.034em;
-  --text-h1: clamp(2.125rem, 1.7rem + 1.6vw, 3.125rem);
-  --text-h1--line-height: 1.06;
-  --text-h1--letter-spacing: -0.035em;
-  --text-h2: clamp(1.75rem, 1.45rem + 1.1vw, 2.5rem);
-  --text-h2--line-height: 1.1;
-  --text-h2--letter-spacing: -0.03em;
-  --text-h3: clamp(1.375rem, 1.2rem + 0.8vw, 1.875rem);
-  --text-h3--line-height: 1.2;
+  --text-display: clamp(2.125rem, 1.55rem + 1.6vw, 3.25rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.03em;
+  --text-h1: clamp(1.875rem, 1.45rem + 1.1vw, 2.625rem);
+  --text-h1--line-height: 1.08;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h2: clamp(1.5rem, 1.3rem + 0.7vw, 2.125rem);
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h3: clamp(1.25rem, 1.15rem + 0.4vw, 1.625rem);
+  --text-h3--line-height: 1.25;
   --text-h3--letter-spacing: -0.02em;
-  --text-h4: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  --text-h4: clamp(1.0625rem, 1.02rem + 0.2vw, 1.25rem);
   --text-h4--line-height: 1.3;
   --text-h4--letter-spacing: -0.015em;
-  --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-lead: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
   --text-lead--line-height: 1.6;
   --text-caption: 0.75rem;
   --text-caption--line-height: 1.4;
@@ -106,9 +107,9 @@
   --safe-left: env(safe-area-inset-left, 0px);
 
   --radius: 0.75rem;
-  /* Comfortable reading width on 1080p–1440p office monitors (HP/Dell); side margins grow beyond this. */
-  --container: 72rem;
-  --header-h: 4rem;
+  /* Narrower measure so scaled laptop viewports keep side air and don't feel edge-to-edge. */
+  --container: 64rem;
+  --header-h: 3.5rem;
 
   --duration-fast: 150ms;
   --duration-base: 250ms;
