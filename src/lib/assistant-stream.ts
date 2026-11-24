@@ -2,7 +2,7 @@ import type { CounsellorAdvocate } from "@/lib/assistant-advocates";
 import type { CounsellorAttachment } from "@/lib/assistant-attachments";
 import type { CounsellorSource } from "@/lib/assistant-sources";
 import type { CounsellorWebSource } from "@/lib/assistant-web-sources";
-import { clerkApiHeaders } from "@/lib/clerk-browser-token";
+import { clerkApiHeaders, requireClerkApiHeaders } from "@/lib/clerk-browser-token";
 
 export type StreamChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -27,7 +27,9 @@ export async function streamCounsellorReply(
   messages: StreamChatMessage[],
   handlers: StreamHandlers = {},
 ): Promise<void> {
-  const headers = await clerkApiHeaders({
+  // Require a Bearer JWT before the first POST — cookie-only requests were 401ing right after
+  // sign-in and looking like a dead Clerk session for users like Solomon.
+  const headers = await requireClerkApiHeaders({
     "Content-Type": "application/json",
     Accept: "text/event-stream",
   });
@@ -39,8 +41,6 @@ export async function streamCounsellorReply(
     attachments: handlers.attachments,
   });
 
-  // Prefer Bearer (registered from useAuth). If the JWT is still hydrating, still try with
-  // cookies — the server accepts either. Retry once on 401 after refreshing the token.
   let response = await fetch("/api/assistant/stream", {
     method: "POST",
     credentials: "include",

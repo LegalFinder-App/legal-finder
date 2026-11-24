@@ -21,7 +21,7 @@ import {
   saveResearchHistory,
   type ResearchHistoryEntry,
 } from "./storage";
-import { isSessionExpiredError, recoverExpiredSession } from "@/lib/session-watchdog";
+import { isSessionExpiredError, recoverIfSessionTrulyDead } from "@/lib/session-watchdog";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { ThinkingIndicator } from "./thinking-indicator";
@@ -391,10 +391,11 @@ export function CounsellorWorkspace() {
     } catch (error) {
       if (!controller.signal.aborted) {
         if (isSessionExpiredError(error)) {
-          await recoverExpiredSession({
+          await recoverIfSessionTrulyDead({
             userId,
             signOut,
             navigateToAuth: () => navigate({ to: "/auth", replace: true }),
+            softMessage: "Counsellor AI couldn't send that message.",
           });
         } else {
           toast.error(

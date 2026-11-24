@@ -6,11 +6,13 @@ import { toast } from "@/lib/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app/shell/app-shell";
 import { MaintenanceGate } from "@/components/site/maintenance-gate";
+import { LoadingRows } from "@/components/common/bits";
 import { useSession } from "@/lib/session";
 import { registerAppServiceWorker, showBrowserNotification } from "@/lib/platform-notifications";
 import { checkClerkSession } from "@/lib/clerk-session.functions";
 import { clientClerkUserId } from "@/lib/after-auth";
 import { clearAuthHandoff } from "@/lib/auth-handoff";
+import { ensureClerkLoaded } from "@/lib/clerk-load";
 import { startSessionWatchdog } from "@/lib/session-watchdog";
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -18,7 +20,8 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 /**
  * On a hard refresh, Clerk JS boots a moment after the first beforeLoad. Returning null too
  * early was bouncing signed-in people to /auth "at random". Wait for Clerk, then the cookie
- * check, before giving up.
+ * check, before giving up — but never await Clerk.load() without a timeout (that blanked
+ * /dashboard forever while only the Counsellor FAB stayed visible).
  */
 async function resolveUserId(): Promise<string | null> {
   if (typeof window !== "undefined") {
@@ -29,12 +32,9 @@ async function resolveUserId(): Promise<string | null> {
     } catch {
       // ignore
     }
-    const deadline = Date.now() + (handoff ? 12_000 : 8_000);
+    const deadline = Date.now() + (handoff ? 8_000 : 5_000);
     while (Date.now() < deadline) {
-      const clerk = window.Clerk;
-      if (clerk && !clerk.loaded) {
-        await clerk.load().catch(() => undefined);
-      }
+      const clerk = await ensureClerkLoaded(window.Clerk, 2_500);
       if (clerk?.loaded) {
         const id = clerk.user?.id ?? clerk.session?.user?.id ?? null;
         if (id) {
@@ -54,14 +54,17 @@ async function resolveUserId(): Promise<string | null> {
     return immediate;
   }
 
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 4; attempt++) {
     try {
-      const { userId } = await checkClerkSession();
+      const { userId } = await Promise.race([
+        checkClerkSession(),
+        sleep(2_500).then(() => ({ userId: null as string | null })),
+      ]);
       if (userId) return userId;
     } catch {
       // provisioning / transport blip
     }
-    await sleep(150 + attempt * 100);
+    await sleep(120 + attempt * 80);
     const again = clientClerkUserId();
     if (again) return again;
   }
@@ -69,8 +72,21 @@ async function resolveUserId(): Promise<string | null> {
   return clientClerkUserId();
 }
 
+function WorkspacePending() {
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
+      <div className="w-full max-w-lg space-y-3">
+        <p className="eyebrow text-center text-brass">LegalFinder</p>
+        <p className="text-center text-sm text-muted-foreground">Opening your workspace…</p>
+        <LoadingRows rows={4} />
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
+  pendingComponent: WorkspacePending,
   beforeLoad: async () => {
     const userId = await resolveUserId();
     if (!userId) {

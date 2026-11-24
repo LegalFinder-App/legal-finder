@@ -130,5 +130,27 @@ export function startSessionWatchdog(opts: {
 /** Map API/upload errors that mean the session is dead into recovery. */
 export function isSessionExpiredError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error ?? "");
-  return /please sign in again|no active clerk session|unauthorized/i.test(message);
+  // Do not match bare "unauthorized" — consent / RLS / rate-limit messages must not force logout.
+  return /please sign in again|no active clerk session|unauthorized:\s*no active/i.test(message);
+}
+
+/**
+ * Only force sign-out when the JWT (and cookie probe) are truly gone — a single 401 during
+ * hydrate must not eject a signed-in user from Counsellor AI.
+ */
+export async function recoverIfSessionTrulyDead(opts: {
+  userId?: string | null;
+  signOut: () => Promise<unknown>;
+  navigateToAuth: () => void | Promise<void>;
+  reason?: string;
+  softMessage?: string;
+}): Promise<boolean> {
+  const alive = await probeClerkSessionAlive();
+  if (alive) {
+    toast.error(opts.softMessage ?? "Counsellor AI couldn't complete that request.", {
+      description: "Your session looks fine — please try again.",
+    });
+    return false;
+  }
+  return recoverExpiredSession(opts);
 }

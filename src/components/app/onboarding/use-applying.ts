@@ -14,8 +14,11 @@ export function useApplying() {
     isApplicationRole(requested) &&
     !roles.includes(requested) &&
     !(apps.data ?? []).some((a) => a.role === requested);
+  // Only treat as loading while a fetch is in flight for a signed-in user. Disabled queries
+  // (no user id yet) must not keep the dashboard on a blank skeleton forever.
+  const loading = Boolean(user?.id) && (profile.isLoading || apps.isLoading);
   return {
-    loading: profile.isLoading || apps.isLoading,
+    loading,
     applying: primaryRole === "user" && (open || asked),
   };
 }

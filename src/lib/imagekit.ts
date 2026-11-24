@@ -1,6 +1,6 @@
 import { upload } from "@imagekit/javascript";
 import { supabase } from "@/integrations/supabase/client";
-import { clerkApiHeaders } from "@/lib/clerk-browser-token";
+import { clerkApiHeaders, requireClerkApiHeaders } from "@/lib/clerk-browser-token";
 
 const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -34,7 +34,7 @@ async function fetchImageKitUploadAuth(input: {
     });
 
   let response = await post(
-    await clerkApiHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+    await requireClerkApiHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
   );
 
   if (response.status === 401) {

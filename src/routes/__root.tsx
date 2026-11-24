@@ -161,9 +161,18 @@ function RootComponent() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
 
   // Bridge Clerk's React getToken to non-React fetch helpers (Counsellor AI, research).
+  // skipCache on retry — a stale null right after sign-in made Allow / chat look signed-out.
   useEffect(() => {
     if (!isLoaded) return;
-    registerClerkBrowserTokenGetter(isSignedIn ? () => getToken() : null);
+    registerClerkBrowserTokenGetter(
+      isSignedIn
+        ? async () => {
+            const first = await getToken();
+            if (first) return first;
+            return (await getToken({ skipCache: true })) ?? null;
+          }
+        : null,
+    );
     return () => registerClerkBrowserTokenGetter(null);
   }, [isLoaded, isSignedIn, getToken]);
 

@@ -8,7 +8,7 @@ import { MAX_ATTACHMENTS, type CounsellorAttachment } from "@/lib/assistant-atta
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/session";
-import { isSessionExpiredError, recoverExpiredSession } from "@/lib/session-watchdog";
+import { isSessionExpiredError, recoverIfSessionTrulyDead } from "@/lib/session-watchdog";
 import { AttachmentPreviewStrip } from "./media";
 import { CounsellorTrustStrip } from "./trust-strip";
 import { newId } from "./types";
@@ -81,10 +81,11 @@ export function MessageComposer({
       onAttachmentsChange(next);
     } catch (error) {
       if (isSessionExpiredError(error)) {
-        await recoverExpiredSession({
+        await recoverIfSessionTrulyDead({
           userId: user?.id,
           signOut,
           navigateToAuth: () => navigate({ to: "/auth", replace: true }),
+          softMessage: "Couldn't upload that attachment.",
         });
       } else {
         toast.error(error instanceof Error ? error.message : "Upload failed.");
