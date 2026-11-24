@@ -18,9 +18,7 @@ export async function ensureClerkLoaded(
   return clerk;
 }
 
-export async function waitForWindowClerk(
-  timeoutMs = 6_000,
-): Promise<Window["Clerk"] | undefined> {
+export async function waitForWindowClerk(timeoutMs = 6_000): Promise<Window["Clerk"] | undefined> {
   if (typeof window === "undefined") return undefined;
   const start = Date.now();
   while (!window.Clerk && Date.now() - start < timeoutMs) {

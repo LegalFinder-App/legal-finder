@@ -14,7 +14,9 @@ let recovering = false;
 function clientLooksSignedIn(): boolean {
   if (typeof window === "undefined") return false;
   const clerk = window.Clerk;
-  return Boolean(clerk?.user?.id || clerk?.session?.user?.id || clerk?.session?.status === "active");
+  return Boolean(
+    clerk?.user?.id || clerk?.session?.user?.id || clerk?.session?.status === "active",
+  );
 }
 
 /**

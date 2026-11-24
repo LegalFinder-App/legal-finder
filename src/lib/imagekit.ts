@@ -34,7 +34,10 @@ async function fetchImageKitUploadAuth(input: {
     });
 
   let response = await post(
-    await requireClerkApiHeaders({ "Content-Type": "application/json", Accept: "application/json" }),
+    await requireClerkApiHeaders({
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    }),
   );
 
   if (response.status === 401) {
