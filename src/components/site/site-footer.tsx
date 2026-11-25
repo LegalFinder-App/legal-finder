@@ -194,31 +194,6 @@ export function SiteFooter() {
       <div className="bg-gold text-ink pb-safe">
         <div className="container-page flex flex-col items-center gap-2 py-4 text-center text-xs font-medium lg:flex-row lg:justify-between lg:gap-6 lg:text-left">
           <p>© {new Date().getFullYear()} LegalFinder · Uganda's justice platform</p>
-          <p className="text-balance">
-            Designed and developed by{" "}
-            <a
-              href="https://ug.linkedin.com/in/bitingojosaphatjb"
-              target="_blank"
-              rel="noopener"
-              className="inline-flex min-h-9 items-center whitespace-nowrap font-bold underline decoration-ink/40 underline-offset-2 hover:decoration-ink"
-            >
-              Bitingo Josaphat (JB)
-              <span className="sr-only"> on LinkedIn (opens in a new tab)</span>
-            </a>
-            <span aria-hidden> · </span>
-            <span className="whitespace-nowrap">
-              Powered by{" "}
-              <a
-                href="https://pytech.dev"
-                target="_blank"
-                rel="noopener"
-                className="inline-flex min-h-9 items-center font-bold underline decoration-ink/40 underline-offset-2 hover:decoration-ink"
-              >
-                Pytech Innovations Ltd.
-                <span className="sr-only"> (opens pytech.dev in a new tab)</span>
-              </a>
-            </span>
-          </p>
           <nav aria-label="Legal" className="flex flex-wrap items-center justify-center gap-x-5">
             <Link
               to="/terms-of-service"
